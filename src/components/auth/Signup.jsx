@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState ,useEffect} from "react";
+import { useSession } from "next-auth/react"; // Add this import
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +31,7 @@ import Signin from "./Signin";
 import SigninWithGoogle from "@/components/SigninWithGoogle/SigninWithGoogle";
 import SigninWithFcb from "@/components/SigninWithFcb/SigninWithFcb";
 export default function Signup() {
+  const { data: session, status } = useSession();
   const [userType, setUserType] = useState("regular");
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -97,6 +100,30 @@ export default function Signup() {
     { id: "emergency", label: "Emergency Care" },
   ];
 
+  useEffect(() => {
+    if (session) {
+      console.log("Session Data:", session);
+      console.log("User Info:", session.user);
+      console.log("Authentication Status:", status);
+    }
+  }, [session, status]);
+
+  useEffect(() => {
+    if (session?.user) {
+      // Split the full name into first and last name
+      const [firstName, ...lastNameParts] = session.user.name.split(" ");
+      const lastName = lastNameParts.join(" ");
+
+      setFormData(prev => ({
+        ...prev,
+        firstName: firstName || "",
+        lastName: lastName || "",
+        email: session.user.email || "",
+        // Keep other fields as they are
+      }));
+    }
+  }, [session]);
+
   return (
     <div className="min-h-screen bg-[#EDF6F9] py-12">
       {/* Paw print background pattern */}
@@ -113,7 +140,7 @@ export default function Signup() {
         <div className="max-w-4xl mx-auto">
           <Link
             href="./home"
-            className="inline-flex items-center text-[#E29578] hover:underline mb-6"
+            className="inline-flex items-center text-[#E29578] hover:underline mb-1"
           >
             <ArrowLeft size={16} className="mr-2" />
             Back to Home
@@ -126,7 +153,7 @@ export default function Signup() {
           >
             <Card className="border-none shadow-lg">
               <CardHeader className="bg-[#E29578] text-white rounded-t-lg">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
                   <Paw size={24} />
                   <div>
                     <CardTitle className="text-2xl">
