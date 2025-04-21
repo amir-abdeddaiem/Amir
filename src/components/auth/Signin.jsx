@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog,
+  Dialog, DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X } from "lucide-react";
+import { X, Mail, Lock, Phone } from "lucide-react";
 import Link from "next/link";
+import SigninWithGoogle from "@/components/SigninWithGoogle/SigninWithGoogle";
+import SigninWithFcb from "@/components/SigninWithFcb/SigninWithFcb";
 
 export default function Signin({ isOpen, onClose }) {
   const [email, setEmail] = useState("");
@@ -27,94 +29,121 @@ export default function Signin({ isOpen, onClose }) {
     e.preventDefault();
     // Handle sign in logic here
     console.log("Sign in:", { email, password, rememberMe });
-    // Close modal on success
-    onClose();
+    // Close modal on success (potentially after API call)
+    // onClose();
   };
+
+  const handleExternalClose = () => {
+    if (onClose) {
+      onClose();
+    }
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogTrigger asChild>
-        <Button className="bg-[#E29578] text-white" variant="outline">
+        <Button variant="link" className="text-[#E29578] p-0 h-auto hover:underline">
           Sign in
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-        <DialogHeader className="bg-[#E29578] text-white p-6 rounded-t-lg">
-          <div className="flex justify-between items-center">
-            <DialogTitle className="text-2xl font-bold">
-              Welcome Back
-            </DialogTitle>
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-lg">
+        <DialogHeader className="bg-[#E29578] text-white p-6 pt-8 relative">
+          <DialogTitle className="text-2xl font-semibold text-center">Welcome Back!</DialogTitle>
+          <DialogDescription className="text-white/80 text-center mt-1">
+            Sign in to your Animal's Club account
+          </DialogDescription>
+          <DialogClose asChild>
             <Button
               variant="ghost"
               size="icon"
-              onClick={onClose}
-              className="text-white hover:bg-white/20"
+              onClick={handleExternalClose}
+              className="absolute top-3 right-3 text-white/70 hover:text-white hover:bg-white/20 rounded-full w-8 h-8"
             >
-              sign in
-              <X size={18} />
+              <X size={20} />
+              <span className="sr-only">Close</span>
             </Button>
-          </div>
-          <DialogDescription className="text-white/80">
-            Sign in to your Animal's Club account
-          </DialogDescription>
+          </DialogClose>
         </DialogHeader>
 
         <Tabs defaultValue="email" className="w-full">
-          <div className="px-6 pt-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="email">Email</TabsTrigger>
-              <TabsTrigger value="phone">Phone</TabsTrigger>
+          <div className="px-6 pt-4">
+            <TabsList className="grid w-full grid-cols-2 mb-4 bg-gray-100 p-1 rounded-md">
+              <TabsTrigger
+                value="email"
+                className="text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#E29578] rounded-sm"
+              >
+                Email
+              </TabsTrigger>
+              <TabsTrigger
+                value="phone"
+                className="text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#E29578] rounded-sm"
+              >
+                Phone
+              </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="email" className="p-6">
+          <TabsContent value="email" className="px-6 pb-6 pt-2">
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                <div className="space-y-1">
+                  <Label htmlFor="email-signin">Email</Label>
+                  <div className="relative flex items-center">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email-signin"
+                      type="email"
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password-signin">Password</Label>
                     <Link
                       href="/forgot-password"
                       className="text-xs text-[#E29578] hover:underline"
+                      onClick={handleExternalClose}
                     >
                       Forgot password?
                     </Link>
                   </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <div className="relative flex items-center">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="password-signin"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="pl-10"
+                      placeholder="Enter your password"
+                    />
+                  </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="remember"
-                    checked={rememberMe}
-                    onCheckedChange={setRememberMe}
-                  />
-                  <Label htmlFor="remember" className="text-sm">
-                    Remember me
-                  </Label>
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="remember-signin"
+                      checked={rememberMe}
+                      onCheckedChange={setRememberMe}
+                      aria-label="Remember me"
+                    />
+                    <Label htmlFor="remember-signin" className="text-sm font-normal text-gray-600 cursor-pointer">
+                      Remember me
+                    </Label>
+                  </div>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full bg-[#E29578] hover:bg-[#d88a6d]"
+                  className="w-full bg-[#E29578] hover:bg-[#d88a6d] h-10 text-base mt-4"
                 >
                   Sign In
                 </Button>
@@ -122,22 +151,26 @@ export default function Signin({ isOpen, onClose }) {
             </form>
           </TabsContent>
 
-          <TabsContent value="phone" className="p-6">
+          <TabsContent value="phone" className="px-6 pb-6 pt-2">
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+1 (555) 000-0000"
-                    required
-                  />
+                <div className="space-y-1">
+                  <Label htmlFor="phone-signin">Phone Number</Label>
+                  <div className="relative flex items-center">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="phone-signin"
+                      type="tel"
+                      placeholder="+1 (555) 000-0000"
+                      required
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full bg-[#E29578] hover:bg-[#d88a6d]"
+                  className="w-full bg-[#E29578] hover:bg-[#d88a6d] h-10 text-base mt-4"
                 >
                   Send Verification Code
                 </Button>
@@ -146,52 +179,27 @@ export default function Signin({ isOpen, onClose }) {
           </TabsContent>
         </Tabs>
 
-        <DialogFooter className="flex flex-col space-y-4 px-6 pb-6 pt-2">
-          <div className="text-center w-full">
+        <DialogFooter className="flex flex-col space-y-4 px-6 pb-6 pt-4 bg-gray-50 border-t border-gray-200">
+          <div className="text-center text-sm text-gray-600 w-full">
             Don't have an account?{" "}
             <Link
               href="/register"
-              className="text-[#E29578] font-medium hover:underline"
-              onClick={onClose}
+              className="font-medium text-[#E29578] hover:underline"
+              onClick={handleExternalClose}
             >
-              Register
+              Sign up
             </Link>
           </div>
 
-          <div className="flex items-center justify-center w-full">
-            <div className="h-px bg-gray-200 w-full"></div>
-            <span className="px-4 text-gray-400 text-sm">OR</span>
-            <div className="h-px bg-gray-200 w-full"></div>
+          <div className="flex items-center justify-center w-full py-2">
+            <div className="h-px bg-gray-200 flex-grow"></div>
+            <span className="px-4 text-gray-400 text-xs font-medium uppercase">Or sign in with</span>
+            <div className="h-px bg-gray-200 flex-grow"></div>
           </div>
 
-          <div className="flex gap-4 w-full">
-            <Button variant="outline" className="w-full">
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                <path
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  fill="#4285F4"
-                />
-                <path
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  fill="#34A853"
-                />
-                <path
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  fill="#FBBC05"
-                />
-                <path
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  fill="#EA4335"
-                />
-              </svg>
-              Google
-            </Button>
-            <Button variant="outline" className="w-full">
-              <svg className="w-5 h-5 mr-2" fill="#1877F2" viewBox="0 0 24 24">
-                <path d="M9.198 21.5h4v-8.01h3.604l.396-3.98h-4V7.5a1 1 0 0 1 1-1h3v-4h-3a5 5 0 0 0-5 5v2.01h-2l-.396 3.98h2.396v8.01Z" />
-              </svg>
-              Facebook
-            </Button>
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <SigninWithGoogle />
+            <SigninWithFcb />
           </div>
         </DialogFooter>
       </DialogContent>

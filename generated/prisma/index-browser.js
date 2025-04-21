@@ -110,15 +110,9 @@ Prisma.NullTypes = {
  * Enums
  */
 
-exports.Prisma.UsersScalarFieldEnum = {
+exports.Prisma.TestScalarFieldEnum = {
   id: 'id',
-  email: 'email',
-  name: 'name',
-  password: 'password',
-  role: 'role',
-  bussness: 'bussness',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  name: 'name'
 };
 
 exports.Prisma.SortOrder = {
@@ -133,7 +127,7 @@ exports.Prisma.QueryMode = {
 
 
 exports.Prisma.ModelName = {
-  Users: 'Users'
+  test: 'test'
 };
 
 /**
