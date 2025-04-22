@@ -6,7 +6,10 @@ export async function POST(req: Request) {
   const body = await req.json()
 
   try {
-    const newUser = await User.create({ name: body.name })
+    const newUser = await User.create({ 
+      name: body.name 
+    
+    })
     return new Response(JSON.stringify(newUser), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
