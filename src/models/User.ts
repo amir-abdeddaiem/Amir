@@ -2,7 +2,6 @@ import mongoose from 'mongoose'
 import { tree } from 'next/dist/build/templates/app-page'
 
 const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
   birthDate :{type:Date,require:true},
   email :{type:String,require:true},
   firstName:{type:String, require:true },

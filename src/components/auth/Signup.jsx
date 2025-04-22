@@ -28,16 +28,15 @@ export default function Signup() {
   const [userType, setUserType] = useState("regular");
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    // Common fields
+    accType:"",
     email: "",
     password: "",
+    confirmPassword: "",
     location: "",
-    // Regular user fields
     firstName: "",
     lastName: "",
     gender: "",
     birthDate: "",
-    // Service provider fields
     businessName: "",
     businessType: "",
     certifications: "",
@@ -91,22 +90,22 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Submitting form:", formData);
-    const payload = {
-      email: formData.email,
-      password: formData.password,
-      ...(userType === "regular" ? {
-          name: formData.firstName,
-          lastName: formData.lastName,
+    // const payload = {
+    //   email: formData.email,
+    //   password: formData.password,
+    //   ...(userType === "regular" ? {
+    //       name: formData.firstName,
+    //       lastName: formData.lastName,
 
-      } : {
-          name: formData.businessName, 
+    //   } : {
+    //       name: formData.businessName, 
          
-      })
-    };
-    console.log(payload); 
+    //   })
+    // };
+    // console.log(payload); 
 
     try {
-      const response = await axios.post('/api/register', payload);
+      const response = await axios.post('/api/register', formData);
       const data  = response.data;
 
       if (!data.success) {
@@ -146,6 +145,7 @@ export default function Signup() {
   useEffect(() => {
     // Reset step when user type changes
     setStep(1);
+    setFormData(prev => ({ ...prev, accType: userType }));
   }, [userType]);
 
   // --- Render Logic ---
