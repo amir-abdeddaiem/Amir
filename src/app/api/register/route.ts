@@ -1,51 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma';
+import { connectDB } from '@/lib/db'
+import { User } from '@/models/User'
 
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
+  await connectDB()
+  const body = await req.json()
+
   try {
-    const body = await request.json();
-
-    const {
-      email,
-      password,
-      firstName,
-      lastName,
-      phone,
-      location,
-      gender,
-      birthDate,
-      businessName,
-      businessType,
-      certifications, // assumed to be a string (ID)
-      description,
-      services = [], // assumed to be an array of string IDs
-    } = body;
-
-    // Basic validation (optional but recommended)
-    if (!email || !password || !firstName || !lastName) {
-      return NextResponse.json(
-        { success: false, message: "Missing required fields" },
-        { status: 403 }
-      );
-    }
-
-    const user = await prisma.test.create({
-        data: {
-            name: "test"
-        }
-
-      
-    });
-
-    return NextResponse.json(
-      { success: true, message: "User created successfully", user },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error("Error creating user:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to create user", error: error.message },
-      { status: 500 }
-    );
+    const newUser = await User.create({ name: body.name })
+    return new Response(JSON.stringify(newUser), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  } catch (error) {
+    return new Response(JSON.stringify({ error: 'User creation failed' }), {
+      status: 500,
+    })
   }
 }
