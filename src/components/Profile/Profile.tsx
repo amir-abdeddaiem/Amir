@@ -1,30 +1,43 @@
-'use client'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { useSession } from "next-auth/react"
-import SigninWithGoogle from "../SigninWithGoogle/SigninWithGoogle";
-import Image from "next/image";
-import SigninWithFcb from "../SigninWithFcb/SigninWithFcb";
-
-function Profile() {
-    const {data , status } = useSession();
-  return (
-    <div>
-      {status === "loading" && <p>Loading...</p>}
-      {status === "unauthenticated" && (<SigninWithFcb/>)&& (<SigninWithGoogle/>)}
-      {status === "authenticated"&&(
-        <>
-            <h1> {data.user?.name}</h1>
-            <Image
-               src={data.user?.image as string}
-                alt="profile"
-                 width={100} 
-                 height={100}/>
-                <p>{data.user?.email}</p>
-            
-        </>
-      )}
-    </div>
-  )
+interface UserProfileProps {
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    birthDate?: string;
+    gender?: string;
+    location?: string;
+    phone?: string;
+    avatar?: string;
+    bio?: string;
+  };
 }
 
-export default Profile
+export function Profile({ user }: UserProfileProps) {
+  const fullName = `${user.firstName} ${user.lastName}`;
+  
+  return (
+    <Card className="">
+      <CardHeader className="">
+        <Avatar className="w-32 h-32 mx-auto">
+          <AvatarImage src={user.avatar} alt={fullName} className="" />
+          <AvatarFallback className="">
+            {fullName
+              .split(" ")
+              .map((n) => n[0])
+              .join("")}
+          </AvatarFallback>
+        </Avatar>
+        <CardTitle className="text-center">{fullName}</CardTitle>
+      </CardHeader>
+      <CardContent className="">
+        {user.bio && <p className="text-center mb-4">{user.bio}</p>}
+        {user.location && <p className="text-center mb-2">📍 {user.location}</p>}
+        <Button className="w-full" variant="default" size="md">Edit Profile</Button>
+      </CardContent>
+    </Card>
+  );
+}

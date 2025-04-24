@@ -36,7 +36,7 @@
     "**/*.tsx",
     "src/**/*.ts",
     "src/**/*.tsx"
-  ],
+, "src/app/(pages)/g/page.jsx"  ],
   "exclude": [
     "node_modules"
   ]

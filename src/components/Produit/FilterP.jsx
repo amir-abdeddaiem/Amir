@@ -83,7 +83,7 @@ export function FilterP() {
   return (
     <div
       className={cn(
-        "rounded-md flex flex-col md:flex-row bg-[#EDF6F9] w-full flex-1 max-w-7xl mx-auto border border-neutral-200 overflow-hidden",
+        "rounded-md flex flex-col md:flex-row bg-[#EDF6F9] w-full flex-1 max-w-7*1 mx-auto border border-neutral-200 overflow-hidden",
         "h-screen"
       )}
     >

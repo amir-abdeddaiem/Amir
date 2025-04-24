@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { tree } from 'next/dist/build/templates/app-page'
+
 
 const UserSchema = new mongoose.Schema({
   birthDate :{type:Date,require:true},
@@ -9,7 +9,11 @@ const UserSchema = new mongoose.Schema({
   lastName:{type:String,require:true},
   location:{type:String,require:true},
   password:{type:String,require:true},
-  phone:{type:String,require:true}
+  phone:{type:String,require:true},
+  avatar: { type: String },
+  bio: { type: String },  
+  pets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Pet' }],
+  posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }]
 
 })
 
