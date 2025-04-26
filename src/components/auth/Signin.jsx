@@ -19,18 +19,31 @@ import { X, Mail, Lock, Phone } from "lucide-react";
 import Link from "next/link";
 import SigninWithGoogle from "@/components/SigninWithGoogle/SigninWithGoogle";
 import SigninWithFcb from "@/components/SigninWithFcb/SigninWithFcb";
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
 
 export default function Signin({ isOpen, onClose }) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-
-  const handleSubmit = (e) => {
+  const [error, setError] = useState(null);
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle sign in logic here
-    console.log("Sign in:", { email, password, rememberMe });
-    // Close modal on success (potentially after API call)
-    // onClose();
+    setError(null);
+    
+    try {
+      const response = await axios.post('/api/login', { email, password });
+      const { token } = response.data;
+      if (token) {
+        Cookies.set('token', token, { expires: 1/24 }); // 1 hour
+        console.log('Token stored in cookie');
+        router.push('/userDashboard'); // Redirect to user dashboard
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed');
+    }
   };
 
   const handleExternalClose = () => {
