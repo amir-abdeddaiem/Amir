@@ -1,13 +1,12 @@
-// import ProfileTabs from "@/components/Profile/Profile";
-// import Profile from "@/components/Profile/Profile";
-// import React from "react";
+import UpdateUser from "@/components/Profile/UpdateUser";
+import React from "react";
 
-// function page() {
-//   return (
-//     <div>
-//       <Profile />
-//     </div>
-//   );
-// }
+function page() {
+  return (
+    <div>
+      <UpdateUser />
+    </div>
+  );
+}
 
-// export default page;
+export default page;

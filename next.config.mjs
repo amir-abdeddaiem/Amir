@@ -5,6 +5,15 @@ const nextConfig = {
         domains: ["platform-lookaside.fbsbx.com"],
         domains: ["images.unsplash.com"],
       },
+
+
+      experimental: {
+        turbo: false, // disable Turbopack in dev mode
+      },
+
+
+      
 };
 
-export default nextConfig;
+
+
