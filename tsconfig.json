@@ -36,7 +36,7 @@
     "**/*.tsx",
     "src/**/*.ts",
     "src/**/*.tsx"
-, "src/app/(pages)/g/page.jsx", "src/components/Profile/UserProfile.tsx"  ],
+, "src/app/(pages)/Profile/page.jsx", "src/components/Profile/ProfilePicture.tsx", "src/components/Profile/UpdateUser.jsx"  ],
   "exclude": [
     "node_modules"
   ]

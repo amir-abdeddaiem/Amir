@@ -32,7 +32,7 @@ export function FilterP() {
     },
     {
       label: "Profile",
-      href: "../../../user/[id]",
+      href: "../../../user",
       icon: (
         <IconUserBolt className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
@@ -134,7 +134,7 @@ export function FilterP() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#83C5BE] focus:outline-none focus:ring-2 focus:ring-[#006D77]"
+              className="w-[40%] pl-10 pr-4 py-2 rounded-lg border border-[#83C5BE] focus:outline-none focus:ring-2 focus:ring-[#006D77]"
             />
             <IconSearch className="absolute left-3 top-2.5 text-[#006D77] h-5 w-5" />
           </div>

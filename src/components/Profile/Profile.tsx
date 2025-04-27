@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 interface BusinessProvider {
   businessName?: string;
@@ -45,8 +46,8 @@ export function Profile({ userId, userEmail }: UserProfileProps) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleClick = () => {
-    router.push(`/g`); // Navigates to the update page
+  const goToProfile = () => {
+    router.push("/Profile");
   };
 
   useEffect(() => {
@@ -55,24 +56,19 @@ export function Profile({ userId, userEmail }: UserProfileProps) {
         setLoading(true);
         setError(null);
 
-        let query = '';
+        let params: { id?: string; email?: string } = {};
         if (userId) {
-          query = `id=${userId}`;
+          params = { id: userId };
         } else if (userEmail) {
-          query = `email=${userEmail}`;
+          params = { email: userEmail };
         } else if (session?.user?.email) {
-          query = `email=${session.user.email}`;
+          params = { email: session.user.email };
         } else {
           throw new Error('No user identifier available');
         }
 
-        const response = await fetch(`/api/register?${query}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch user data');
-        }
-
-        const data = await response.json();
-        setUser(data);
+        const response = await axios.get(`/api/profile/${params.id || ''}`, { params });
+        setUser(response.data);
       } catch (err) {
         console.error('Failed to fetch user data:', err);
         setError(err instanceof Error ? err.message : 'Failed to load profile');
@@ -158,9 +154,9 @@ export function Profile({ userId, userEmail }: UserProfileProps) {
           </div>
         )}
         <Button
+          onClick={goToProfile}
           variant="default"
           size="md"
-          onClick={handleClick}
           className="w-full bg-[#83C5BE] text-white hover:bg-[#83C5BE]/90"
         >
           Edit Profile

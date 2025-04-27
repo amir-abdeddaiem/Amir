@@ -1,6 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import axios, { AxiosError } from "axios";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,79 +15,124 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+type Gender = 'male' | 'female' | 'other';
 
-
-
-interface ProfileFormProps {
-  profileData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    birthDate: string;
-    gender: 'male' | 'female' | 'other';
-    location: string;
-    bio: string;
-    avatar: string;
-  };
-  setProfileData: React.Dispatch<React.SetStateAction<{
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    birthDate: string;
-    gender: 'male' | 'female' | 'other';
-    location: string;
-    bio: string;
-    avatar: string;
-  }>>;
-  onSave: () => void;
+interface ProfileData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  birthDate: string;
+  gender: Gender;
+  location: string;
+  bio: string;
 }
 
-export default function UpdateUser({ 
-  profileData, 
-  setProfileData, 
-  onSave 
-}: ProfileFormProps) {
-  
-  const handleChange = (field: string, value: string) => {
+interface ApiResponse {
+  data?: ProfileData;
+  error?: string;
+}
+
+export default function UpdateProfile({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const [profileData, setProfileData] = useState<ProfileData>({
+    id: params.id,
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    birthDate: "",
+    gender: "other",
+    location: "",
+    bio: "",
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get<ApiResponse>(`/api/profile/${params.id}`);
+        
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+
+        if (response.data.data) {
+          setProfileData(response.data.data);
+        }
+      } catch (err) {
+        const error = err as AxiosError<ApiResponse>;
+        setError(error.response?.data?.error || "Failed to fetch profile");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [params.id]);
+
+  const handleChange = <K extends keyof ProfileData>(field: K, value: ProfileData[K]) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
   };
-  
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    
+    try {
+      setIsLoading(true);
+      const response = await axios.put<ApiResponse>(`/api/profile/${params.id}`, profileData);
+      
+      if (response.data.error) {
+        throw new Error(response.data.error);
+      }
 
+      router.push("/profile");
+    } catch (err) {
+      const error = err as AxiosError<ApiResponse>;
+      setError(error.response?.data?.error || "Failed to update profile");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  if (isLoading) {
+    return <div className="p-4 text-center">Loading profile data...</div>;
+  }
+
+  if (error) {
+    return <div className="p-4 text-center text-red-500">{error}</div>;
+  }
 
   return (
-    <motion.div 
-      className="space-y-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.2 }}
-    >
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-4">
+      <h1 className="text-2xl font-bold text-[#006D77]">Update Profile</h1>
+      
       {/* Personal Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="firstName" className="text-[#006D77] font-medium">First Name</Label>
+          <Label htmlFor="firstName" className="">First Name</Label>
           <Input
             id="firstName"
             type="text"
-            placeholder="Enter your first name"
+            className=""
             value={profileData.firstName}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('firstName', e.target.value)}
-            className="border-[#83C5BE] focus:border-[#006D77] bg-white"
+            required
           />
         </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="lastName" className="text-[#006D77] font-medium">Last Name</Label>
+        <div className="space-y-2">²
+          <Label htmlFor="lastName" className="">Last Name</Label>
           <Input
+          type="text"
+            className=""
             id="lastName"
-            type="text"
-            placeholder="Enter your last name"
             value={profileData.lastName}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('lastName', e.target.value)}
-            className="border-[#83C5BE] focus:border-[#006D77] bg-white"
+            required
           />
         </div>
       </div>
@@ -93,26 +140,25 @@ export default function UpdateUser({
       {/* Contact Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-[#006D77] font-medium">Email</Label>
+          <Label  className = ""htmlFor="email">Email</Label>
           <Input
+          type="text"
+            className=""
             id="email"
-            type="email"
-            placeholder="Enter your email"
+            
             value={profileData.email}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('email', e.target.value)}
-            className="border-[#83C5BE] focus:border-[#006D77] bg-white"
+            required
           />
         </div>
-        
         <div className="space-y-2">
-          <Label htmlFor="phone" className="text-[#006D77] font-medium">Phone</Label>
+          <Label  className = "" htmlFor="phone">Phone</Label>
           <Input
+          className=""
             id="phone"
             type="tel"
-            placeholder="Enter your phone number"
             value={profileData.phone}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('phone', e.target.value)}
-            className="border-[#83C5BE] focus:border-[#006D77] bg-white"
           />
         </div>
       </div>
@@ -120,78 +166,78 @@ export default function UpdateUser({
       {/* Additional Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="birthDate" className="text-[#006D77] font-medium">Birth Date</Label>
+          <Label  className = "" htmlFor="birthDate">Birth Date</Label>
           <Input
+          className=""
             id="birthDate"
             type="date"
             value={profileData.birthDate}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('birthDate', e.target.value)}
-            className="border-[#83C5BE] focus:border-[#006D77] bg-white"
           />
         </div>
-        
         <div className="space-y-2">
-          <Label htmlFor="gender" className="text-[#006D77] font-medium">Gender</Label>
+          <Label htmlFor="gender" className="">Gender</Label>
           <Select 
             value={profileData.gender} 
-            onValueChange={(value: string) => handleChange('gender', value)}
+            onValueChange={(value: Gender) => handleChange('gender', value)}
+            required
           >
-            <SelectTrigger className="border-[#83C5BE] focus:border-[#006D77] bg-white">
+            <SelectTrigger className="">
               <SelectValue placeholder="Select gender" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-[#83C5BE]">
-              <SelectItem value="male" className="text-black">Male</SelectItem>
-              <SelectItem value="female" className="text-black">Female</SelectItem>
-              <SelectItem value="other" className="text-black">Other</SelectItem>
+            <SelectContent className="">
+              <SelectItem value="male" className="">Male</SelectItem>
+              <SelectItem value="female" className="">Female</SelectItem>
+              <SelectItem value="other" className="">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="location" className="text-[#006D77] font-medium">Location</Label>
+        <Label  className = ""htmlFor="location">Location</Label>
         <Input
           id="location"
           type="text"
-          placeholder="Enter your location"
+          className=""
           value={profileData.location}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('location', e.target.value)}
-          className="border-[#83C5BE] focus:border-[#006D77] bg-white"
         />
       </div>
 
-      {/* Bio Section */}
       <div className="space-y-2">
-        <Label htmlFor="bio" className="text-[#006D77] font-medium">About you</Label>
+        <Label htmlFor="bio" className="">About you</Label>
         <Textarea
           id="bio"
-          placeholder="Tell us about yourself"
-          className="min-h-[120px] resize-none border-[#83C5BE] focus:border-[#006D77] bg-white"
           value={profileData.bio}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('bio', e.target.value)}
+          className="min-h-[120px]"
         />
       </div>
       
-      {/* Action Buttons */}
-      <div className="flex items-center gap-2 pt-4 border-t border-[#83C5BE]">
+      {error && <div className="text-red-500 text-sm">{error}</div>}
+      
+      <div className="flex gap-4 pt-4">
         <Button
           type="button"
           variant="outline"
-          size="default"
-          className="border-[#83C5BE] text-[#006D77] hover:bg-[#83C5BE]/10"
+          className="btn-class" // Replace with appropriate class
+          size="md" // Replace with appropriate size
+          onClick={() => router.back()}
+          disabled={isLoading}
         >
           Cancel
-        <Button
-          type="button"
-          variant="default"
-          onClick={onSave}
-          size="default"
-          className="bg-[#E29578] text-white hover:bg-[#E29578]/90"
-        >
-          Save Changes
         </Button>
+        <Button
+          type="submit"
+          className="btn-class" // Replace with appropriate class
+          variant="primary" // Replace with appropriate variant
+          size="md" // Replace with appropriate size
+          disabled={isLoading}
+        >
+          {isLoading ? "Saving..." : "Save Changes"}
         </Button>
       </div>
-    </motion.div>
+    </form>
   );
 }
