@@ -3,13 +3,12 @@ import Navbar from "@/components/Navbar/Navbar";
 import HeroSection from "@/components/hero/HeroSection";
 import CoatsSection from "@/components/Coats/CoatsSection";
 
-// import ServicesSection from "@/components/servicess/ServicesSection";
+import ServicesSection from "@/components/servicess/ServicesSection";
 import LostFoundSection from "@/components/lost-found/LostFoundSection";
 import EventsSection from "@/components/Eventy/EventSection";
 import PartnersSection from "@/components/partners/PartnersSection";
 import Footer from "@/components/footer/Footer";
 import PawBackground from "@/components/background/PawBackground";
-import DogHeadMenu from "@/components/DogHeadMenu/DogHeadMenu";
 
 export default function HomePage() {
   return (
@@ -19,15 +18,13 @@ export default function HomePage() {
       <main className="relative z-10">
         <HeroSection />
         <CoatsSection />
-        {/* <ServicesSection /> */}
+        <ServicesSection />
         <LostFoundSection />
         <EventsSection />
         <PartnersSection />
       </main>
       <Footer />
-      <Suspense fallback={null}>
-        <DogHeadMenu />
-      </Suspense>
+      <Suspense fallback={null}></Suspense>
     </div>
   );
 }

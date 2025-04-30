@@ -1,11 +1,17 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import AddAnimalPopup from "../AddAnimalPopup/AddAnimalPopup";
+
+// import AddAnimal from "../Animal/Addanimal";";
 
 export default function HeroSection() {
+  const router = useRouter();
+  const addanimal = () => {
+    router.push("/add-animal"); // Naviguer vers la page /about
+  };
+
   return (
     <section className="relative overflow-hidden py-20">
       <div className="container mx-auto px-4">
@@ -46,10 +52,13 @@ export default function HeroSection() {
               everything your furry friend needs in one place.
             </p>
             <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
-              {/* <Button className="bg-[#E29578] text-white hover:bg-[#E29578]/90 px-8 py-6 text-lg">
+              <Button
+                onClick={addanimal}
+                className="bg-[#E29578] text-white hover:bg-[#E29578]/90 px-8 py-6 text-lg"
+              >
                 Add Animal
-              </Button> */}
-              <AddAnimalPopup />
+              </Button>
+              {/* <AddAnimal /> */}
               <Button
                 variant="outline"
                 className="border-[#83C5BE] text-[#83C5BE] hover:bg-[#83C5BE] hover:text-white px-8 py-6 text-lg"

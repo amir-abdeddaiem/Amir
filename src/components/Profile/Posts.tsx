@@ -1,5 +1,7 @@
+"use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
 interface Post {
   id: string | number;
   title: string;
@@ -13,7 +15,15 @@ interface PostsProps {
 }
 
 export function Posts({ posts }: PostsProps) {
+   const router = useRouter();
+    const addpost = () => {
+      router.push("/add-animal"); // Naviguer vers la page /about
+    };
   return (
+    <>
+    <Button  onClick={addpost}variant="default" size="lg" className="w-[60%] mx-auto my-4 h-8 bg-[#83C5BE] hover:bg-[#006D77] text-white flex items-center justify-center" >
+      Add Post
+    </Button>
     <div className="space-y-4">
       {posts.map((post) => (
         <Card key={post.id} className="">
@@ -30,5 +40,6 @@ export function Posts({ posts }: PostsProps) {
         </Card>
       ))}
     </div>
+    </>
   );
 }

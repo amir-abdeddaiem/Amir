@@ -9,7 +9,7 @@ import EventsSection from "@/components/Eventy/EventSection";
 import PartnersSection from "@/components/partners/PartnersSection";
 import Footer from "@/components/footer/Footer";
 import PawBackground from "@/components/background/PawBackground";
-import DogHeadMenu from "@/components/DogHeadMenu/DogHeadMenu";
+// import DogHeadMenu from "@/components/DogHeadMenu/DogHeadMenu";
 
 export default function HomePage() {
   return (
@@ -25,9 +25,7 @@ export default function HomePage() {
         <PartnersSection />
       </main>
       <Footer />
-      <Suspense fallback={null}>
-        <DogHeadMenu />
-      </Suspense>
+      <Suspense fallback={null}>{/* <DogHeadMenu /> */}</Suspense>
     </div>
   );
 }
