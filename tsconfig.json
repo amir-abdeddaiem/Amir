@@ -36,7 +36,7 @@
     "**/*.tsx",
     "src/**/*.ts",
     "src/**/*.tsx"
-, "src/app/(pages)/Profile/page.jsx", "src/components/Profile/ProfilePicture.tsx", "src/components/Profile/UpdateUser.jsx", "src/components/Add-Animal/Animalprofile.t=jsx"  ],
+, "src/app/(pages)/Profile/page.jsx", "src/components/Profile/ProfilePicture.tsx", "src/components/Profile/UpdateUser.jsx", "src/components/Add-Animal/Animalprofile.t=jsx", "src/components/ProfileAnimal/ProfileAnimal.jsx"  ],
   "exclude": [
     "node_modules"
   ]

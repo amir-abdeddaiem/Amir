@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,15 +11,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export default function DeleteConfirmationDialog({
-  deleteDialogOpen,
-  setDeleteDialogOpen,
-  handleDelete,
-  isSubmitting,
-  animal,
+export default function DeleteAnimal({
+  open,
+  onOpenChange,
+  onDelete,
+  animalName,
+  isDeleting,
 }) {
   return (
-    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
@@ -25,16 +27,16 @@ export default function DeleteConfirmationDialog({
           </AlertDialogTitle>
           <AlertDialogDescription>
             This action cannot be undone. This will permanently delete{" "}
-            {animal?.name}'s profile and remove all data associated with it.
+            {animalName}'s profile and remove all data associated with it.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={handleDelete}
+            onClick={onDelete}
             className="bg-red-500 hover:bg-red-600"
           >
-            {isSubmitting ? (
+            {isDeleting ? (
               <>
                 <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                 Deleting...

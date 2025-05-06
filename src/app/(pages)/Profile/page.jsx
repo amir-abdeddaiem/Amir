@@ -15,6 +15,7 @@ import Signout from "@/components/Signout/Signout";
 // Assuming Signin modal logic is handled correctly
 
 function page() {
+  const profileId = "68179fc6d6940f9cc667a5cf"; // This should be dynamic based on the logged-in user
   return (
     <div className="min-h-screen bg-[#EDF6F9] py-12 flex items-center justify-center">
       {/* Simplified outer div assuming AuthLayout might handle background/pattern */}
@@ -41,7 +42,7 @@ function page() {
             </CardHeader>
 
             <CardContent className="pt-6 px-6">
-              <UpdateUser />
+              <UpdateUser params={{ id: profileId }} />
             </CardContent>
 
             <CardFooter className="flex flex-col space-y-4 border-t bg-gray-50 p-6">

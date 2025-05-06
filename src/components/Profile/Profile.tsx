@@ -3,11 +3,10 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 interface BusinessProvider {
   businessName?: string;
@@ -40,7 +39,6 @@ interface UserProfileProps {
 }
 
 export function Profile({ userId, userEmail }: UserProfileProps) {
-  const { data: session, status: sessionStatus } = useSession();
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,36 +51,58 @@ export function Profile({ userId, userEmail }: UserProfileProps) {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        // Check if we have at least one identifier
+        if (!userId && !userEmail) {
+          setError("No user identifier provided");
+          setLoading(false);
+          return;
+        }
+
         setLoading(true);
         setError(null);
 
-        let params: { id?: string; email?: string } = {};
-        if (userId) {
-          params = { id: userId };
-        } else if (userEmail) {
-          params = { email: userEmail };
-        } else if (session?.user?.email) {
-          params = { email: session.user.email };
-        } else {
-          throw new Error('No user identifier available');
+        // Build request parameters
+        const params = {
+          ...(userId && { id: userId }),
+          ...(userEmail && { email: userEmail })
+        };
+
+        // Make API request
+        const { data } = await axios.get<UserData>("/api/profile", { 
+          params,
+          validateStatus: (status) => status < 500 // Don't throw for 404
+        });
+
+        if (!data) {
+          throw new Error("User data not found");
         }
 
-        const response = await axios.get(`/api/profile/${params.id || ''}`, { params });
-        setUser(response.data);
+        setUser(data);
       } catch (err) {
-        console.error('Failed to fetch user data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load profile');
+        const error = err as AxiosError<{ message?: string }> | Error;
+        
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 404) {
+            setError("User not found");
+          } else {
+            setError(
+              error.response?.data?.message || 
+              error.message || 
+              "Failed to load profile"
+            );
+          }
+        } else {
+          setError(error.message || "Failed to load profile");
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    if (sessionStatus !== "loading") {
-      fetchUserData();
-    }
-  }, [userId, userEmail, session?.user?.email, sessionStatus]);
+    fetchUserData();
+  }, [userId, userEmail]);
 
-  if (sessionStatus === "loading" || loading) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -106,29 +126,27 @@ export function Profile({ userId, userEmail }: UserProfileProps) {
     );
   }
 
-  if (!session) {
-    return <div className="text-center p-4">Please sign in to view profile</div>;
+  if (!user) {
+    return <div className="text-center p-4">No user data available</div>;
   }
 
-  const displayName = user?.firstName && user?.lastName
-    ? `${user.firstName} ${user.lastName}`
-    : session?.user?.name || 'User';
+  const displayName = [user.firstName, user.lastName]
+    .filter(Boolean)
+    .join(" ") || "User";
 
   const bio = user?.bio || user?.businessProvider?.description;
   const initials = displayName
-    .split(' ')
+    .split(" ")
     .filter(Boolean)
-    .map(n => n[0]?.toUpperCase() || '')
-    .join('');
-
-  const avatarUrl = user?.avatar || session?.user?.image || undefined;
+    .map(n => n[0]?.toUpperCase() || "")
+    .join("");
 
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader className="space-y-4">
         <Avatar className="w-32 h-32 mx-auto">
           <AvatarImage
-            src={avatarUrl}
+            src={user.avatar}
             alt={displayName}
             className="object-cover"
           />
@@ -142,13 +160,13 @@ export function Profile({ userId, userEmail }: UserProfileProps) {
         {bio && (
           <p className="text-center text-muted-foreground">{bio}</p>
         )}
-        {user?.location && (
+        {user.location && (
           <div className="flex items-center justify-center gap-1 text-sm">
             <span>📍</span>
             <span>{user.location}</span>
           </div>
         )}
-        {user?.businessProvider?.businessName && (
+        {user.businessProvider?.businessName && (
           <div className="text-center font-medium">
             {user.businessProvider.businessName}
           </div>
@@ -165,3 +183,6 @@ export function Profile({ userId, userEmail }: UserProfileProps) {
     </Card>
   );
 }
+
+
+export default Profile

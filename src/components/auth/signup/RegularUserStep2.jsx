@@ -6,15 +6,39 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+export default function RegularUserStep2({
+  formData,
+  handleChange,
+  handleSubmit,
+  prevStep,
+  setFormData,
+}) {
+  const router = useRouter();
 
-export default function RegularUserStep2({ formData, handleChange, handleSubmit, prevStep, setFormData }) {
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Call the provided handleSubmit and wait for it to complete
+      const success = await handleSubmit(e);
+
+      // Only navigate if the submission was successful
+      if (success) {
+        router.push("/profile");
+      }
+    } catch (error) {
+      // Handle any errors that might occur during submission
+      console.error("Form submission error:", error);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleFormSubmit}>
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="location">Location</Label>
@@ -74,10 +98,7 @@ export default function RegularUserStep2({ formData, handleChange, handleSubmit,
               <Checkbox id="terms" required />
               <Label htmlFor="terms" className="text-sm">
                 I agree to the{" "}
-                <Link
-                  href="/terms"
-                  className="text-[#E29578] hover:underline"
-                >
+                <Link href="/terms" className="text-[#E29578] hover:underline">
                   Terms of Service
                 </Link>{" "}
                 and{" "}
@@ -92,16 +113,13 @@ export default function RegularUserStep2({ formData, handleChange, handleSubmit,
           </div>
 
           <div className="pt-4 flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={prevStep}
-            >
+            <Button type="button" variant="outline" onClick={prevStep}>
               Back
             </Button>
             <Button
               type="submit"
               className="bg-[#E29578] hover:bg-[#d88a6d]"
+              onClick={handleFormSubmit}
             >
               Create Account
             </Button>
@@ -110,4 +128,4 @@ export default function RegularUserStep2({ formData, handleChange, handleSubmit,
       </form>
     </motion.div>
   );
-} 
+}

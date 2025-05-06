@@ -11,13 +11,23 @@ export async function GET(req: Request) {
       // Get query parameters from the request URL
       const { searchParams } = new URL(req.url)
       const userId = searchParams.get('id')
-  
+      const userEmail = searchParams.get('email')
+      if (!userId && !userEmail) {
+        return NextResponse.json(
+          { message: 'User ID or email is required' },
+          { status: 400 }
+        )
+      }
       let user
       let businessProviderInfo = null
   
 
         // Find user by ID
-        user = await User.findById(userId)
+        if (userId) {
+          user = await User.findById(userId)
+        } else {
+          user = await User.findOne({ email: userEmail })
+        }
       
   
       if (!user) {
@@ -89,4 +99,4 @@ export async function PUT(req: Request) {
       console.log(error)
       return NextResponse.json({ message: 'Failed to update user' }, { status: 500 })
     }
-  } 1
+  } 
