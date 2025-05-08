@@ -1,19 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios, { AxiosError } from "axios";
+import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { useJwt } from "@/hooks/useJwt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import axios from "axios";
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { AxiosError } from "axios";
+
+interface ApiResponse {
+  success: boolean;
+  error?: string;
+  data?: any;
+}
 
 type Gender = 'male' | 'female' | 'other';
 
@@ -29,15 +33,15 @@ interface ProfileData {
   bio: string;
 }
 
-interface ApiResponse {
-  data?: ProfileData;
-  error?: string;
+interface UpdateProfileProps {
+  params: { id: string };
 }
 
-export default function UpdateProfile({ params }: { params: { id: string } }) {
+export default function UpdateProfile({ params }: UpdateProfileProps) {
   const router = useRouter();
+  const { getToken, getUserId } = useJwt();
   const [profileData, setProfileData] = useState<ProfileData>({
-    id: params.id,
+    id: '-1',
     firstName: "",
     lastName: "",
     email: "",
@@ -47,22 +51,30 @@ export default function UpdateProfile({ params }: { params: { id: string } }) {
     location: "",
     bio: "",
   });
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const userId = getUserId();
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get<ApiResponse>(`/api/profile/${params.id}`);
+        const userId = params.id;
+        if (!userId) {
+          throw new Error("User ID not found");
+        }
+
+        const response = await axios.get<ApiResponse>(`/api/profile/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${getToken()}`
+          }
+        });
         
         if (response.data.error) {
           throw new Error(response.data.error);
         }
 
-        if (response.data.data) {
-          setProfileData(response.data.data);
-        }
+        setProfileData(response.data.data);
       } catch (err) {
         const error = err as AxiosError<ApiResponse>;
         setError(error.response?.data?.error || "Failed to fetch profile");
@@ -72,7 +84,7 @@ export default function UpdateProfile({ params }: { params: { id: string } }) {
     };
 
     fetchProfile();
-  }, [params.id]);
+  }, [params.id, getToken]);
 
   const handleChange = <K extends keyof ProfileData>(field: K, value: ProfileData[K]) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
@@ -84,7 +96,16 @@ export default function UpdateProfile({ params }: { params: { id: string } }) {
     
     try {
       setIsLoading(true);
-      const response = await axios.put<ApiResponse>(`/api/profile/${params.id}`, profileData);
+      const userId = params.id;
+      if (!userId) {
+        throw new Error("User ID not found");
+      }
+
+      const response = await axios.put<ApiResponse>(`/api/profile/${userId}`, profileData, {
+        headers: {
+          Authorization: `Bearer ${useJwt().getToken()}`,
+        },
+      });
       
       if (response.data.error) {
         throw new Error(response.data.error);

@@ -2,6 +2,7 @@
 import UpdateUser from "@/components/Profile/UpdateUser";
 import React from "react";
 import { motion } from "framer-motion";
+import { useParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -12,9 +13,9 @@ import {
 } from "@/components/ui/card";
 import { PawPrintIcon as Paw } from "lucide-react";
 import Signout from "@/components/Signout/Signout";
-// Assuming Signin modal logic is handled correctly
 
 function page() {
+  const params = useParams();
   return (
     <div className="min-h-screen bg-[#EDF6F9] py-12 flex items-center justify-center">
       {/* Simplified outer div assuming AuthLayout might handle background/pattern */}
@@ -41,7 +42,7 @@ function page() {
             </CardHeader>
 
             <CardContent className="pt-6 px-6">
-              <UpdateUser />
+              {/* <UpdateUser params={params} /> */}
             </CardContent>
 
             <CardFooter className="flex flex-col space-y-4 border-t bg-gray-50 p-6">
@@ -53,10 +54,6 @@ function page() {
         </motion.div>
       </div>
     </div>
-
-    // <div>
-    //   <UpdateUser />
-    // </div>
   );
 }
 

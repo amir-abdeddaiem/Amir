@@ -143,17 +143,17 @@ export default function AnimalProfile({ params }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#EDF6F9]">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
               {editMode
                 ? `Editing ${animal.name}'s Profile`
                 : `${animal.name}'s Profile`}
             </h1>
-            <p className="mt-2 text-lg text-gray-600">
+            <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
               {editMode
                 ? "Update your pet's information below"
                 : "View and manage your pet's information"}

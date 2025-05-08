@@ -3,6 +3,9 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import Cookies from 'js-cookie';
 import {
   Card,
   CardContent,
@@ -68,6 +71,9 @@ export default function Signup() {
   ];
 
   // --- Handlers ---
+  const [error, setError] = useState(null);
+  const router = useRouter();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -89,34 +95,42 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting form:", formData);
-    // const payload = {
-    //   email: formData.email,
-    //   password: formData.password,
-    //   ...(userType === "regular" ? {
-    //       name: formData.firstName,
-    //       lastName: formData.lastName,
-
-    //   } : {
-    //       name: formData.businessName, 
-         
-    //   })
-    // };
-    // console.log(payload); 
+    setError(null); // Clear any previous errors
 
     try {
       const response = await axios.post('/api/register', formData);
-      const data  = response.data;
+      const data = response.data;
 
       if (!data.success) {
-        console.log("Registration failed:", data.message || "Unknown error");
-
+        setError(data.message || "Registration failed. Please try again.");
+        toast.error(data.message || "Registration failed. Please try again.");
       } else {
         console.log("Registration successful:", data);
+        
+        // Store JWT token in cookies
+        if (data.token) {
+          Cookies.set('jwt', data.token, { expires: 7 }); // Token will expire in 7 days
+          Cookies.set('userId', data.user._id, { expires: 7 });
+          Cookies.set('email', data.user.email, { expires: 7 });
+        }
+
+        toast.success("Registration successful! Please check your email.");
+        router.push("/Profile");
       }
     } catch (error) {
-      console.error("Network or fetch error:", error);
-      // Provide user feedback for network issues
+      // console.error("Registration error:", error);
+      setError(error.response?.data?.message || "An error occurred during registration. Please try again.");
+      toast.error(error.response?.data?.message || "An error occurred during registration. Please try again.");
+      toast.error(error.response?.data?.message || "An error occurred during registration. Please try again.", {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "#E29578",
+          color: "white",
+          borderRadius: "8px",
+          padding: "12px 24px",
+        },
+      });
     }
   };
 
@@ -185,18 +199,20 @@ export default function Signup() {
   };
 
   return (
-    // Consider using the AuthLayout component here if it exists and fits the structure
-    // <AuthLayout>
     <div className="min-h-screen bg-[#EDF6F9] py-12 flex items-center justify-center">
-      {/* Simplified outer div assuming AuthLayout might handle background/pattern */}
       <div className="max-w-4xl w-full mx-auto px-4">
-        {/* Removed redundant Back to Home link if AuthLayout has navigation */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <Card className="border-none shadow-lg overflow-hidden">
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                <p className="font-bold">Error</p>
+                <p>{error}</p>
+              </div>
+            )}
             <CardHeader className="bg-[#E29578] text-white rounded-t-lg p-6">
               <div className="flex items-center gap-3">
                 <Paw size={28} />

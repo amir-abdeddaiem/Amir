@@ -4,27 +4,26 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcrypt'
 import { BusinessProvider } from '@/models/BusnessProvider'
 
-export async function GET(req: Request) {
+export async function GET(req: Request, context: { params: { id: string } }) {
     await connectDB()
   
     try {
-      // Get query parameters from the request URL
-      const { searchParams } = new URL(req.url)
-      const userId = searchParams.get('id')
+      // Get ID from the URL path parameter
+      const { id } = context.params
   
       let user
       let businessProviderInfo = null
   
-
-        // Find user by ID
-        user = await User.findById(userId)
+      // Find user by ID
+      user = await User.findById(id)
       
   
       if (!user) {
-        return NextResponse.json(
-          { message: 'User not found' },
-          { status: 404 }
-        )
+        return NextResponse.json({
+          success: false,
+          error: 'User not found',
+          data: null
+        }, { status: 404 })
       }
   
       // Check if this user is a business provider and get additional info
@@ -56,23 +55,31 @@ export async function GET(req: Request) {
         businessProvider: businessProviderInfo
       }
   
-      return NextResponse.json(userData, { status: 200 })
+      return NextResponse.json({
+        success: true,
+        error: null,
+        data: userData
+      }, { status: 200 })
     } catch (error) {
       console.log(error)
-      return NextResponse.json(
-        { message: 'Failed to retrieve user information' },
-        { status: 500 }
-      )
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to retrieve user information',
+        data: null
+      }, { status: 500 })
     }
     
   }
   
-export async function PUT(req: Request) {
+export async function PUT(req: Request, context: { params: { id: string } }) {
     await connectDB()
     const body = await req.json()
   
     try {
-      const { id, ...updateData } = body
+      const { id } = context.params
+      // Get the update data directly from body, we're now using id from params
+      const updateData = body
+      console.log("Updating user with ID:", id);
   
       // Update user information
       const updatedUser = await User.findByIdAndUpdate(id, updateData, {
@@ -81,12 +88,27 @@ export async function PUT(req: Request) {
       })
   
       if (!updatedUser) {
-        return NextResponse.json({ message: 'User not found' }, { status: 404 })
+        return NextResponse.json({
+          success: false,
+          error: 'User not found',
+          data: null
+        }, { status: 404 })
       }
   
-      return NextResponse.json({ message: 'User updated successfully' }, { status: 200 })
+      return NextResponse.json({
+          success: true,
+          error: null,
+          data: {
+            message: 'User updated successfully',
+            user: updatedUser
+          }
+      }, { status: 200 })
     } catch (error) {
       console.log(error)
-      return NextResponse.json({ message: 'Failed to update user' }, { status: 500 })
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to update user',
+        data: null
+      }, { status: 500 })
     }
-  } 1
+  }
