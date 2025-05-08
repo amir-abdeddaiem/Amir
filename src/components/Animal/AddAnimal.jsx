@@ -17,6 +17,7 @@ import Form1 from "@/components/Animal/Form1";
 import Form2 from "@/components/Animal/Form2";
 import Form3 from "@/components/Animal/Form3";
 import Form4 from "@/components/Animal/Form4";
+import axios from "axios";
 export default function AddAnimal() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -35,7 +36,7 @@ export default function AddAnimal() {
     description: "",
     vaccinated: false,
     neutered: false,
-    microchipped: false,
+
     friendly: {
       children: false,
       dogs: false,
@@ -91,8 +92,19 @@ export default function AddAnimal() {
     // In a real app, you would send the formData to your backend here
     console.log("Form submitted:", formData);
 
-    // Navigate to success page or home
-    router.push("/");
+    try {
+      const response = await axios.post("/api/animal", formData);
+      const data = response.data;
+
+      if (!data.success) {
+        console.log("Registration failed:", data.message || "Unknown error");
+      } else {
+        console.log("Registration successful:", data);
+      }
+    } catch (error) {
+      console.error("Network or fetch error:", error);
+      // Provide user feedback for network issues
+    }
   };
 
   // Next step

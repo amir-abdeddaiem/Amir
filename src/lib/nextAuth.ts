@@ -13,47 +13,50 @@ export const authOptions: AuthOptions = {
       clientId: process.env.FACEBOOK_CLIENT_ID as string,
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET as string
     }),
-    CredentialsProvider({
-      id: "domain-login",
-      name: "Domain Account",
-      async authorize(credentials) {
-        // You should implement your actual user lookup logic here
-        const user = {
-          id: "1",
-          name: credentials?.username,
-          email: `${credentials?.username}@domain.com`
-        };
-        return user || null;
-      },
-      credentials: {
-        domain: {
-          label: "Domain",
-          type: "text",
-          placeholder: "CORPNET",
-          value: "CORPNET",
-        },
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
-        password: { label: "Password", type: "password" },
-      },
-    }),
-    CredentialsProvider({
-      id: "intranet-credentials",
-      name: "Two Factor Auth",
-      async authorize(credentials) {
-        // You should implement your actual user lookup logic here
-        const user = {
-          id: "1",
-          name: credentials?.username,
-          email: `${credentials?.username}@company.com`
-        };
-        return user || null;
-      },
-      credentials: {
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
-        "2fa-key": { label: "2FA Key", type: "text" },
-      },
-    }),
+    // CredentialsProvider({
+    //   id: "domain-login",
+    //   name: "Domain Account",
+    //   async authorize(credentials) {
+    //     // You should implement your actual user lookup logic here
+    //     const user = {
+    //       id: "1",
+    //       name: credentials?.username,
+    //       email: `${credentials?.username}@domain.com`
+    //     };
+    //     return user || null;
+    //   },
+    //   credentials: {
+    //     domain: {
+    //       label: "Domain",
+    //       type: "text",
+    //       placeholder: "CORPNET",
+    //       value: "CORPNET",
+    //     },
+    //     username: { label: "Username", type: "text", placeholder: "jsmith" },
+    //     password: { label: "Password", type: "password" },
+    //   },
+    // }),
+    // CredentialsProvider({
+    //   id: "intranet-credentials",
+    //   name: "Two Factor Auth",
+    //   async authorize(credentials) {
+    //     // You should implement your actual user lookup logic here
+    //     const user = {
+    //       id: "1",
+    //       name: credentials?.username,
+    //       email: `${credentials?.username}@company.com`
+    //     };
+    //     return user || null;
+    //   },
+    //   credentials: {
+    //     username: { label: "Username", type: "text", placeholder: "jsmith" },
+    //     "2fa-key": { label: "2FA Key", type: "text" },
+    //   },
+    // 
+    //  }
+    // ),
   ],
+  // Removed duplicate debug property
   session: {
     strategy: "jwt",
     maxAge: 24 * 60 * 60,
@@ -64,6 +67,7 @@ export const authOptions: AuthOptions = {
   callbacks: {
     // You can add callbacks here if needed
   },
-  debug: true,
+  // debug: true,
+  debug: process.env.NODE_ENV !== "production",
   secret: process.env.NEXTAUTH_SECRET,  
 };

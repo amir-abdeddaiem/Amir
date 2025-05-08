@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog, DialogClose,
+  Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -19,9 +20,9 @@ import { X, Mail, Lock, Phone } from "lucide-react";
 import Link from "next/link";
 import SigninWithGoogle from "@/components/SigninWithGoogle/SigninWithGoogle";
 import SigninWithFcb from "@/components/SigninWithFcb/SigninWithFcb";
-import axios from 'axios';
-import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
+import axios from "axios";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 export default function Signin({ isOpen, onClose }) {
   const router = useRouter();
@@ -32,17 +33,17 @@ export default function Signin({ isOpen, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    
+
     try {
-      const response = await axios.post('/api/login', { email, password });
+      const response = await axios.post("/api/login", { email, password });
       const { token } = response.data;
       if (token) {
-        Cookies.set('token', token, { expires: 1/24 }); // 1 hour
-        console.log('Token stored in cookie');
-        router.push('/userDashboard'); // Redirect to user dashboard
+        Cookies.set("token", token, { expires: 1 / 24 }); // 1 hour
+        console.log("Token stored in cookie");
+        router.push("/user"); // Redirect to user dashboard
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.message || "Login failed");
     }
   };
 
@@ -50,18 +51,23 @@ export default function Signin({ isOpen, onClose }) {
     if (onClose) {
       onClose();
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogTrigger asChild>
-        <Button variant="link" className="text-[#E29578] p-0 h-auto hover:underline">
+        <Button
+          variant="link"
+          className="text-[#E29578] p-0 h-auto hover:underline"
+        >
           Sign in
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-lg">
         <DialogHeader className="bg-[#E29578] text-white p-6 pt-8 relative">
-          <DialogTitle className="text-2xl font-semibold text-center">Welcome Back!</DialogTitle>
+          <DialogTitle className="text-2xl font-semibold text-center">
+            Welcome Back!
+          </DialogTitle>
           <DialogDescription className="text-white/80 text-center mt-1">
             Sign in to your Animal's Club account
           </DialogDescription>
@@ -148,7 +154,10 @@ export default function Signin({ isOpen, onClose }) {
                       onCheckedChange={setRememberMe}
                       aria-label="Remember me"
                     />
-                    <Label htmlFor="remember-signin" className="text-sm font-normal text-gray-600 cursor-pointer">
+                    <Label
+                      htmlFor="remember-signin"
+                      className="text-sm font-normal text-gray-600 cursor-pointer"
+                    >
                       Remember me
                     </Label>
                   </div>
@@ -206,7 +215,9 @@ export default function Signin({ isOpen, onClose }) {
 
           <div className="flex items-center justify-center w-full py-2">
             <div className="h-px bg-gray-200 flex-grow"></div>
-            <span className="px-4 text-gray-400 text-xs font-medium uppercase">Or sign in with</span>
+            <span className="px-4 text-gray-400 text-xs font-medium uppercase">
+              Or sign in with
+            </span>
             <div className="h-px bg-gray-200 flex-grow"></div>
           </div>
 
