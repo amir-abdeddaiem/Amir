@@ -14,14 +14,26 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Produit } from "./Produit";
-
 import { useRouter } from "next/navigation";
+import { ProductFilters } from "./ProductFilters"; // Import the filter components
 
 export function FilterP() {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false); // State for mobile filters
+
+  // Filter states
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedPetTypes, setSelectedPetTypes] = useState([]);
+  const [priceRange, setPriceRange] = useState([0, 100]);
+  const [showInStock, setShowInStock] = useState(false);
+
   const goToProfile = () => {
-    router.push("/user/[id]"); // Naviguer vers la page /about
+    router.push("/user/[id]");
   };
+
   const links = [
     {
       label: "add product",
@@ -53,37 +65,65 @@ export function FilterP() {
     },
   ];
 
-  const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filter, setFilter] = useState("all");
-
   const products = [
     {
       title: "Hamster",
       description:
         "Hamsters are fun animals and can make good first pets, provided you understand what they need to be healthy and happy.",
       image: "/hams.jpg",
+      category: "Small Pet",
+      price: 29.99,
+      inStock: true,
     },
     {
       title: "Cat",
       description:
         "Cats are independent and affectionate animals that make great companions.",
       image: "/cat.jpg",
+      category: "Cat",
+      price: 59.99,
+      inStock: true,
     },
     {
       title: "Dog",
       description:
         "Dogs are loyal and friendly pets that bring joy to any household.",
       image: "/dog.jpg",
+      category: "Dog",
+      price: 89.99,
+      inStock: true,
     },
   ];
 
+  const clearFilters = () => {
+    setSelectedCategories([]);
+    setSelectedPetTypes([]);
+    setPriceRange([0, 100]);
+    setShowInStock(false);
+  };
+
   const filteredProducts = products.filter((product) => {
+    // Existing filters
     const matchesSearch = product.title
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     const matchesFilter = filter === "all" || product.title === filter;
-    return matchesSearch && matchesFilter;
+
+    // New filters
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes(product.category);
+    const matchesPrice =
+      product.price >= priceRange[0] && product.price <= priceRange[1];
+    const matchesStock = !showInStock || product.inStock;
+
+    return (
+      matchesSearch &&
+      matchesFilter &&
+      matchesCategory &&
+      matchesPrice &&
+      matchesStock
+    );
   });
 
   return (
@@ -126,7 +166,7 @@ export function FilterP() {
 
       {/* Main Content */}
       <div className="flex-1 p-6 overflow-y-auto">
-        {/* Search Bar and Filter */}
+        {/* Search Bar  */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
             <input
@@ -134,34 +174,61 @@ export function FilterP() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-[40%] pl-10 pr-4 py-2 rounded-lg border border-[#83C5BE] focus:outline-none focus:ring-2 focus:ring-[#006D77]"
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#83C5BE] focus:outline-none focus:ring-2 focus:ring-[#006D77]"
             />
             <IconSearch className="absolute left-3 top-2.5 text-[#006D77] h-5 w-5" />
           </div>
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-[#83C5BE] focus:outline-none focus:ring-2 focus:ring-[#006D77]"
-          >
-            <option value="all">All</option>
-            <option value="Hamster">Hamster</option>
-            <option value="Cat">Cat</option>
-            <option value="Dog">Dog</option>
-          </select>
         </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product, index) => (
-            <Produit key={index} product={product} />
-          ))}
+        {/* Content with filters */}
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Desktop Filters */}
+
+          {/* Product Grid */}
+          <div className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product, index) => (
+                <Produit key={index} product={product} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Filters */}
+      {/* <MobileProductFilters
+        open={mobileFiltersOpen}
+        onClose={() => setMobileFiltersOpen(false)}
+        selectedCategories={selectedCategories}
+        setSelectedCategories={setSelectedCategories}
+        selectedPetTypes={selectedPetTypes}
+        setSelectedPetTypes={setSelectedPetTypes}
+        priceRange={priceRange}
+        setPriceRange={setPriceRange}
+        showInStock={showInStock}
+        setShowInStock={setShowInStock}
+        onClearFilters={clearFilters}
+      /> */}
+      <div className="hidden md:block w-64 flex-shrink-0">
+        <div className="bg-white rounded-lg shadow-md sticky top-20">
+          <ProductFilters
+            selectedCategories={selectedCategories}
+            setSelectedCategories={setSelectedCategories}
+            selectedPetTypes={selectedPetTypes}
+            setSelectedPetTypes={setSelectedPetTypes}
+            priceRange={priceRange}
+            setPriceRange={setPriceRange}
+            showInStock={showInStock}
+            setShowInStock={setShowInStock}
+            onClearFilters={clearFilters}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-// Logo Components
+// Logo Components (keep the same)
 export const Logo = () => {
   return (
     <Link
