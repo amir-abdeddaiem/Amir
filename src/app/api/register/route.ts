@@ -23,7 +23,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const newUser = await User.create({ 
+    const userData: any = { 
+      accType: body.accType || 'regular',
       birthDate: body.birthDate,
       email: body.email,
       firstName: body.firstName,
@@ -33,7 +34,27 @@ export async function POST(req: Request) {
       password: hashedPassword,
       phone: body.phone,
       avatar: body.avatar,
-    });
+    };
+
+    // Add coordinates if provided
+    if (body.coordinates) {
+      userData.coordinates = {
+        type: 'Point',
+        coordinates: body.coordinates
+      };
+    }
+
+    // Add provider-specific fields if user is a service provider
+    if (body.accType === 'provider') {
+      userData.businessName = body.businessName;
+      userData.businessType = body.businessType;
+      userData.services = body.services || [];
+      userData.certifications = body.certifications;
+      userData.description = body.description;
+      userData.website = body.website;
+    }
+
+    const newUser = await User.create(userData);
 
     if (body.accType !== "regular") {
       await BusinessProvider.create({

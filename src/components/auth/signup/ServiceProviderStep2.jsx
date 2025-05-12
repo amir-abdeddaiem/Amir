@@ -3,13 +3,37 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
+import dynamic from 'next/dynamic';
+
+// Dynamically import MapLocationPicker with SSR disabled
+const MapLocationPicker = dynamic(
+  () => import('@/components/ui/MapLocationPicker'),
+  { ssr: false }
+);
 
 export default function ServiceProviderStep2({
   formData,
   handleChange,
   nextStep,
   prevStep,
+  setFormData,
 }) {
+  const [locationData, setLocationData] = useState({
+    coordinates: formData.coordinates || null,
+    address: formData.location || ''
+  });
+
+  useEffect(() => {
+    if (locationData.address) {
+      setFormData(prev => ({
+        ...prev,
+        location: locationData.address,
+        coordinates: locationData.coordinates
+      }));
+    }
+  }, [locationData, setFormData]);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -19,19 +43,27 @@ export default function ServiceProviderStep2({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          // Add validation logic here if needed
+          if (!locationData.coordinates) {
+            alert('Please select a business location on the map');
+            return;
+          }
           nextStep();
         }}
       >
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="location">Business Location</Label>
+            <Label>Business Location</Label>
+            <div className="border rounded-lg p-2">
+              <MapLocationPicker 
+                onLocationSelect={setLocationData}
+                initialPosition={formData.coordinates || [36.8065, 10.1815]} // Default to Tunisia
+              />
+            </div>
             <Input
+              type="hidden"
               id="location"
               name="location"
-              placeholder="Full Address"
-              value={formData.location}
-              onChange={handleChange}
+              value={formData.location || ''}
               required
             />
           </div>
