@@ -1,14 +1,14 @@
-"use client"
+"use client";
 import Navbar from "@/components/Navbar/Navbar";
-import Footer from "@/components/Footer/Footer";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {Pets} from "@/components/Profile/Pets";
-import {Profile} from "@/components/Profile/Profile";
-import {Posts} from "@/components/Profile/Posts";
-import {useEffect, useState} from "react";
-import {useSession} from "next-auth/react";
+import Footer from "@/components/footer/Footer";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Pets } from "@/components/Profile/Pets";
+import { Profile } from "@/components/Profile/Profile";
+import { Posts } from "@/components/Profile/Posts";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
@@ -56,41 +56,51 @@ export default function UserProfile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
-      <Navbar/>
+      <Navbar />
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-8">
           <aside className="md:w-1/3">
-            <Profile user={user}/>
+            <Profile user={user} />
           </aside>
           <div className="md:w-2/3">
             <div className="bg-background/80 p-4 rounded-lg shadow-lg">
               <Tabs defaultValue="pets" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="pets" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <TabsTrigger
+                    value="pets"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
                     <span className="flex items-center gap-2">
                       <span className="text-lg">Pets</span>
-                      <span className="text-sm text-muted-foreground">({user?.pets?.length || 0})</span>
+                      <span className="text-sm text-muted-foreground">
+                        ({user?.pets?.length || 0})
+                      </span>
                     </span>
                   </TabsTrigger>
-                  <TabsTrigger value="posts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <TabsTrigger
+                    value="posts"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
                     <span className="flex items-center gap-2">
                       <span className="text-lg">Posts</span>
-                      <span className="text-sm text-muted-foreground">({user?.posts?.length || 0})</span>
+                      <span className="text-sm text-muted-foreground">
+                        ({user?.posts?.length || 0})
+                      </span>
                     </span>
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="pets" className="pt-4">
-                  <Pets pets={user?.pets || []}/>
+                  <Pets pets={user?.pets || []} />
                 </TabsContent>
                 <TabsContent value="posts" className="pt-4">
-                  <Posts posts={user?.posts || []}/>
+                  <Posts posts={user?.posts || []} />
                 </TabsContent>
               </Tabs>
             </div>
           </div>
         </div>
       </main>
-      <Footer/>
+      <Footer />
     </div>
   );
 }

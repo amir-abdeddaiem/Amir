@@ -6,8 +6,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { SonnerP } from "./SonnerP";
-import { Toaster } from "sonner";
+import { Pic } from "./Pic";
 
 export function Produit() {
   const [hovering, setHovering] = useState(false);
@@ -49,10 +48,9 @@ export function Produit() {
             </p>
             <br />
           </motion.div>
-          <SonnerP />
-          <Toaster position="bottom-right" richColors />
         </div>
       </div>
+      <Pic />
     </div>
   );
 }

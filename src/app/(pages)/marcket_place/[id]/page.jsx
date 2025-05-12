@@ -1,5 +1,3 @@
-import Navbar from "@/components/Navbar/Navbar";
-import Footer from "@/components/Footer/Footer";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Image from "next/image";
 import { Pic } from "@/components/Produit/Pic";
 
 // Mock data
@@ -51,16 +48,16 @@ export default function ProductPage({ params }) {
 
   return (
     <div className="min-h-screen bg-[#EDF6F9]">
-      <Navbar />
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Product Image */}
-          <div className="md:w-1/2">
+
+          <div className="w-full max-w-md aspect-square overflow-hidden rounded-2xl shadow-lg">
             <Pic />
           </div>
 
           {/* Product Details */}
-          <div className="md:w-1/2">
+          <div className="md:w-full">
             <h1 className="text-3xl font-bold mb-4 text-[#006D77]">
               {product.name}
             </h1>
@@ -116,7 +113,6 @@ export default function ProductPage({ params }) {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

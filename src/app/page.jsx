@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import Navbar from "@/components/Navbar/Navbar";
-import HeroSection from "@/components/hero/HeroSection";
-import CoatsSection from "@/components/Coats/CoatsSection";
+import HeroSection from "@/components/home/hero/HeroSection";
+import CoatsSection from "@/components/home/Coats/CoatsSection";
 
-import ServicesSection from "@/components/servicess/ServicesSection";
-import LostFoundSection from "@/components/lost-found/LostFoundSection";
-import EventsSection from "@/components/Eventy/EventSection";
-import PartnersSection from "@/components/partners/PartnersSection";
+import ServicesSection from "@/components/home/servicess/ServicesSection";
+import LostFoundSection from "@/components/home/lost-found/LostFoundSection";
+import EventsSection from "@/components/home/Eventy/EventSection";
+import PartnersSection from "@/components/home/partners/PartnersSection";
 import Footer from "@/components/footer/Footer";
 import PawBackground from "@/components/background/PawBackground";
 

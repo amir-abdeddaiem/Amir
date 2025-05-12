@@ -4,9 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Searchbar from "@/components/Searchbar/Searchbar";
-import LeftPopup from "../Searchbar/LeftPopup";
-import RightPopup from "../Searchbar/RightPopup";
+
 import { BtnNot } from "../Notification/BtnNot";
 import Signup from "../auth/Signup";
 import Signin from "../auth/Signin";
@@ -36,11 +34,6 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Searchbar */}
-        <div>
-          {/* <Searchbar className="relative w-full max-w-xl transition-all ease-in-out" /> */}
-        </div>
-
         {/* Right Side */}
         <div className="flex items-center space-x-2 md:space-x-4">
           <BtnNot />
@@ -67,14 +60,6 @@ export default function Navbar() {
           </Button>
         </div>
       </div>
-
-      {/* Popups */}
-      {isDialogOpen && (
-        <>
-          <LeftPopup onClose={() => setIsDialogOpen(false)} />
-          <RightPopup onClose={() => setIsDialogOpen(false)} />
-        </>
-      )}
     </header>
   );
 }

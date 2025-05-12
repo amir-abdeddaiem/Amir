@@ -47,7 +47,7 @@ interface UserProfileProps {
   userEmail?: string;
 }
 
-export function Profile({ userId, userEmail }: UserProfileProps) {
+export default   function Profile({ userId, userEmail }: UserProfileProps) {
   const { data: session, status: sessionStatus } = useSession();
   const { getUserId } = useJwt();
   const [user, setUser] = useState<UserData | null>(null);
