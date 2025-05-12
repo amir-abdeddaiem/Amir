@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Upload, Camera, X } from "lucide-react";
+import { Upload, Camera, X, Badge } from "lucide-react";
 import Image from "next/image";
 
 export function ImageUploadForm({

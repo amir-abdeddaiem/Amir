@@ -57,7 +57,7 @@ export default function ProductPage({ params }) {
           </div>
 
           {/* Product Details */}
-          <div className="md:w-full">
+          <div className="md:w-full top-20">
             <h1 className="text-3xl font-bold mb-4 text-[#006D77]">
               {product.name}
             </h1>
@@ -75,12 +75,12 @@ export default function ProductPage({ params }) {
             </ul>
 
             {/* Add to Cart Button */}
-            <Button className="w-full mb-4 bg-[#83C5BE] hover:bg-[#006D77] text-white">
+            {/* <Button className="w-full mb-4 bg-[#83C5BE] hover:bg-[#006D77] text-white">
               Add to Cart
-            </Button>
+            </Button> */}
 
             {/* Reviews Card */}
-            <Card className="bg-[#FFDDD2] border-[#E29578]">
+            <Card className="bg-[#FFDDD2] border-[#E29578] top-20">
               <CardHeader>
                 <CardTitle className="text-[#006D77]">
                   Customer Reviews

@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { Pic } from "./Pic";
 
 export function Produit() {
   const [hovering, setHovering] = useState(false);
@@ -50,7 +49,6 @@ export function Produit() {
           </motion.div>
         </div>
       </div>
-      <Pic />
     </div>
   );
 }

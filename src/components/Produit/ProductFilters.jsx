@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 
-const accessoires = [
+const categories = [
   "Food",
   "Toys",
   "Accessories",
@@ -29,8 +29,8 @@ const petTypes = [
 ];
 
 export function ProductFilters({
-  selectedaccessoires = [],
-  setSelectedaccessoires,
+  selectedcategories = [],
+  setSelectedcategories,
   selectedPetTypes = [],
   setSelectedPetTypes,
   priceRange = [0, 100],
@@ -40,7 +40,7 @@ export function ProductFilters({
   onClearFilters,
 }) {
   const [expandedFilters, setExpandedFilters] = useState({
-    accessoires: true,
+    categories: true,
     petTypes: true,
     price: true,
   });
@@ -53,12 +53,12 @@ export function ProductFilters({
     }));
   };
 
-  // Handle category selection
-  const handleCategoryChange = (category) => {
-    setSelectedaccessoires((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
+  // Handle categories selection
+  const handlecategoriesChange = (categories) => {
+    setSelectedcategories((prev) =>
+      prev.includes(categories)
+        ? prev.filter((c) => c !== categories)
+        : [...prev, categories]
     );
   };
 
@@ -134,21 +134,21 @@ export function ProductFilters({
 
         <Separator />
 
-        {/* accessoires */}
+        {/* categories */}
         <div>
           <div
             className="flex items-center justify-between cursor-pointer"
-            onClick={() => toggleFilterSection("accessoires")}
+            onClick={() => toggleFilterSection("categories")}
           >
-            <h3 className="font-medium">accessoires</h3>
-            {expandedFilters.accessoires ? (
+            <h3 className="font-medium">categories</h3>
+            {expandedFilters.categories ? (
               <ChevronUp className="h-4 w-4 text-gray-500" />
             ) : (
               <ChevronDown className="h-4 w-4 text-gray-500" />
             )}
           </div>
           <AnimatePresence>
-            {expandedFilters.accessoires && (
+            {expandedFilters.categories && (
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
@@ -157,18 +157,20 @@ export function ProductFilters({
                 className="overflow-hidden"
               >
                 <div className="pt-2 space-y-2">
-                  {accessoires.map((category) => (
-                    <div key={category} className="flex items-center">
+                  {categories.map((categories) => (
+                    <div key={categories} className="flex items-center">
                       <Checkbox
-                        id={`category-${category}`}
-                        checked={selectedaccessoires.includes(category)}
-                        onCheckedChange={() => handleCategoryChange(category)}
+                        id={`categories-${categories}`}
+                        checked={selectedcategories.includes(categories)}
+                        onCheckedChange={() =>
+                          handlecategoriesChange(categories)
+                        }
                       />
                       <Label
-                        htmlFor={`category-${category}`}
+                        htmlFor={`categories-${categories}`}
                         className="ml-2 text-sm"
                       >
-                        {category}
+                        {categories}
                       </Label>
                     </div>
                   ))}

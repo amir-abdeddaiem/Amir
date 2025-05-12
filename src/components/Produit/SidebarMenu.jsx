@@ -28,17 +28,17 @@ export function SidebarMenu({ open, setOpen }) {
       ),
     },
     {
+      label: " return to Market Place",
+      href: "../../../../marcket_place",
+      icon: (
+        <IconArrowLeft className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
+      ),
+    },
+    {
       label: "Settings",
       href: "#",
       icon: (
         <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
-      ),
-    },
-    {
-      label: "Logout",
-      href: "#",
-      icon: (
-        <IconArrowLeft className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
       ),
     },
   ];

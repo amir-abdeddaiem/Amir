@@ -54,11 +54,6 @@ export function ProductPreview({ previewImages, formData }) {
           )}
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
-        <Button className="w-full bg-[#83C5BE] hover:bg-[#83C5BE]/90">
-          <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-        </Button>
-      </CardFooter>
     </Card>
   );
 }

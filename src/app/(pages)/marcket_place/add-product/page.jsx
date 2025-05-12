@@ -10,6 +10,7 @@ import { BasicDetailsForm } from "@/components/Produit/addingProduct/BasicDetail
 import { ImageUploadForm } from "@/components/Produit/addingProduct/ImageUploadForm";
 import { SpecificationsForm } from "@/components/Produit/addingProduct/SpecificationsForm";
 import { ProductPreview } from "@/components/Produit/addingProduct/ProductPreview";
+import { Produit } from "@/components/Produit/Produit";
 
 export default function AddProduct() {
   const router = useRouter();
@@ -192,30 +193,31 @@ export default function AddProduct() {
                   </Tabs>
                 </CardContent>
               </Card>
+
+              {/* Preview Tips - Moved inside the form column */}
+              <div className="mt-6 p-4 bg-red-50 rounded-lg border border-red-100">
+                <div className="flex items-start">
+                  <Info className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-red-800">
+                    <p className="font-medium mb-2">Preview Tips</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Add clear, high-quality images</li>
+                      <li>Write detailed descriptions</li>
+                      <li>Include accurate specifications</li>
+                      <li>Set competitive pricing</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Preview */}
             <div className="lg:col-span-1">
-              <div className="sticky top-20">
-                <h2 className="text-lg font-medium mb-4">Product Preview</h2>
+              <div className="fix top-20">
                 <ProductPreview
                   previewImages={previewImages}
                   formData={formData}
                 />
-                <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                  <div className="flex">
-                    <Info className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" />
-                    <div className="text-sm text-blue-800">
-                      <p className="font-medium mb-1">Preview Tips</p>
-                      <ul className="list-disc list-inside space-y-1">
-                        <li>Add clear, high-quality images</li>
-                        <li>Write detailed descriptions</li>
-                        <li>Include accurate specifications</li>
-                        <li>Set competitive pricing</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
