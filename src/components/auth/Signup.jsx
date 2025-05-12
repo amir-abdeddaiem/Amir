@@ -31,11 +31,12 @@ export default function Signup() {
   const [userType, setUserType] = useState("regular");
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    accType:"",
+    accType: "",
     email: "",
     password: "",
     confirmPassword: "",
     location: "",
+    coordinates: null,
     firstName: "",
     lastName: "",
     gender: "",
