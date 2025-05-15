@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Pic } from "@/components/Produit/Pic";
-
+import { ReviewPopup } from "@/components/Produit/review/ReviewPopup";
 // Mock data
 const productData = {
   id: "1",
@@ -102,12 +102,13 @@ export default function ProductPage({ params }) {
                 ))}
               </CardContent>
               <CardFooter>
-                <Button
+                {/* <Button
                   variant="outline"
                   className="w-full bg-[#83C5BE] hover:bg-[#006D77] text-white border-[#E29578]"
                 >
                   Write a Review
-                </Button>
+                </Button> */}
+                <ReviewPopup />
               </CardFooter>
             </Card>
           </div>
