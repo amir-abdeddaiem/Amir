@@ -12,21 +12,36 @@ import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Star } from "lucide-react";
 
-export function ReviewPopup() {
+export function ReviewPopup({ productId }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle review submission here
-    console.log({ rating, reviewText });
-    // Close the dialog after submission
-    setIsOpen(false);
-    // Reset form
-    setRating(0);
-    setReviewText("");
+
+    try {
+      const response = await fetch("/api/review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stars: rating,
+          message: reviewText,
+          product: productId,
+          userId: "6824d2e30b47408a868cacaf", // Replace with actual user ID
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to submit review");
+
+      setIsOpen(false);
+      setRating(0);
+      setReviewText("");
+      window.location.reload();
+    } catch (err) {
+      console.error("Failed to submit review:", err);
+    }
   };
 
   return (

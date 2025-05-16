@@ -10,7 +10,6 @@ import { BasicDetailsForm } from "@/components/Produit/addingProduct/BasicDetail
 import { ImageUploadForm } from "@/components/Produit/addingProduct/ImageUploadForm";
 import { SpecificationsForm } from "@/components/Produit/addingProduct/SpecificationsForm";
 import { ProductPreview } from "@/components/Produit/addingProduct/ProductPreview";
-import { Produit } from "@/components/Produit/Produit";
 
 export default function AddProduct() {
   const router = useRouter();
@@ -18,7 +17,6 @@ export default function AddProduct() {
   const [previewImages, setPreviewImages] = useState([]);
   const [activeTab, setActiveTab] = useState("details");
 
-  // Form state
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -29,14 +27,8 @@ export default function AddProduct() {
     featured: false,
     images: [],
     specifications: [{ key: "", value: "" }],
-    shipping: {
-      weight: "",
-      dimensions: {
-        length: "",
-        width: "",
-        height: "",
-      },
-    },
+    localisation: "",
+    user: "6824d2e30b47408a868cacaf", // Add user ID
   });
 
   // Handle form field changes
@@ -124,22 +116,29 @@ export default function AddProduct() {
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          images: previewImages,
+          price: parseFloat(formData.price),
+          quantity: parseInt(formData.quantity),
+        }),
+      });
 
-      // In a real app, you would send the formData to your backend here
-      console.log("Form submitted:", formData);
+      if (!response.ok) throw new Error("Failed to submit product");
 
-      // Navigate back to marketplace
+      const data = await response.json();
       router.push("/marcket_place");
     } catch (error) {
       console.error("Error submitting form:", error);
+    } finally {
       setIsSubmitting(false);
     }
   };

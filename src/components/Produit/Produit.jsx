@@ -4,54 +4,61 @@ import { Lens } from "../ui/lens";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
 import Link from "next/link";
 
-export function Produit() {
+export function Produit({ product }) {
   const [hovering, setHovering] = useState(false);
 
   return (
-    <div>
-      <div className="w-full relative rounded-3xl overflow-hidden max-w-md mx-auto bg-gradient-to-r from-[#006D77] to-[#83C5BE] p-8 my-10">
-        <Rays />
-        <Beams />
+    <div className="w-full relative rounded-3xl overflow-hidden max-w-md mx-auto bg-gradient-to-r from-[#006D77] to-[#83C5BE] p-8 my-10">
+      <Rays />
+      <Beams />
 
-        <div className="relative z-10">
-          <Lens hovering={hovering} setHovering={setHovering}>
-            <Link
-              href="./marcket_place/{id[]}"
-              className="inline-flex items-center text-[#E29578] hover:underline mb-6"
-            >
-              <Image
-                link="/home"
-                src="/hams.jpg" //{product.image || "/placeholder.svg"}
-                alt="hamster" //{product.name}
-                width={500}
-                height={500}
-                className="rounded-2xl"
-              />
-            </Link>
-          </Lens>
-          <motion.div
-            animate={{
-              filter: hovering ? "blur(2px)" : "blur(0px)",
-            }}
-            className="py-4 relative z-20"
+      <div className="relative z-10">
+        <Lens hovering={hovering} setHovering={setHovering}>
+          <Link
+            href={`/marcket_place/${product?._id}`}
+            className="inline-flex items-center text-[#E29578] hover:underline mb-6"
           >
-            <h2 className="text-[#EDF6F9] text-2xl text-left font-bold">
-              Hamster
-            </h2>
-            <p className="text-[#FFDDD2] text-left mt-4">
-              Hamsters are fun animals and can make good first pets, provided
-              you understand what they need to be healthy and happy.
-            </p>
-            <br />
-          </motion.div>
-        </div>
+            <img
+              src={product?.image || "/images/placeholder.svg"}
+              alt={product?.name || "Product image"}
+              width={500}
+              height={500}
+              className="rounded-2xl"
+            />
+          </Link>
+        </Lens>
+        <motion.div
+          animate={{ filter: hovering ? "blur(2px)" : "blur(0px)" }}
+          className="py-4 relative z-20"
+        >
+          <h2 className="text-[#EDF6F9] text-2xl text-left font-bold">
+            {product?.name}
+          </h2>
+          <p className="text-[#FFDDD2] text-left mt-4">
+            {product?.description}
+          </p>
+          <div className="mt-4 flex justify-between items-center">
+            <span className="text-[#EDF6F9] font-bold">${product?.price}</span>
+            <span
+              className={cn(
+                "px-2 py-1 rounded-md",
+                product?.quantity > 0
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              )}
+            >
+              {product?.quantity > 0 ? "In Stock" : "Out of Stock"}
+            </span>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
 }
+
+// Beams and Rays components remain the same as in your original code
 
 // Updated Beams and Rays components to match the new color palette
 

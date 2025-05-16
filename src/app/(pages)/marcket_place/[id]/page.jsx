@@ -8,112 +8,90 @@ import {
 } from "@/components/ui/card";
 import { Pic } from "@/components/Produit/Pic";
 import { ReviewPopup } from "@/components/Produit/review/ReviewPopup";
-// Mock data
-const productData = {
-  id: "1",
-  name: "Premium Dog Food",
-  price: "$29.99",
-  description:
-    "High-quality, nutritious dog food suitable for all breeds. Made with real chicken and vegetables.",
-  features: [
-    "Made with real chicken",
-    "No artificial preservatives",
-    "Rich in essential nutrients",
-    "Supports healthy digestion",
-  ],
-  reviews: [
-    {
-      id: 1,
-      user: "John D.",
-      rating: 5,
-      comment: "My dog loves this food! His coat looks shinier too.",
-    },
-    {
-      id: 2,
-      user: "Sarah M.",
-      rating: 4,
-      comment: "Good quality food, but a bit pricey.",
-    },
-    {
-      id: 3,
-      user: "Mike R.",
-      rating: 5,
-      comment: "Excellent product. Will buy again!",
-    },
-  ],
-};
+import { Product } from "@/models/Product";
+import { Review } from "@/models/Review";
+import { connectDB } from "@/lib/mongodb";
+import { notFound } from "next/navigation";
 
-export default function ProductPage({ params }) {
-  const product = productData;
+export default async function ProductPage({ params }) {
+  await connectDB();
 
-  return (
-    <div className="min-h-screen bg-[#EDF6F9]">
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Product Image */}
+  try {
+    const product = await Product.findById(params.id);
+    // .populate("user", "name email")
+    // .lean();
 
-          <div className="w-full max-w-md aspect-square overflow-hidden rounded-2xl shadow-lg">
-            <Pic />
-          </div>
+    if (!product) return notFound();
 
-          {/* Product Details */}
-          <div className="md:w-full top-20">
-            <h1 className="text-3xl font-bold mb-4 text-[#006D77]">
-              {product.name}
-            </h1>
-            <p className="text-2xl font-bold text-[#E29578] mb-4">
-              {product.price}
-            </p>
-            <p className="mb-4 text-[#006D77]">{product.description}</p>
+    // Fetch reviews separately
+    const reviews = await Review.find({ product: params.id });
+    //   .populate("user", "firstName lastName")
+    //   .lean();
 
-            {/* Features */}
-            <h2 className="text-xl font-bold mb-2 text-[#006D77]">Features:</h2>
-            <ul className="list-disc list-inside mb-4 text-[#006D77]">
-              {product.features.map((feature, index) => (
-                <li key={index}>{feature}</li>
-              ))}
-            </ul>
+    return (
+      <div className="min-h-screen bg-[#EDF6F9]">
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row gap-8">
+            <div className="w-full max-w-md aspect-square overflow-hidden rounded-2xl shadow-lg">
+              <Pic imageUrl={product.image} />
+            </div>
 
-            {/* Add to Cart Button */}
-            {/* <Button className="w-full mb-4 bg-[#83C5BE] hover:bg-[#006D77] text-white">
-              Add to Cart
-            </Button> */}
+            <div className="md:w-full top-20">
+              <h1 className="text-3xl font-bold mb-4 text-[#006D77]">
+                {product.name}
+              </h1>
+              <p className="text-2xl font-bold text-[#E29578] mb-4">
+                ${product.price.toFixed(2)}
+              </p>
+              <p className="mb-4 text-[#006D77]">{product.description}</p>
 
-            {/* Reviews Card */}
-            <Card className="bg-[#FFDDD2] border-[#E29578] top-20">
-              <CardHeader>
-                <CardTitle className="text-[#006D77]">
-                  Customer Reviews
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {product.reviews.map((review) => (
-                  <div key={review.id} className="mb-4">
-                    <div className="flex justify-between">
-                      <span className="font-bold text-[#006D77]">
-                        {review.user}
-                      </span>
-                      <span className="text-[#E29578]">
-                        {"⭐".repeat(review.rating)}
-                      </span>
-                    </div>
-                    <p className="text-[#006D77]">{review.comment}</p>
-                  </div>
+              <h2 className="text-xl font-bold mb-2 text-[#006D77]">
+                Specifications:
+              </h2>
+              <ul className="list-disc list-inside mb-4 text-[#006D77]">
+                {product.specifications.map((spec, index) => (
+                  <li key={index}>
+                    <strong>{spec.key}:</strong> {spec.value}
+                  </li>
                 ))}
-              </CardContent>
-              <CardFooter>
-                {/* <Button
-                  variant="outline"
-                  className="w-full bg-[#83C5BE] hover:bg-[#006D77] text-white border-[#E29578]"
-                >
-                  Write a Review
-                </Button> */}
-                <ReviewPopup />
-              </CardFooter>
-            </Card>
+              </ul>
+
+              <Card className="bg-[#FFDDD2] border-[#E29578] top-20">
+                <CardHeader>
+                  <CardTitle className="text-[#006D77]">
+                    Customer Reviews ({reviews.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {reviews.map((review) => (
+                    <div key={review._id.toString()} className="mb-4">
+                      <div className="flex justify-between">
+                        <span className="font-bold text-[#006D77]">
+                          testusername testuserlastname
+                          {/* {review.user?.firstName} {review.user?.lastName} */}
+                        </span>
+                        <span className="text-[#E29578]">
+                          {"⭐".repeat(review.stars)}
+                        </span>
+                      </div>
+                      <p className="text-[#006D77]">{review.message}</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </CardContent>
+                <CardFooter>
+                  <ReviewPopup productId={params.id} />
+                </CardFooter>
+              </Card>
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
-  );
+        </main>
+      </div>
+    );
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return notFound();
+  }
 }

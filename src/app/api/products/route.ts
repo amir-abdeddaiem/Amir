@@ -7,7 +7,6 @@ export async function POST(req: Request) {
   await connectDB()
   const body = await req.json()
 
-  // 1. Check if `user` is provided and is a valid ObjectId
   if (!body.user || !mongoose.Types.ObjectId.isValid(body.user)) {
     return NextResponse.json(
       { message: 'Invalid or missing user ID' },
@@ -22,8 +21,12 @@ export async function POST(req: Request) {
       price: body.price,
       image: body.image,
       category: body.category,
+      localisation: body.localisation, // Added
+      featured: body.featured, // Added
+      petType: body.petType, // Added
       quantity: body.quantity,
-      user: body.user // Must be a valid ObjectId
+      specifications: body.specifications || [], // Added (optional)
+      user: body.user
     })
 
     return NextResponse.json(
@@ -32,6 +35,13 @@ export async function POST(req: Request) {
     )
   } catch (error) {
     console.error(error)
+    // Handle validation errors
+    if (error instanceof mongoose.Error.ValidationError) {
+      return NextResponse.json(
+        { message: 'Validation Error', errors: error.errors },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { message: 'Failed to create product' },
       { status: 500 }
@@ -40,70 +50,51 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  await connectDB()
-  
-  const { searchParams } = new URL(req.url)
-  const id = searchParams.get('id')
-  const userId = searchParams.get('userId')
-  const name = searchParams.get('name') // Add this line to get the name parameter
+  await connectDB();
+  const { searchParams } = new URL(req.url);
+
+  const id = searchParams.get('id');
+  const userId = searchParams.get('userId');
+  const name = searchParams.get('name');
+  const category = searchParams.get('category');
+  const priceMin = parseFloat(searchParams.get('priceMin') || "0");
+  const priceMax = parseFloat(searchParams.get('priceMax') || "10000");
+  const inStock = searchParams.get('inStock');
 
   try {
-    // Get single product by ID
     if (id) {
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        return NextResponse.json(
-          { message: 'Invalid product ID' },
-          { status: 400 }
-        )
+        return NextResponse.json({ message: 'Invalid product ID' }, { status: 400 });
       }
-
-      const product = await Product.findById(id)
+      const product = await Product.findById(id).populate('user'); // Populate user data
       if (!product) {
-        return NextResponse.json(
-          { message: 'Product not found' },
-          { status: 404 }
-        )
+        return NextResponse.json({ message: 'Product not found' }, { status: 404 });
       }
-      return NextResponse.json(product)
+      return NextResponse.json(product);
     }
 
-    // Get all products for a specific user
-    if (userId) {
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return NextResponse.json(
-          { message: 'Invalid user ID' },
-          { status: 400 }
-        )
-      }
+    let query: any = { price: { $gte: priceMin, $lte: priceMax } };
 
-      const products = await Product.find({ user: userId })
-      return NextResponse.json(products)
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      query.user = userId;
     }
 
-    // Get products by name (case-insensitive partial match)
-    if (name) {
-      const products = await Product.find({
-        name: { $regex: name, $options: 'i' } // 'i' makes it case insensitive
-      })
-      return NextResponse.json(products)
-    }
+    if (name) query.name = { $regex: name, $options: 'i' };
+    if (category) query.category = category;
+    if (inStock === "true") query.quantity = { $gt: 0 };
 
-    // Get all products if no specific ID, user ID, or name is provided
-    const products = await Product.find()
-    return NextResponse.json(products)
+    const products = await Product.find(query).populate('user'); // Populate user data
+    return NextResponse.json(products);
   } catch (error) {
-    console.error(error)
-    return NextResponse.json(
-      { message: 'Failed to fetch products' },
-      { status: 500 }
-    )
+    console.error(error);
+    return NextResponse.json({ message: 'Failed to fetch products' }, { status: 500 });
   }
 }
+
 export async function PUT(req: Request) {
   await connectDB()
   const body = await req.json()
 
-  // Check if product ID is provided and valid
   if (!body._id || !mongoose.Types.ObjectId.isValid(body._id)) {
     return NextResponse.json(
       { message: 'Invalid or missing product ID' },
@@ -112,17 +103,23 @@ export async function PUT(req: Request) {
   }
 
   try {
+    const updateData = {
+      name: body.name,
+      description: body.description,
+      price: body.price,
+      image: body.image,
+      category: body.category,
+      localisation: body.localisation, // Added
+      featured: body.featured, // Added
+      petType: body.petType, // Added
+      quantity: body.quantity,
+      specifications: body.specifications || [] // Added (optional)
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       body._id,
-      {
-        name: body.name,
-        description: body.description,
-        price: body.price,
-        image: body.image,
-        category: body.category,
-        quantity: body.quantity
-      },
-      { new: true } // Return the updated document
+      updateData,
+      { new: true, runValidators: true, context: 'query' } // Enable validators
     )
 
     if (!updatedProduct) {
@@ -138,6 +135,13 @@ export async function PUT(req: Request) {
     )
   } catch (error) {
     console.error(error)
+    // Handle validation errors
+    if (error instanceof mongoose.Error.ValidationError) {
+      return NextResponse.json(
+        { message: 'Validation Error', errors: error.errors },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { message: 'Failed to update product' },
       { status: 500 }
@@ -147,11 +151,9 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   await connectDB()
-  
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
 
-  // Check if product ID is provided and valid
   if (!id || !mongoose.Types.ObjectId.isValid(id)) {
     return NextResponse.json(
       { message: 'Invalid or missing product ID' },
@@ -161,14 +163,12 @@ export async function DELETE(req: Request) {
 
   try {
     const deletedProduct = await Product.findByIdAndDelete(id)
-    
     if (!deletedProduct) {
       return NextResponse.json(
         { message: 'Product not found' },
         { status: 404 }
       )
     }
-
     return NextResponse.json(
       { message: 'Product deleted successfully' },
       { status: 200 }

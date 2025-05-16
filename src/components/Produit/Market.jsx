@@ -1,18 +1,20 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { cn } from "@/lib/utils";
 import { Produit } from "@/components/Produit/Produit";
 import { ProductFilters } from "@/components/Produit/ProductFilters";
 import { IconSearch } from "@tabler/icons-react";
 
 export default function MarketPage() {
+  const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("all");
-
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedPetTypes, setSelectedPetTypes] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [showInStock, setShowInStock] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const clearFilters = () => {
     setSelectedCategories([]);
@@ -21,53 +23,29 @@ export default function MarketPage() {
     setShowInStock(false);
   };
 
-  const products = [
-    {
-      title: "Hamster",
-      description: "Hamsters are fun animals...",
-      image: "/hams.jpg",
-      category: "Small Pet",
-      price: 29.99,
-      inStock: true,
-    },
-    {
-      title: "Cat",
-      description: "Cats are independent...",
-      image: "/cat.jpg",
-      category: "Cat",
-      price: 59.99,
-      inStock: true,
-    },
-    {
-      title: "Dog",
-      description: "Dogs are loyal...",
-      image: "/dog.jpg",
-      category: "Dog",
-      price: 89.99,
-      inStock: true,
-    },
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("/api/products", {
+          params: {
+            name: searchQuery || undefined,
+            category: filter !== "all" ? filter : undefined,
+            priceMin: priceRange[0],
+            priceMax: priceRange[1],
+            inStock: showInStock ? "true" : undefined,
+          },
+        });
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === "all" || product.title === filter;
-    const matchesCategory =
-      selectedCategories.length === 0 ||
-      selectedCategories.includes(product.category);
-    const matchesPrice =
-      product.price >= priceRange[0] && product.price <= priceRange[1];
-    const matchesStock = !showInStock || product.inStock;
-
-    return (
-      matchesSearch &&
-      matchesFilter &&
-      matchesCategory &&
-      matchesPrice &&
-      matchesStock
-    );
-  });
+    fetchProducts();
+  }, [searchQuery, filter, priceRange, showInStock]);
 
   return (
     <div className="flex flex-col md:flex-row gap-6">
@@ -85,11 +63,16 @@ export default function MarketPage() {
             <IconSearch className="absolute left-3 top-2.5 text-[#006D77] h-5 w-5" />
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product, index) => (
-            <Produit key={index} product={product} />
-          ))}
-        </div>
+
+        {loading ? (
+          <div>Loading...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product, index) => (
+              <Produit key={index} product={product} />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Filters */}

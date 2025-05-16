@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { BtnNot } from "../Notification/BtnNot";
 import Signup from "../auth/Signup";
 import Signin from "../auth/Signin";
-import { ThemeToggle } from "@/components/ThemeToggler/Theme";
+// import { ThemeToggle } from "@/components/ThemeToggler/Theme";
 
 export default function Navbar() {
   const [searchExpanded, setSearchExpanded] = useState(false);
@@ -37,7 +37,7 @@ export default function Navbar() {
         {/* Right Side */}
         <div className="flex items-center space-x-2 md:space-x-4">
           <BtnNot />
-          <ThemeToggle className="mr-2" />
+          {/* <ThemeToggle className="mr-2" /> */}
           {/* <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5 text-[#E29578]" />
             <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
