@@ -28,10 +28,9 @@ export default function AddProduct() {
     images: [],
     specifications: [{ key: "", value: "" }],
     localisation: "",
-    user: "6824d2e30b47408a868cacaf", // Add user ID
+    user: "6824d2e30b47408a868cacaf", // à rendre dynamique plus tard
   });
 
-  // Handle form field changes
   const handleChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -39,7 +38,6 @@ export default function AddProduct() {
     }));
   };
 
-  // Handle specification changes
   const handleSpecChange = (index, field, value) => {
     setFormData((prev) => {
       const newSpecs = [...prev.specifications];
@@ -54,7 +52,6 @@ export default function AddProduct() {
     });
   };
 
-  // Add new specification field
   const addSpecification = () => {
     setFormData((prev) => ({
       ...prev,
@@ -62,7 +59,6 @@ export default function AddProduct() {
     }));
   };
 
-  // Remove specification field
   const removeSpecification = (index) => {
     setFormData((prev) => {
       const newSpecs = [...prev.specifications];
@@ -74,44 +70,40 @@ export default function AddProduct() {
     });
   };
 
-  // Handle image upload
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
-    const newImages = [];
-    const newPreviewImages = [...previewImages];
-
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        newPreviewImages.push(reader.result);
-        setPreviewImages([...newPreviewImages]);
-      };
-      reader.readAsDataURL(file);
-      newImages.push(file);
+    const readers = files.map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
     });
 
-    setFormData((prev) => ({
-      ...prev,
-      images: [...prev.images, ...newImages],
-    }));
+    Promise.all(readers).then((base64Images) => {
+      setPreviewImages((prev) => [...prev, ...base64Images]);
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...files],
+      }));
+    });
   };
 
-  // Remove image
   const removeImage = (index) => {
     setPreviewImages((prev) => {
-      const newPreviewImages = [...prev];
-      newPreviewImages.splice(index, 1);
-      return newPreviewImages;
+      const updated = [...prev];
+      updated.splice(index, 1);
+      return updated;
     });
 
     setFormData((prev) => {
-      const newImages = [...prev.images];
-      newImages.splice(index, 1);
+      const updated = [...prev.images];
+      updated.splice(index, 1);
       return {
         ...prev,
-        images: newImages,
+        images: updated,
       };
     });
   };
@@ -138,6 +130,7 @@ export default function AddProduct() {
       router.push("/marcket_place");
     } catch (error) {
       console.error("Error submitting form:", error);
+      alert("Erreur lors de l'envoi du produit.", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -148,7 +141,6 @@ export default function AddProduct() {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Form */}
             <div className="lg:col-span-2">
               <Card>
                 <CardContent className="p-6">
@@ -193,7 +185,6 @@ export default function AddProduct() {
                 </CardContent>
               </Card>
 
-              {/* Preview Tips - Moved inside the form column */}
               <div className="mt-6 p-4 bg-red-50 rounded-lg border border-red-100">
                 <div className="flex items-start">
                   <Info className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
@@ -210,14 +201,11 @@ export default function AddProduct() {
               </div>
             </div>
 
-            {/* Preview */}
-            <div className="lg:col-span-1">
-              <div className="fix top-20">
-                <ProductPreview
-                  previewImages={previewImages}
-                  formData={formData}
-                />
-              </div>
+            <div className="lg:col-span-1 sticky top-20">
+              <ProductPreview
+                previewImages={previewImages}
+                formData={formData}
+              />
             </div>
           </div>
         </div>

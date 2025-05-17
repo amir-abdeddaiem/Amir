@@ -28,8 +28,8 @@ export function SidebarMenu({ open, setOpen }) {
       ),
     },
     {
-      label: " return to Market Place",
-      href: "../../../../marcket_place",
+      label: " home",
+      href: "../../../../home",
       icon: (
         <IconArrowLeft className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
       ),
@@ -78,7 +78,7 @@ export function SidebarMenu({ open, setOpen }) {
 
 export const Logo = () => (
   <Link
-    href="#"
+    href="../../../../marcket_place"
     className="font-normal flex space-x-2 items-center text-sm text-[#006D77] py-1 relative z-20"
   >
     <div className="h-5 w-6 bg-[#006D77] rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
@@ -87,14 +87,14 @@ export const Logo = () => (
       animate={{ opacity: 1 }}
       className="font-medium text-[#006D77] whitespace-pre"
     >
-      Acet Labs
+      Market Place
     </motion.span>
   </Link>
 );
 
 export const LogoIcon = () => (
   <Link
-    href="#"
+    href="../../../../marcket_place"
     className="font-normal flex space-x-2 items-center text-sm text-[#006D77] py-1 relative z-20"
   >
     <div className="h-5 w-6 bg-[#006D77] rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />

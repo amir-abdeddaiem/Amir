@@ -26,7 +26,13 @@ export async function POST(req: Request) {
       petType: body.petType, // Added
       quantity: body.quantity,
       specifications: body.specifications || [], // Added (optional)
-      user: body.user
+      user: {
+        _id: '6824d2e30b47408a868cacaf',
+        firstName: 'Amir',
+        lastName: 'Abdeddaiem',
+        email: 'amirabdeddaiem03@gmail.com'
+        // Other user fields
+      }
     })
 
     return NextResponse.json(
@@ -54,7 +60,8 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
   const id = searchParams.get('id');
-  const userId = searchParams.get('userId');
+  // const userId = searchParams.get('userId');
+  const userId = "6824d2e30b47408a868cacaf";
   const name = searchParams.get('name');
   const category = searchParams.get('category');
   const priceMin = parseFloat(searchParams.get('priceMin') || "0");
