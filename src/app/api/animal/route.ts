@@ -13,8 +13,12 @@ interface IAnimal {
   gender: 'male' | 'female' | 'other';
   weight?: string;
   description: string;
-  vaccinated: boolean;
-  neutered: boolean;
+  HealthStatus: {
+    vaccinated: boolean;
+    neutered: boolean;
+    microchipped: boolean;
+  };
+
   friendly: {
     children: boolean;
     dogs: boolean;
@@ -102,8 +106,11 @@ export async function POST(req: NextRequest) {
       gender: body.gender,
       weight: body.weight,
       description: body.description,
-      vaccinated: body.vaccinated,
-      neutered: body.neutered,
+      HealthStatus: body.HealthStatus || {
+        vaccinated: false,
+        neutered: false,
+        microchipped: false
+      },
       friendly: body.friendly || {
         children: false,
         dogs: false,

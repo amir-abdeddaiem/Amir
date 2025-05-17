@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Navbar from "@/components/Navbar/Navbar";
-import Footer from "@/components/Footer/Footer";
+import Footer from "@/components/footer/Footer";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,8 +34,13 @@ export default function AddAnimal() {
     gender: "",
     weight: "",
     description: "",
-    vaccinated: false,
-    neutered: false,
+    HealthStatus: {
+      vaccinated: false,
+      neutered: false,
+      microchipped: false,
+    },
+
+    birthDate: "",
 
     friendly: {
       children: false,
@@ -44,6 +49,7 @@ export default function AddAnimal() {
       other: false,
     },
     image: null,
+    owner: "6824d2e30b47408a868cacaf",
   });
 
   // Handle form field changes

@@ -4,7 +4,7 @@ const AnimalSchema = new mongoose.Schema({
   name: { type: String, required: [true, 'Name is required'] },
   type: { type: String, required: [true, 'Type is required'] },
   breed: { type: String, required: [true, 'Breed is required'] },
-  birthDate: { type: Date, required: [true, 'Birth date is required'] },
+  birthDate: { type: Date },
   age: { type: String, required: [true, 'Age is required'] },
   gender: { 
     type: String, 
@@ -16,15 +16,19 @@ const AnimalSchema = new mongoose.Schema({
   },
   weight: { type: String },
   description: { type: String, required: [true, 'Description is required'] },
-  vaccinated: { type: Boolean, required: [true, 'Vaccinated status is required'] },
-  neutered: { type: Boolean, required: [true, 'Neutered status is required'] },
+  HealthStatus: {
+    vaccinated: { type: Boolean, required: [true, 'Vaccinated status is required'] },
+    neutered: { type: Boolean, required: [true, 'Neutered status is required'] },
+    microchipped: { type: Boolean, required: [true, 'Microchipped status is required'] },
+  },
   friendly: {
     children: { type: Boolean, default: false },
     dogs: { type: Boolean, default: false },
     cats: { type: Boolean, default: false },
-    other: { type: Boolean, default: false }
+    animals: { type: Boolean, default: false }
   },
-  image: { type: String, required: [true, 'Image is required'] },
+  image: { type: String},
+  // image: { type: String, required: [true, 'Image is required'] },
   owner: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 

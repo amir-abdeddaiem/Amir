@@ -60,7 +60,7 @@ export default function Form2({
               checked={formData.neutered}
               onCheckedChange={(checked) => handleChange("neutered", checked)}
             />
-            <Label htmlFor="neutered">Neutered/Spayed</Label>
+            <Label htmlFor="neutered">Neutered</Label>
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -96,7 +96,7 @@ export default function Form2({
                 handleFriendlyChange("dogs", checked)
               }
             />
-            <Label htmlFor="dogs">Other Dogs</Label>
+            <Label htmlFor="dogs">Dogs</Label>
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -106,7 +106,7 @@ export default function Form2({
                 handleFriendlyChange("cats", checked)
               }
             />
-            <Label htmlFor="cats">Other Cats</Label>
+            <Label htmlFor="cats">Cats</Label>
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -116,7 +116,7 @@ export default function Form2({
                 handleFriendlyChange("other", checked)
               }
             />
-            <Label htmlFor="other">Other Animals</Label>
+            <Label htmlFor="other">Animals</Label>
           </div>
         </div>
       </div>
