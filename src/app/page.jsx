@@ -8,12 +8,12 @@ import LostFoundSection from "@/components/home/lost-found/LostFoundSection";
 import EventsSection from "@/components/home/Eventy/EventSection";
 import PartnersSection from "@/components/home/partners/PartnersSection";
 import Footer from "@/components/footer/Footer";
-import PawBackground from "@/components/background/PawBackground";
+// import PawBackground from "@/components/background/PawBackground";
 
 export default function HomePage() {
   return (
     <div className="relative min-h-screen bg-[#EDF6F9] ">
-      <PawBackground />
+      {/* <PawBackground /> */}
       <Navbar />
       <main className="relative z-10">
         <HeroSection />

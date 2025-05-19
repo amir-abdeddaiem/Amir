@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useJwt } from "@/hooks/useJwt";
 import { Loader2 } from "lucide-react";
 import type { AxiosError } from "axios";
+import { useJwt } from "@/app/hooks/useJwt";
 
 interface ApiResponse {
   success: boolean;

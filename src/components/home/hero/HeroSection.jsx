@@ -9,7 +9,7 @@ import Image from "next/image";
 export default function HeroSection() {
   const router = useRouter();
   const addanimal = () => {
-    router.push("/add-animal"); // Naviguer vers la page /about
+    router.push("../../../../add-animal"); // Naviguer vers la page /about
   };
 
   return (
