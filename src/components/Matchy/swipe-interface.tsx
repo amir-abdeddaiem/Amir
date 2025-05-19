@@ -188,9 +188,10 @@ export default function SwipeInterface() {
   <Button
     variant="outline"
     size="icon"
-    className="h-16 w-16 rounded-full border-2 border-[#FFD166] hover:border-[#FFD166]/80 bg-white shadow-lg hover:scale-110 transition-all duration-200"
+    className="h-16 w-16 rounded-full border-2 border-[#FFD166] hover:border-[#FFD166]/80 bg-white shadow-lg hover:scale-110 transition-all duration-200 animate-float"
     onClick={() => swipe("left")}
     disabled={!currentPet}
+    style={{ animationDelay: '0.1s' }}
   >
     <X className="h-8 w-8 text-[#FFD166]" />
   </Button>
@@ -198,9 +199,10 @@ export default function SwipeInterface() {
   <Button
     variant="outline"
     size="icon"
-    className="h-14 w-14 rounded-full border-2 border-[#06D6A0] hover:border-[#06D6A0]/80 bg-white shadow-lg hover:scale-110 transition-all duration-200"
+    className="h-14 w-14 rounded-full border-2 border-[#06D6A0] hover:border-[#06D6A0]/80 bg-white shadow-lg hover:scale-110 transition-all duration-200 animate-float"
     onClick={rewind}
     disabled={swipedPets.length === 0}
+    style={{ animationDelay: '0.2s' }}
   >
     <RotateCcw className="h-6 w-6 text-[#06D6A0]" />
   </Button>
@@ -208,9 +210,10 @@ export default function SwipeInterface() {
   <Button
     variant="outline"
     size="icon"
-    className="h-16 w-16 rounded-full border-2 border-[#118AB2] hover:border-[#118AB2]/80 bg-white shadow-lg hover:scale-110 transition-all duration-200"
+    className="h-16 w-16 rounded-full border-2 border-[#118AB2] hover:border-[#118AB2]/80 bg-white shadow-lg hover:scale-110 transition-all duration-200 animate-float"
     onClick={() => swipe("up")}
     disabled={!currentPet}
+    style={{ animationDelay: '0.3s' }}
   >
     <Star className="h-8 w-8 text-[#118AB2]" />
   </Button>
@@ -218,9 +221,10 @@ export default function SwipeInterface() {
   <Button
     variant="outline"
     size="icon"
-    className="h-16 w-16 rounded-full border-2 border-[#EF476F] hover:border-[#EF476F]/80 bg-white shadow-lg hover:scale-110 transition-all duration-200"
+    className="h-16 w-16 rounded-full border-2 border-[#EF476F] hover:border-[#EF476F]/80 bg-white shadow-lg hover:scale-110 transition-all duration-200 animate-float"
     onClick={() => swipe("right")}
     disabled={!currentPet}
+    style={{ animationDelay: '0.4s' }}
   >
     <Heart className="h-8 w-8 text-[#EF476F]" />
   </Button>

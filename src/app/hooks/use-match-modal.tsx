@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, createContext, useContext } from "react"
-import  MatchModal from "../../components/waw/match-modal"
+import  MatchModal from "../../components/Matchy/match-modal"
 
 type Pet = {
   id: string

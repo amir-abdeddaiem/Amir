@@ -1,9 +1,9 @@
-import MainLayout from "@/components/waw/main-layout";
-import SwipeInterface from "@/components/waw/swipe-interface";
+import MainLayout from "@/components/Matchy/main-layout";
+import SwipeInterface from "@/components/Matchy/swipe-interface";
 import { FilterModalProvider } from "../../hooks/use-filter-modal";
 import { MatchModalProvider } from "../../hooks/use-match-modal";
 
-export default function Home() {
+export default function matchy() {
   return (
     <div className="bg-[#F0F5E7]">
       <FilterModalProvider>
