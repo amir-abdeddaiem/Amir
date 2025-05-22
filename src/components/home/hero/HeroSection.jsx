@@ -24,7 +24,7 @@ export default function HeroSection() {
             className="relative h-[400px] w-full rounded-2xl overflow-hidden shadow-xl"
           >
             <Image
-              src="/hams.jpg"
+              src="/images/hams.jpg"
               alt="Happy pet"
               fill
               className="object-cover"

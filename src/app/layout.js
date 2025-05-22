@@ -2,7 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NextAuthProvider from "./providers/NextAuthProvider";
 // import { ThemeProvider } from '@/context/ThemeProvider';
-
+import { UserDataProvider } from "@/contexts/UserData";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,11 +24,13 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <UserDataProvider>
         <NextAuthProvider>
           {/* <ThemeProvider> */}
         {children}
         {/* </ThemeProvider> */}
         </NextAuthProvider>
+        </UserDataProvider>
         
       </body>
     </html>

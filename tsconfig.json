@@ -36,7 +36,7 @@
     "**/*.tsx",
     "src/**/*.ts",
     "src/**/*.tsx"
-, "src/app/(pages)/Profile/page.jsx", "src/components/Profile/ProfilePicture.tsx", "src/components/Profile/UpdateUser.jsx", "src/components/Add-Animal/Animalprofile.t=jsx", "src/components/ProfileAnimal/ProfileAnimal.jsx", "src/app/(pages)/test/page.jsx", "src/app/(pages)/MatchModal/MatchModal.jsx"  ],
+, "src/app/(pages)/Profile/page.jsx", "src/components/Profile/ProfilePicture.tsx", "src/components/Profile/UpdateUser.jsx", "src/components/Add-Animal/Animalprofile.t=jsx", "src/components/ProfileAnimal/ProfileAnimal.jsx", "src/app/(pages)/test/page.jsx", "src/app/(pages)/MatchModal/MatchModal.jsx", "src/components/ui/sidebar.jsx", "src/components/Produit/Produit.jsx"  ],
   "exclude": [
     "node_modules"
   ]

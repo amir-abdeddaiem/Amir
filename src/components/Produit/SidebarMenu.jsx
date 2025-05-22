@@ -5,6 +5,9 @@ import {
   IconArrowLeft,
   IconBrandTabler,
   IconSettings,
+  IconShoppingBagPlus,
+  IconShoppingCart,
+  IconShoppingCartPlus,
   IconUserBolt,
 } from "@tabler/icons-react";
 import Image from "next/image";
@@ -17,7 +20,7 @@ export function SidebarMenu({ open, setOpen }) {
       label: "add product",
       href: "../../../../marcket_place/add-product",
       icon: (
-        <IconBrandTabler className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
+        <IconShoppingBagPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
       ),
     },
     {

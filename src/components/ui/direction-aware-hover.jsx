@@ -10,15 +10,13 @@ export const DirectionAwareHover = ({
   children,
   childrenClassName,
   imageClassName,
-  className
+  className,
 }) => {
   const ref = useRef(null);
 
   const [direction, setDirection] = useState("left");
 
-  const handleMouseEnter = (
-    event
-  ) => {
+  const handleMouseEnter = (event) => {
     if (!ref.current) return;
 
     const direction = getDirection(event, ref.current);
@@ -42,10 +40,7 @@ export const DirectionAwareHover = ({
     }
   };
 
-  const getDirection = (
-    ev,
-    obj
-  ) => {
+  const getDirection = (ev, obj) => {
     const { width: w, height: h, left, top } = obj.getBoundingClientRect();
     const x = ev.clientX - left - (w / 2) * (w > h ? h / w : 1);
     const y = ev.clientY - top - (h / 2) * (h > w ? w / h : 1);
@@ -54,34 +49,40 @@ export const DirectionAwareHover = ({
   };
 
   return (
-    (<motion.div
+    <motion.div
       onMouseEnter={handleMouseEnter}
       ref={ref}
       className={cn(
         "md:h-96 w-60 h-60 md:w-96 bg-transparent rounded-lg overflow-hidden group/card relative",
         className
-      )}>
+      )}
+    >
       <AnimatePresence mode="wait">
         <motion.div
           className="relative h-full w-full"
           initial="initial"
           whileHover={direction}
-          exit="exit">
-          <motion.div
-            className="group-hover/card:block hidden absolute inset-0 w-full h-full bg-black/40 z-10 transition duration-500" />
+          exit="exit"
+        >
+          <motion.div className="group-hover/card:block hidden absolute inset-0 w-full h-full bg-black/40 z-10 transition duration-500" />
           <motion.div
             variants={variants}
             className="h-full w-full relative bg-gray-50 dark:bg-black"
             transition={{
               duration: 0.2,
               ease: "easeOut",
-            }}>
+            }}
+          >
             <Image
               alt="image"
-              className={cn("h-full w-full object-cover scale-[1.15]", imageClassName)}
+              className={cn(
+                "h-full w-full object-cover scale-[1.15]",
+                imageClassName
+              )}
               width="1000"
               height="1000"
-              src={imageUrl} />
+              src={imageUrl}
+            />
           </motion.div>
           <motion.div
             variants={textVariants}
@@ -89,12 +90,16 @@ export const DirectionAwareHover = ({
               duration: 0.5,
               ease: "easeOut",
             }}
-            className={cn("text-white absolute bottom-4 left-4 z-40", childrenClassName)}>
+            className={cn(
+              "text-white absolute bottom-4 left-4 z-40",
+              childrenClassName
+            )}
+          >
             {children}
           </motion.div>
         </motion.div>
       </AnimatePresence>
-    </motion.div>)
+    </motion.div>
   );
 };
 

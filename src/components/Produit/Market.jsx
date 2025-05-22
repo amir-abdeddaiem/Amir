@@ -45,10 +45,11 @@ export default function MarketPage() {
     };
 
     fetchProducts();
-  }, [searchQuery, filter, priceRange, showInStock]);
+  }, []);
+  // searchQuery, filter, priceRange, showInStock;
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
+    <div className="flex  md:flex-row gap-6">
       {/* Product Grid */}
       <div className="flex-1">
         <div className="flex flex-col md:flex-row gap-4 mb-8">
