@@ -8,7 +8,7 @@ import Image from "next/image";
 
 export function ProductPreview({ previewImages, formData }) {
   return (
-    <Card className="overflow-hidden h-full">
+    <Card className="overflow-hidden ">
       <div className="relative h-64 w-full bg-gray-100">
         {previewImages.length > 0 ? (
           <Image

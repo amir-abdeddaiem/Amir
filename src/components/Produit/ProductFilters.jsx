@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
-import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const categories = [
   "Food",
@@ -30,8 +30,8 @@ const petTypes = [
 ];
 
 export function ProductFilters({
-  selectedcategories = [],
-  setSelectedcategories,
+  selectedCategories = [],
+  setSelectedCategories,
   selectedPetTypes = [],
   setSelectedPetTypes,
   priceRange = [0, 100],
@@ -46,7 +46,6 @@ export function ProductFilters({
     price: true,
   });
 
-  // Toggle filter sections
   const toggleFilterSection = (section) => {
     setExpandedFilters((prev) => ({
       ...prev,
@@ -54,16 +53,14 @@ export function ProductFilters({
     }));
   };
 
-  // Handle categories selection
-  const handlecategoriesChange = (categories) => {
-    setSelectedcategories((prev) =>
-      prev.includes(categories)
-        ? prev.filter((c) => c !== categories)
-        : [...prev, categories]
+  const handleCategoriesChange = (category) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
     );
   };
 
-  // Handle pet type selection
   const handlePetTypeChange = (petType) => {
     setSelectedPetTypes((prev) =>
       prev.includes(petType)
@@ -80,7 +77,7 @@ export function ProductFilters({
           variant="ghost"
           size="sm"
           onClick={onClearFilters}
-          className="h-8 text-xs"
+          className="h-8 text-xs hover:text-[#83C5BE]"
         >
           Clear All
         </Button>
@@ -113,11 +110,15 @@ export function ProductFilters({
               >
                 <div className="pt-2 space-y-2">
                   {petTypes.map((petType) => (
-                    <div key={petType} className="flex items-center">
+                    <div
+                      key={`pet-type-${petType}`}
+                      className="flex items-center"
+                    >
                       <Checkbox
                         id={`pet-${petType}`}
                         checked={selectedPetTypes.includes(petType)}
                         onCheckedChange={() => handlePetTypeChange(petType)}
+                        className="border-[#83C5BE] data-[state=checked]:bg-[#83C5BE]"
                       />
                       <Label
                         htmlFor={`pet-${petType}`}
@@ -135,13 +136,13 @@ export function ProductFilters({
 
         <Separator />
 
-        {/* categories */}
+        {/* Categories */}
         <div>
           <div
             className="flex items-center justify-between cursor-pointer"
             onClick={() => toggleFilterSection("categories")}
           >
-            <h3 className="font-medium">categories</h3>
+            <h3 className="font-medium">Categories</h3>
             {expandedFilters.categories ? (
               <ChevronUp className="h-4 w-4 text-gray-500" />
             ) : (
@@ -158,20 +159,22 @@ export function ProductFilters({
                 className="overflow-hidden"
               >
                 <div className="pt-2 space-y-2">
-                  {categories.map((categories) => (
-                    <div key={categories} className="flex items-center">
+                  {categories.map((category) => (
+                    <div
+                      key={`category-${category}`}
+                      className="flex items-center"
+                    >
                       <Checkbox
-                        id={`categories-${categories}`}
-                        checked={selectedcategories.includes(categories)}
-                        onCheckedChange={() =>
-                          handlecategoriesChange(categories)
-                        }
+                        id={`category-${category}`}
+                        checked={selectedCategories.includes(category)}
+                        onCheckedChange={() => handleCategoriesChange(category)}
+                        className="border-[#83C5BE] data-[state=checked]:bg-[#83C5BE]"
                       />
                       <Label
-                        htmlFor={`categories-${categories}`}
+                        htmlFor={`category-${category}`}
                         className="ml-2 text-sm"
                       >
-                        {categories}
+                        {category}
                       </Label>
                     </div>
                   ))}
@@ -210,11 +213,15 @@ export function ProductFilters({
                     step={1}
                     value={priceRange}
                     onValueChange={setPriceRange}
-                    className="mb-6"
+                    className="mb-6  [&_[role=slider]]:bg-[#83C5BE] [&_[role=slider]]:border-[#83C5BE] [&_[role=range]]:bg-[#83C5BE]"
                   />
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">${priceRange[0]}</span>
-                    <span className="text-sm">${priceRange[1]}</span>
+                    <span className="text-sm text-[#83C5BE]">
+                      ${priceRange[0]}
+                    </span>
+                    <span className="text-sm text-[#83C5BE]">
+                      ${priceRange[1]}
+                    </span>
                   </div>
                 </div>
               </motion.div>
@@ -230,6 +237,7 @@ export function ProductFilters({
             id="in-stock"
             checked={showInStock}
             onCheckedChange={setShowInStock}
+            className="border-[#83C5BE] data-[state=checked]:bg-[#83C5BE]"
           />
           <Label htmlFor="in-stock" className="ml-2 text-sm">
             In Stock Only
