@@ -3,6 +3,7 @@ import "./globals.css";
 import NextAuthProvider from "./providers/NextAuthProvider";
 // import { ThemeProvider } from '@/context/ThemeProvider';
 import { UserDataProvider } from "@/contexts/UserData";
+import { RefreshProvider } from "@/contexts/RefreshContext";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <RefreshProvider>
         <UserDataProvider>
         <NextAuthProvider>
           {/* <ThemeProvider> */}
@@ -31,6 +33,7 @@ export default function RootLayout({ children }) {
         {/* </ThemeProvider> */}
         </NextAuthProvider>
         </UserDataProvider>
+        </RefreshProvider>
         
       </body>
     </html>

@@ -12,45 +12,49 @@ interface ReviewRequestBody {
 
 export async function POST(req: Request) {
   try {
+    await connectDB(); // Ensure connection is established
+    
+    const body = await req.json();
+    
+    // Create a new review using the properly imported model
+    const review = await Review.create({
+      stars: body.stars,
+      message: body.message,
+      product: body.product,
+      user: body.userId
+    });
+
+    return NextResponse.json({ success: true, review });
+  } catch (error) {
+    console.error('Review creation failed:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to create review' },
+      { status: 500 }
+    );
+  }
+}export async function GET(req: NextRequest) {
+  try {
     await connectDB()
-    const body = await req.json()
-
-    // Validate user ID
-    if (!body.userId || !mongoose.Types.ObjectId.isValid(body.userId)) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid user ID' },
-        { status: 400 }
-      )
-    }
-
-    // Validate product ID
-    if (!body.product || !mongoose.Types.ObjectId.isValid(body.product)) {
+    
+    const productId = req.nextUrl.searchParams.get('productId')
+    
+    if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
       return NextResponse.json(
         { success: false, message: 'Invalid product ID' },
         { status: 400 }
       )
     }
 
-    if (typeof body.stars !== 'number' || body.stars < 1 || body.stars > 5) {
-      return NextResponse.json(
-        { success: false, message: 'Stars must be a number between 1 and 5' },
-        { status: 400 }
-      )
-    }
-
-    const newReview = await Review.create({
-      stars: body.stars,
-      message: body.message,
-      product: new mongoose.Types.ObjectId(body.product),
-      user: new mongoose.Types.ObjectId(body.userId)
-    })
+    const reviews = await Review.find({ product: productId })
+      .populate('user', 'name email') // Adjust fields as needed
+      .sort({ createdAt: -1 })
 
     return NextResponse.json(
-      { success: true, message: 'Review created successfully', data: newReview },
-      { status: 201 }
+      { success: true, reviews },
+      { status: 200 }
     )
   } catch (error: any) {
-    console.error('Failed to create review:', error)
+    console.error('Failed to fetch reviews:', error)
     return NextResponse.json(
       {
         success: false,
@@ -61,5 +65,3 @@ export async function POST(req: Request) {
     )
   }
 }
-
-// ... keep the GET function the same ...

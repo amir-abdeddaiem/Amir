@@ -1,6 +1,7 @@
 "use client";
-
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useRefresh } from "@/contexts/RefreshContext";
 import {
   Dialog,
   DialogContent,
@@ -8,18 +9,34 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Star } from "lucide-react";
-
-export function ReviewPopup({ productId }) {
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { useUserData } from "@/contexts/UserData";
+export function ReviewPopup({ productId, userId }) {
+  const { data: session } = useSession();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { userData } = useUserData();
+  const { triggerRefresh } = useRefresh();
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // if (!session) {
+    //   toast.error("Please sign in to leave a review");
+    //   return;
+    // }
+
+    if (rating === 0) {
+      toast.error("Please select a rating");
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       const response = await fetch("/api/review", {
@@ -29,18 +46,26 @@ export function ReviewPopup({ productId }) {
           stars: rating,
           message: reviewText,
           product: productId,
-          userId: "6824d2e30b47408a868cacaf", // Replace with actual user ID
+          userId: userId,
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to submit review");
+      const data = await response.json();
 
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit review");
+      }
+
+      toast.success("Review submitted successfully!");
       setIsOpen(false);
       setRating(0);
       setReviewText("");
-      window.location.reload();
     } catch (err) {
       console.error("Failed to submit review:", err);
+      toast.error(err.message || "Failed to submit review");
+    } finally {
+      setIsSubmitting(false);
+      triggerRefresh();
     }
   };
 
@@ -51,7 +76,7 @@ export function ReviewPopup({ productId }) {
           variant="outline"
           className="w-full bg-[#83C5BE] hover:bg-[#006D77] text-white border-[#E29578]"
         >
-          Write a Review
+          {session ? "Write a Review" : "Sign In to Review"}
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-[#FFDDD2] border-[#E29578] max-w-md rounded-2xl">
@@ -70,6 +95,7 @@ export function ReviewPopup({ productId }) {
                 onMouseEnter={() => setHoverRating(star)}
                 onMouseLeave={() => setHoverRating(0)}
                 className="focus:outline-none"
+                disabled={isSubmitting}
               >
                 <Star
                   size={32}
@@ -89,6 +115,7 @@ export function ReviewPopup({ productId }) {
             value={reviewText}
             onChange={(e) => setReviewText(e.target.value)}
             required
+            disabled={isSubmitting}
           />
           <div className="flex justify-end gap-2">
             <Button
@@ -96,14 +123,17 @@ export function ReviewPopup({ productId }) {
               variant="outline"
               className="bg-white text-[#006D77] border-[#E29578] hover:bg-[#FFDDD2]"
               onClick={() => setIsOpen(false)}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
+              onClick={handleSubmit}
               type="submit"
               className="bg-[#83C5BE] hover:bg-[#006D77] text-white"
+              disabled={isSubmitting || rating === 0}
             >
-              Submit Review
+              {isSubmitting ? "Submitting..." : "Submit Review"}
             </Button>
           </div>
         </form>

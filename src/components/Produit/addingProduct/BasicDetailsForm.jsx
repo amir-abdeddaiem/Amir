@@ -21,6 +21,7 @@ const categories = [
   "Housing",
   "Furniture",
   "Essentials",
+  "Pets",
 ];
 const petTypes = [
   "Dog",
