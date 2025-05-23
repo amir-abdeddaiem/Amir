@@ -94,8 +94,8 @@ export default function MarketPage() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
-      <div className="flex-1">
+    <div className="flex flex-col md:flex-row gap-19 ">
+      <div className="flex-1 ml-10">
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
             <input
@@ -126,7 +126,7 @@ export default function MarketPage() {
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product, index) => (
                   <motion.div
-                    key={generateProductKey(product, index)}
+                    key={index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -155,7 +155,7 @@ export default function MarketPage() {
       </div>
 
       <div className="hidden md:block w-64 flex-shrink-0">
-        <div className="bg-white rounded-lg shadow-md sticky top-20 p-4">
+        <div className="bg-white rounded-lg shadow-md sticky top-5 p-4 z-10">
           <ProductFilters
             selectedCategories={selectedCategories}
             setSelectedCategories={setSelectedCategories}
