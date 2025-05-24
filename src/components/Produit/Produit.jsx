@@ -36,9 +36,9 @@ export function Produit({ product }) {
           <div className="relative group">
             <div className="relative overflow-hidden rounded-2xl shadow-lg transition-all duration-300 group-hover:scale-[1.03]">
               <Lens hovering={hovering} setHovering={setHovering}>
-                {product?.images?.[1] ? (
+                {product?.images?.[0] ? (
                   <Image
-                    src={product.images[1]}
+                    src={product.images[0]}
                     alt={product?.name || "Product image"}
                     width={500}
                     height={500}

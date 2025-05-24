@@ -2,17 +2,16 @@
 import React from "react";
 import { Sidebar, SidebarBody, SidebarLink } from "../ui/sidebar";
 import {
-  IconArrowLeft,
-  IconBrandTabler,
-  IconSettings,
+  IconHeart,
+  IconHome,
   IconShoppingBagPlus,
   IconShoppingCart,
-  IconShoppingCartPlus,
   IconUserBolt,
 } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { Icon } from "lucide-react";
 
 export function SidebarMenu({ open, setOpen }) {
   const links = [
@@ -23,6 +22,21 @@ export function SidebarMenu({ open, setOpen }) {
         <IconShoppingBagPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
       ),
     },
+
+    {
+      label: "wishlist",
+      href: "../../../../wishlist",
+      icon: (
+        <IconHeart className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
+      ),
+    },
+    {
+      label: " my market",
+      href: "../../../../mymarket",
+      icon: (
+        <IconShoppingCart className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
+      ),
+    },
     {
       label: "Profile",
       href: "../../../user",
@@ -30,49 +44,26 @@ export function SidebarMenu({ open, setOpen }) {
         <IconUserBolt className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
       ),
     },
+
     {
       label: " home",
       href: "../../../../home",
       icon: (
-        <IconArrowLeft className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
-      ),
-    },
-    {
-      label: "Settings",
-      href: "#",
-      icon: (
-        <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
+        <IconHome className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
       ),
     },
   ];
 
   return (
     <Sidebar open={open} setOpen={setOpen}>
-      <SidebarBody className="justify-between gap-10">
+      <SidebarBody className="justify-between gap-20 ">
         <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
           {open ? <Logo /> : <LogoIcon />}
-          <div className="mt-8 flex flex-col gap-2">
+          <div className="mt-8 flex flex-col gap-10 ">
             {links.map((link, idx) => (
               <SidebarLink key={idx} link={link} />
             ))}
           </div>
-        </div>
-        <div>
-          <SidebarLink
-            link={{
-              label: "Manu Arora",
-              href: "#",
-              icon: (
-                <Image
-                  src="/hamspng"
-                  className="h-7 w-7 flex-shrink-0 rounded-full"
-                  width={50}
-                  height={50}
-                  alt="Avatar"
-                />
-              ),
-            }}
-          />
         </div>
       </SidebarBody>
     </Sidebar>
