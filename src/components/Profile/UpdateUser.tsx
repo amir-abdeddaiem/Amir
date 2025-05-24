@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useJwt } from "@/hooks/useJwt";
+
+import { useJwt } from "@/app/hooks/useJwt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,11 +34,8 @@ interface ProfileData {
   bio: string;
 }
 
-interface UpdateProfileProps {
-  params: { id: string };
-}
 
-export default function UpdateProfile({ params }: UpdateProfileProps) {
+export default function UpdateProfile() {
   const router = useRouter();
   const { getToken, getUserId } = useJwt();
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -51,28 +49,48 @@ export default function UpdateProfile({ params }: UpdateProfileProps) {
     location: "",
     bio: "",
   });
-  const userId = getUserId();
+
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userIdF, setUserIdF] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchAndSetUserId = async () => {
+      try {
+        const userId = await getUserId();
+        if (!userId) {
+          throw new Error("User ID not found");
+        }
+        setUserIdF(userId);
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
+    };
+    fetchAndSetUserId();
+    
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setIsLoading(true);
-        const userId = params.id;
+        const userId =  userIdF;
         if (!userId) {
           throw new Error("User ID not found");
         }
 
-        const response = await axios.get<ApiResponse>(`/api/profile/${userId}`, {
+        const response = await axios.get<ApiResponse>(`/api/profile`, {
           headers: {
-            Authorization: `Bearer ${getToken()}`
+            Authorization: `${getUserId()}`
           }
         });
-        
+
         if (response.data.error) {
           throw new Error(response.data.error);
         }
+
+            console.log("Profile Data:", userIdF);
 
         setProfileData(response.data.data);
       } catch (err) {
@@ -84,7 +102,7 @@ export default function UpdateProfile({ params }: UpdateProfileProps) {
     };
 
     fetchProfile();
-  }, [params.id, getToken]);
+  }, [userIdF]);
 
   const handleChange = <K extends keyof ProfileData>(field: K, value: ProfileData[K]) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
@@ -93,10 +111,10 @@ export default function UpdateProfile({ params }: UpdateProfileProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     try {
       setIsLoading(true);
-      const userId = params.id;
+      const userId = userIdF;
       if (!userId) {
         throw new Error("User ID not found");
       }
@@ -106,12 +124,11 @@ export default function UpdateProfile({ params }: UpdateProfileProps) {
           Authorization: `Bearer ${useJwt().getToken()}`,
         },
       });
-      
+
       if (response.data.error) {
         throw new Error(response.data.error);
       }
 
-      router.push("/profile");
     } catch (err) {
       const error = err as AxiosError<ApiResponse>;
       setError(error.response?.data?.error || "Failed to update profile");
@@ -131,7 +148,7 @@ export default function UpdateProfile({ params }: UpdateProfileProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-4">
       <h1 className="text-2xl font-bold text-[#006D77]">Update Profile</h1>
-      
+
       {/* Personal Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -148,7 +165,7 @@ export default function UpdateProfile({ params }: UpdateProfileProps) {
         <div className="space-y-2">²
           <Label htmlFor="lastName" className="">Last Name</Label>
           <Input
-          type="text"
+            type="text"
             className=""
             id="lastName"
             value={profileData.lastName}
@@ -161,21 +178,21 @@ export default function UpdateProfile({ params }: UpdateProfileProps) {
       {/* Contact Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label  className = ""htmlFor="email">Email</Label>
+          <Label className="" htmlFor="email">Email</Label>
           <Input
-          type="text"
+            type="text"
             className=""
             id="email"
-            
+
             value={profileData.email}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('email', e.target.value)}
             required
           />
         </div>
         <div className="space-y-2">
-          <Label  className = "" htmlFor="phone">Phone</Label>
+          <Label className="" htmlFor="phone">Phone</Label>
           <Input
-          className=""
+            className=""
             id="phone"
             type="tel"
             value={profileData.phone}
@@ -187,9 +204,9 @@ export default function UpdateProfile({ params }: UpdateProfileProps) {
       {/* Additional Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label  className = "" htmlFor="birthDate">Birth Date</Label>
+          <Label className="" htmlFor="birthDate">Birth Date</Label>
           <Input
-          className=""
+            className=""
             id="birthDate"
             type="date"
             value={profileData.birthDate}
@@ -198,8 +215,8 @@ export default function UpdateProfile({ params }: UpdateProfileProps) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="gender" className="">Gender</Label>
-          <Select 
-            value={profileData.gender} 
+          <Select
+            value={profileData.gender}
             onValueChange={(value: Gender) => handleChange('gender', value)}
             required
           >
@@ -216,7 +233,7 @@ export default function UpdateProfile({ params }: UpdateProfileProps) {
       </div>
 
       <div className="space-y-2">
-        <Label  className = ""htmlFor="location">Location</Label>
+        <Label className="" htmlFor="location">Location</Label>
         <Input
           id="location"
           type="text"
@@ -235,9 +252,9 @@ export default function UpdateProfile({ params }: UpdateProfileProps) {
           className="min-h-[120px]"
         />
       </div>
-      
+
       {error && <div className="text-red-500 text-sm">{error}</div>}
-      
+
       <div className="flex gap-4 pt-4">
         <Button
           type="button"

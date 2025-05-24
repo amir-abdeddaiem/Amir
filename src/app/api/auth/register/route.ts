@@ -5,22 +5,22 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { BusinessProvider } from '@/models/BusnessProvider'
 
-const JWT_SECRET = 'your-secret-key'; // You should move this to an environment variable
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 
 export async function POST(req: Request) {
   await connectDB()
   const body = await req.json()
 
   try {
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(body.password, saltRounds);
+    const saltRounds = 10
+    const hashedPassword = await bcrypt.hash(body.password, saltRounds)
 
-    const existingUser = await User.findOne({ email: body.email });
+    const existingUser = await User.findOne({ email: body.email })
     if (existingUser) {
       return NextResponse.json(
         { message: 'Email already registered. Please use a different email.' },
         { status: 400 }
-      );
+      )
     }
 
     const userData: any = { 
@@ -34,27 +34,28 @@ export async function POST(req: Request) {
       password: hashedPassword,
       phone: body.phone,
       avatar: body.avatar,
-    };
+      status: 'authenticated'
+    }
 
     // Add coordinates if provided
     if (body.coordinates) {
       userData.coordinates = {
         type: 'Point',
         coordinates: body.coordinates
-      };
+      }
     }
 
     // Add provider-specific fields if user is a service provider
     if (body.accType === 'provider') {
-      userData.businessName = body.businessName;
-      userData.businessType = body.businessType;
-      userData.services = body.services || [];
-      userData.certifications = body.certifications;
-      userData.description = body.description;
-      userData.website = body.website;
+      userData.businessName = body.businessName
+      userData.businessType = body.businessType
+      userData.services = body.services || []
+      userData.certifications = body.certifications
+      userData.description = body.description
+      userData.website = body.website
     }
 
-    const newUser = await User.create(userData);
+    const newUser = await User.create(userData)
 
     if (body.accType !== "regular") {
       await BusinessProvider.create({
@@ -65,15 +66,15 @@ export async function POST(req: Request) {
         certifications: body.certifications,
         description: body.description,
         Userid: newUser
-      });
+      })
     }
 
     // Create JWT token
     const token = jwt.sign(
       { userId: newUser._id, email: newUser.email },
-      process.env.JWT_SECRET || 'your-secret-key',
+      JWT_SECRET,
       { expiresIn: '7d' }
-    );
+    )
 
     return NextResponse.json(
       { 
@@ -81,26 +82,29 @@ export async function POST(req: Request) {
         success: true,
         token,
         user: {
-          _id: newUser._id,
-          email: newUser.email
+          id: newUser._id,
+          email: newUser.email,
+          name: `${newUser.firstName} ${newUser.lastName}`,
+          status: 'authenticated'
         }
       },
       { status: 201 }
-    );
+    )
   } catch (error: any) {
-    console.error('Registration error:', error);
+    console.error('Registration error:', error)
     
     // Handle MongoDB duplicate key error specifically
     if (error.code === 11000) {
       return NextResponse.json(
         { message: 'Email already registered. Please use a different email.', success: false },
         { status: 400 }
-      );
+      )
     }
 
     return NextResponse.json(
       { message: 'Failed to create user. Please try again.', success: false },
       { status: 500 }
-    );
+    )
   }
 }
+

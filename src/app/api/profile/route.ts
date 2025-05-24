@@ -4,10 +4,12 @@ import { authOptions } from "@/lib/nextAuth";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 
-export async function GET(request: Request) {
+export async function GET(reqest: Request) {
+  // search fo params named authorization on headers
+  const authHeader = reqest.headers.get('authorization');
   try {
     const session = await getServerSession(authOptions);
-    console.log("ssss",session); 
+    console.log("Session data:", session);
     if (!session?.user?.email) {
       return NextResponse.json({
         success: false,
@@ -17,7 +19,10 @@ export async function GET(request: Request) {
     }
 
     await connectDB();
-    const user = await User.findOne({ email: session.user.email }).select('-password');
+
+    // Use email or id from session to find the user
+    const user = await User.findOne({ email:authHeader }).select('-password');
+    console.log("User data:", user);
 
     if (!user) {
       return NextResponse.json({

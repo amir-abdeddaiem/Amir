@@ -1,5 +1,6 @@
 // models/User.ts
 import mongoose from 'mongoose'
+import bcrypt from 'bcrypt'
 
 const UserSchema = new mongoose.Schema({
   accType: { type: String, enum: ['regular', 'provider'], default: 'regular' },
@@ -20,10 +21,11 @@ const UserSchema = new mongoose.Schema({
       required: false,
     },
   },
-  password: { type: String, required: true, select: false }, // Never returned by default
+  password: { type: String, required: true },
   phone: { type: String, required: true },
   avatar: { type: String },
   bio: { type: String },
+  status: { type: String, enum: ['authenticated', 'unauthenticated'], default: 'unauthenticated' },
   // Provider specific fields
   businessName: { type: String },
   businessType: { type: String },
@@ -41,6 +43,9 @@ const UserSchema = new mongoose.Schema({
 
 UserSchema.pre('save', function(next) {
   this.updatedAt = new Date()
+  if (this.isModified('password')) {
+    this.password = bcrypt.hashSync(this.password, 10)
+  }
   next()
 })
 

@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
@@ -17,24 +18,13 @@ export default function UserProfile() {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "loading") {
-      return;
-    }
+    console.log("Session data:", session);  
 
-    if (status === "unauthenticated") {
-      console.error("No user session found");
-      router.push("/register");
-      return;
-    }
 
     if (session?.user?.email) {
       const fetchUser = async () => {
         try {
-          const response = await axios.get(`/api/profile`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          });
+          const response = await axios.get(`/api/profile`);
           setUser(response.data);
         } catch (err) {
           console.error("Error fetching user data:", err);

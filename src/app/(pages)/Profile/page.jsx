@@ -12,15 +12,12 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { PawPrintIcon as Paw } from "lucide-react";
-import Signout from "@/components/Signout/Signout";
-
 function page() {
-  const params = useParams();
   return (
     <div className="min-h-screen bg-[#EDF6F9] py-12 flex items-center justify-center">
-      {/* Simplified outer div assuming AuthLayout might handle background/pattern */}
       <div className="max-w-4xl w-full mx-auto px-4">
-        {/* Removed redundant Back to Home link if AuthLayout has navigation */}
+
+        <UpdateUser />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -42,14 +39,10 @@ function page() {
             </CardHeader>
 
             <CardContent className="pt-6 px-6">
-              {/* <UpdateUser params={params} /> */}
+              
             </CardContent>
 
-            <CardFooter className="flex flex-col space-y-4 border-t bg-gray-50 p-6">
-              <div className="text-center text-sm text-gray-600 w-full">
-                <Signout />
-              </div>
-            </CardFooter>
+
           </Card>
         </motion.div>
       </div>

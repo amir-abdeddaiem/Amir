@@ -1,7 +1,40 @@
 import { type AuthOptions } from "next-auth";
+import { Session } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
 import FacebookProvider from "next-auth/providers/facebook";
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id?: string | null;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+    } | null;
+  }
+
+  interface User {
+    id: string;
+    name: string;
+    email: string;
+  }
+};
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string | null | undefined;
+    email: string | null | undefined;
+    name: string | null | undefined;
+  }
+}
+
+// Type declarations for the token
+interface ExtendedToken {
+  id: string;
+  email: string;
+  name: string;
+}
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -13,61 +46,33 @@ export const authOptions: AuthOptions = {
       clientId: process.env.FACEBOOK_CLIENT_ID as string,
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET as string
     }),
-    // CredentialsProvider({
-    //   id: "domain-login",
-    //   name: "Domain Account",
-    //   async authorize(credentials) {
-    //     // You should implement your actual user lookup logic here
-    //     const user = {
-    //       id: "1",
-    //       name: credentials?.username,
-    //       email: `${credentials?.username}@domain.com`
-    //     };
-    //     return user || null;
-    //   },
-    //   credentials: {
-    //     domain: {
-    //       label: "Domain",
-    //       type: "text",
-    //       placeholder: "CORPNET",
-    //       value: "CORPNET",
-    //     },
-    //     username: { label: "Username", type: "text", placeholder: "jsmith" },
-    //     password: { label: "Password", type: "password" },
-    //   },
-    // }),
-    // CredentialsProvider({
-    //   id: "intranet-credentials",
-    //   name: "Two Factor Auth",
-    //   async authorize(credentials) {
-    //     // You should implement your actual user lookup logic here
-    //     const user = {
-    //       id: "1",
-    //       name: credentials?.username,
-    //       email: `${credentials?.username}@company.com`
-    //     };
-    //     return user || null;
-    //   },
-    //   credentials: {
-    //     username: { label: "Username", type: "text", placeholder: "jsmith" },
-    //     "2fa-key": { label: "2FA Key", type: "text" },
-    //   },
-    // 
-    //  }
-    // ),
   ],
-  // Removed duplicate debug property
   session: {
     strategy: "jwt",
     maxAge: 24 * 60 * 60,
   },
   jwt: {
-    // You can add JWT configuration here if needed
+    secret: process.env.JWT_SECRET,
+    maxAge: 24 * 60 * 60,
   },
   callbacks: {
-    // You can add callbacks here if needed
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.name = token.name;
+      }
+      return session;
+    },
   },
-  // debug: true,
-  debug: process.env.NODE_ENV !== "production",
-  secret: process.env.NEXTAUTH_SECRET,  
+  debug: true,
+  secret: process.env.NEXTAUTH_SECRET,
 };

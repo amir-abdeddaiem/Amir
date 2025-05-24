@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,10 +9,10 @@ import {
   DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,32 +26,52 @@ import { useRouter } from "next/navigation";
 
 export default function Signin({ isOpen, onClose }) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    rememberMe: false
+  });
   const [error, setError] = useState(null);
-  const handleSubmit = async (e) => {
+
+  const handleChange = useCallback((field) => (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
+  }, []);
+
+  const handleCheckboxChange = useCallback((checked) => {
+    setFormData(prev => ({
+      ...prev,
+      rememberMe: checked
+    }));
+  }, []);
+
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setError(null);
 
     try {
-      const response = await axios.post("/api/login", { email, password });
+      const { email, password } = formData;
+      const response = await axios.post("/api/auth/login", { email, password });
       const { token } = response.data;
+      
       if (token) {
-        Cookies.set("token", token, { expires: 1 / 24 }); // 1 hour
-        console.log("Token stored in cookie");
-        router.push("/user"); // Redirect to user dashboard
+        Cookies.set("token", token, { expires: formData.rememberMe ? 7 : 1 / 24 });
+        router.push("/user");
       }
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }
-  };
+  }, [formData, router]);
 
-  const handleExternalClose = () => {
-    if (onClose) {
-      onClose();
-    }
-  };
+  const handleExternalClose = useCallback(() => {
+    onClose?.();
+  }, [onClose]);
+
+  const AuthIcon = ({ icon: Icon }) => (
+    <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -102,19 +122,25 @@ export default function Signin({ isOpen, onClose }) {
             </TabsList>
           </div>
 
+          {error && (
+            <div className="px-6 text-red-500 text-sm text-center">
+              {error}
+            </div>
+          )}
+
           <TabsContent value="email" className="px-6 pb-6 pt-2">
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <div className="space-y-1">
                   <Label htmlFor="email-signin">Email</Label>
                   <div className="relative flex items-center">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <AuthIcon icon={Mail} />
                     <Input
                       id="email-signin"
                       type="email"
                       placeholder="name@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={formData.email}
+                      onChange={handleChange('email')}
                       required
                       className="pl-10"
                     />
@@ -133,12 +159,12 @@ export default function Signin({ isOpen, onClose }) {
                     </Link>
                   </div>
                   <div className="relative flex items-center">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <AuthIcon icon={Lock} />
                     <Input
                       id="password-signin"
                       type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      value={formData.password}
+                      onChange={handleChange('password')}
                       required
                       className="pl-10"
                       placeholder="Enter your password"
@@ -150,8 +176,8 @@ export default function Signin({ isOpen, onClose }) {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="remember-signin"
-                      checked={rememberMe}
-                      onCheckedChange={setRememberMe}
+                      checked={formData.rememberMe}
+                      onCheckedChange={handleCheckboxChange}
                       aria-label="Remember me"
                     />
                     <Label
@@ -179,7 +205,7 @@ export default function Signin({ isOpen, onClose }) {
                 <div className="space-y-1">
                   <Label htmlFor="phone-signin">Phone Number</Label>
                   <div className="relative flex items-center">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <AuthIcon icon={Phone} />
                     <Input
                       id="phone-signin"
                       type="tel"

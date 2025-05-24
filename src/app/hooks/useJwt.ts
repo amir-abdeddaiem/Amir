@@ -1,6 +1,5 @@
-import jwt from 'jsonwebtoken';
 import Cookies from 'js-cookie';
-
+import { jwtDecode } from 'jwt-decode';
 interface JwtPayload {
   userId: string;
   email: string;
@@ -9,30 +8,21 @@ interface JwtPayload {
 
 export const useJwt = () => {
   const getToken = () => {
-    return Cookies.get('jwt');
+    return Cookies.get('jwt') || null;
   };
 
-  const decodeToken = async (): Promise<JwtPayload | null> => {
+  const decodeToken = (): JwtPayload | null => {
     try {
       const token = getToken();
       if (!token) return null;
-      
-      // Get the JWT secret from environment variables
-      const secret = process.env.JWT_SECRET as string;
-      if (!secret) {
-        console.error('JWT_SECRET is not configured');
-        return null;
-      }
-      
-      // Verify the token
-      const decoded = jwt.verify(token, secret) as JwtPayload;
-      
-      // Validate the token payload
+
+      const decoded = jwtDecode<JwtPayload>(token);
+
       if (!decoded.userId || !decoded.email) {
         console.error('Invalid JWT payload');
         return null;
       }
-      
+
       return decoded;
     } catch (error) {
       console.error('Error decoding JWT:', error);
@@ -41,12 +31,13 @@ export const useJwt = () => {
   };
 
   const getUserId = async () => {
-    const decoded = await decodeToken();
+    const decoded =await decodeToken();
+    console.log("Decoded JWT:", decoded); 
     return decoded?.userId || null;
   };
 
-  const getEmail = async () => {
-    const decoded = await decodeToken();
+  const getEmail = () => {
+    const decoded = decodeToken();
     return decoded?.email || null;
   };
 

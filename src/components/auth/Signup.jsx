@@ -96,10 +96,10 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Clear any previous errors
+    setError(null); 
 
     try {
-      const response = await axios.post('/api/register', formData);
+      const response = await axios.post('/api/auth/register', formData);
       const data = response.data;
 
       if (!data.success) {
@@ -107,10 +107,9 @@ export default function Signup() {
         toast.error(data.message || "Registration failed. Please try again.");
       } else {
         console.log("Registration successful:", data);
-        
-        // Store JWT token in cookies
+
         if (data.token) {
-          Cookies.set('jwt', data.token, { expires: 7 }); // Token will expire in 7 days
+          Cookies.set('jwt', data.token, { expires: 7 }); 
           Cookies.set('userId', data.user._id, { expires: 7 });
           Cookies.set('email', data.user.email, { expires: 7 });
         }

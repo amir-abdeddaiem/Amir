@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import {
   Check,
   ChevronLeft,
@@ -18,12 +19,14 @@ import Form2 from "@/components/Animal/Form2";
 import Form3 from "@/components/Animal/Form3";
 import Form4 from "@/components/Animal/Form4";
 import axios from "axios";
+import { useUserData } from "@/contexts/UserData";
 export default function AddAnimal() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [progress, setProgress] = useState(25);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+
 
   // Form state
   const [formData, setFormData] = useState({
@@ -39,9 +42,7 @@ export default function AddAnimal() {
       neutered: false,
       microchipped: false,
     },
-
     birthDate: "",
-
     friendly: {
       children: false,
       dogs: false,
@@ -49,7 +50,7 @@ export default function AddAnimal() {
       other: false,
     },
     image: null,
-    owner: "6824d2e30b47408a868cacaf",
+    owner:Cookies.get("userId"),
   });
 
   // Handle form field changes
@@ -93,7 +94,6 @@ export default function AddAnimal() {
     setIsSubmitting(true);
 
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // In a real app, you would send the formData to your backend here
     console.log("Form submitted:", formData);
@@ -110,6 +110,8 @@ export default function AddAnimal() {
     } catch (error) {
       console.error("Network or fetch error:", error);
       // Provide user feedback for network issues
+    }finally {
+      setIsSubmitting(false);
     }
   };
 
