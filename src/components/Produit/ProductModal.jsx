@@ -526,16 +526,6 @@ export default function ProductModal({
                   {isFavorite ? "Saved to Wishlist" : "Save to Wishlist"}
                 </Button>
               </motion.div>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex-1"
-              >
-                <Button className="w-full gap-2 h-12 bg-gradient-to-r from-[#E29578] to-[#d37a61] hover:from-[#d37a61] hover:to-[#c46950] shadow-md">
-                  <ShoppingCart />
-                  Add to Cart
-                </Button>
-              </motion.div>
             </div>
           </motion.div>
         </div>

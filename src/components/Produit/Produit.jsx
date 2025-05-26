@@ -149,17 +149,6 @@ export function Produit({ product }) {
 
           <div className="flex gap-3">
             <motion.button
-              className="flex-1 bg-[#FFDDD2] text-[#006D77] hover:bg-[#E29578] hover:text-white flex items-center justify-center gap-2 rounded-lg py-2 font-medium transition-colors"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              disabled={product?.quantity <= 0}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ShoppingCart size={18} />
-              Add to Cart
-            </motion.button>
-
-            <motion.button
               className="bg-transparent text-[#EDF6F9] hover:bg-[#EDF6F9]/10 flex items-center justify-center rounded-lg border border-[#EDF6F9] px-4 font-medium transition-colors"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

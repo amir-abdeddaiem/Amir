@@ -79,25 +79,7 @@ export default function MessengerSidebar({
       "h-full border-r bg-[#EDF6F9] transition-all duration-300 ease-in-out shadow-lg",
       isOpen ? "w-80" : "w-20"
     )}>
-      <div className="flex h-16 items-center justify-between border-b border-[#83C5BE] px-4 bg-[#FFDDD2]">
-        <button 
-          onClick={handleLogoClick}
-          className={cn("flex items-center gap-2 hover:bg-[#E29578]/20 rounded-md p-2 transition-colors", !isOpen && "mx-auto")}
-        >
-          <PawPrint className="h-6 w-6 text-[#E29578] fill-[#E29578]" />
-          {isOpen && <span className="font-semibold text-[#E29578]">Animal Tinder</span>}
-        </button>
-        {isOpen && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsOpen(false)}
-            className="text-[#E29578] hover:bg-[#E29578]/20"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-        )}
-      </div>
+      
 
       {isOpen ? (
         <div className="w-full">

@@ -5,7 +5,7 @@ import { MatchModalProvider } from "../../hooks/use-match-modal";
 
 export default function matchy() {
   return (
-    <div className="bg-[#F0F5E7]">
+    <div>
       <FilterModalProvider>
         <MatchModalProvider>
           <MainLayout>

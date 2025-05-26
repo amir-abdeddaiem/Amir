@@ -55,3 +55,36 @@ export async function POST(request: AuthenticatedRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+export async function GET(request: AuthenticatedRequest) {
+  try {
+    await connectDB();
+
+    const { searchParams } = new URL(request.url);
+    const matchId = searchParams.get('matchId');
+
+    if (!matchId) {
+      return NextResponse.json({ error: 'matchId is required' }, { status: 400 });
+    }
+
+    const match = await Match.findById(matchId);
+    if (!match) {
+      return NextResponse.json({ error: 'Match not found' }, { status: 404 });
+    }
+
+    const userPets = await Animal.find({ owner: request.user!.userId }).select('_id');
+    const userPetIds = userPets.map((pet) => pet._id.toString());
+
+    if (!userPetIds.includes(match.pet1.toString()) && !userPetIds.includes(match.pet2.toString())) {
+      return NextResponse.json({ error: 'Unauthorized to view messages in this match' }, { status: 403 });
+    }
+
+    const messages = await Message.find({ matchId })
+      .populate('sender', 'name _id') // populate sender details (adjust as needed)
+      .sort({ createdAt: 1 }); // sort by time ascending
+
+    return NextResponse.json({ data: messages }, { status: 200 });
+  } catch (error: unknown) {
+    console.error('Error retrieving messages:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
