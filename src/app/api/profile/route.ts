@@ -1,28 +1,24 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/nextAuth";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
+import {IUser} from "@/types/user";
 
-export async function GET(reqest: Request) {
-  // search fo params named authorization on headers
-  const authHeader = reqest.headers.get('authorization');
+export async function GET(req: Request) {
+  const authHeader =  req.headers.get('x-user-id');
+
+
   try {
-    const session = await getServerSession(authOptions);
-    console.log("Session data:", session);
-    if (!session?.user?.email) {
+    if (!authHeader) {
       return NextResponse.json({
         success: false,
-        error: 'Not authenticated',
+        error: 'Authorization header is missing',
         data: null
       }, { status: 401 });
     }
 
     await connectDB();
-
-    // Use email or id from session to find the user
-    const user = await User.findOne({ email:authHeader }).select('-password');
-    console.log("User data:", user);
+    const user = await User.findOne({ _id:authHeader }).select('-password');
+  console.log("Authorization header:", authHeader);
 
     if (!user) {
       return NextResponse.json({
@@ -56,6 +52,54 @@ export async function GET(reqest: Request) {
     });
   } catch (error) {
     console.error("Error fetching profile:", error);
+    return NextResponse.json({
+      success: false,
+      error: 'Internal server error',
+      data: null
+    }, { status: 500 });
+  }
+}
+
+
+export async function PUT(req: Request) {
+  const authHeader = req.headers.get('x-user-id');
+
+  try {
+    if (!authHeader) {
+      return NextResponse.json({
+        success: false,
+        error: 'Authorization header is missing',
+        data: null
+      }, { status: 401 });
+    }
+
+    await connectDB();
+
+    // Parse the request body
+    const body = await req.json();
+
+    // Update the user data
+    const user = await User.findByIdAndUpdate(
+      authHeader,
+      { $set: body },
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return NextResponse.json({
+        success: false,
+        error: 'User not found',
+        data: null
+      }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      error: null,
+      data: user
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
     return NextResponse.json({
       success: false,
       error: 'Internal server error',

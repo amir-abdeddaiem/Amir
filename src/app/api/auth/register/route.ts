@@ -69,7 +69,6 @@ export async function POST(req: Request) {
       })
     }
 
-    // Create JWT token
     const token = jwt.sign(
       { userId: newUser._id, email: newUser.email },
       JWT_SECRET,
@@ -93,7 +92,6 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('Registration error:', error)
     
-    // Handle MongoDB duplicate key error specifically
     if (error.code === 11000) {
       return NextResponse.json(
         { message: 'Email already registered. Please use a different email.', success: false },

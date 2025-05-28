@@ -1,7 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import NextAuthProvider from "./providers/NextAuthProvider";
-// import { ThemeProvider } from '@/context/ThemeProvider';
+import  NextAuthProvider  from "@/contexts/NextAuthProvider";
 import { UserDataProvider } from "@/contexts/UserData";
 import { RefreshProvider } from "@/contexts/RefreshContext";
 const geistSans = Geist({

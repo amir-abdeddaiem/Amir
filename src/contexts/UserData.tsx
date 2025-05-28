@@ -33,28 +33,6 @@ interface UserDataContextType {
 
 
 
-const exampleUserData: UserData = {
-    _id: "6824d3420b47408a868cacb2",
-    accType: "regular",
-    birthDate: "2025-05-25T00:00:00.000Z",
-    email: "t@t",
-    firstName: "t",
-    gender: "male",
-    lastName: "t",
-    location: "Location: 36.806500, 10.181500",
-    phone: "65552221",
-    services: [],
-
-    avatar: undefined,
-    bio: undefined,
-    businessName: undefined,
-    businessType: undefined,
-    certifications: undefined,
-    description: undefined,
-    website: undefined
-};
-
-
 
 
 const UserDataContext = createContext<UserDataContextType | undefined>(undefined);
@@ -63,37 +41,31 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
-        setUserData(exampleUserData);
+       fetchUserData();
     }, []);
 
     const fetchUserData = async () => {
+        setLoading(true);
+        setError(null);
         try {
-            setLoading(true);
-            setError(null);
-
-            const token = typeof window !== 'undefined' ? Cookies.get('token') : null;
-
-            // const response = await axios.get('/api/profile', {
-            //     headers: {
-            //         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            //     },
-            // });
-
-            setUserData(exampleUserData);
-            console.log(userData);
+            const response = await axios.get('/api/profile', {
+                headers: {
+                    Authorization: `Bearer ${Cookies.get('token')}`
+                }
+            });
+            setUserData(response.data.data);
         } catch (err) {
-            const axiosError = err as AxiosError;
-            const message = axiosError.response?.data
-                ? JSON.stringify(axiosError.response.data)
-                : axiosError.message;
-            console.error('Error fetching user data:', message);
-            setError('Failed to fetch user data');
+            if (axios.isAxiosError(err)) {
+                setError(err.response?.data.error || 'An error occurred while fetching user data');
+            } else {
+                setError('An unexpected error occurred');
+            }
         } finally {
             setLoading(false);
         }
     };
-
 
     const refreshUserData = async () => {
         await fetchUserData();

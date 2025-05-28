@@ -35,11 +35,6 @@ const Popup = dynamic(
   { ssr: false }
 );
 
-const useMap = dynamic(
-  () => import('react-leaflet').then((mod) => mod.useMap),
-  { ssr: false }
-);
-
 const useMapEvents = dynamic(
   () => import('react-leaflet').then((mod) => mod.useMapEvents),
   { ssr: false }
@@ -47,13 +42,12 @@ const useMapEvents = dynamic(
 
 // Map click handler component
 const MapClickHandler = ({ setPosition, setAddress }) => {
-  // Use the useMapEvents hook to handle map clicks
   useMapEvents({
     click: (e) => {
       const { lat, lng } = e.latlng;
       const newPosition = [lat, lng];
       setPosition(newPosition);
-      
+
       // Try to get address for the clicked location
       fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
         .then(response => response.json())
@@ -66,14 +60,14 @@ const MapClickHandler = ({ setPosition, setAddress }) => {
         });
     }
   });
-  
+
   return null;
 };
 
 // Marker component to show the selected location
 const LocationMarker = ({ position }) => {
   if (!position) return null;
-  
+
   return (
     <Marker position={position}>
       <Popup>Your selected location</Popup>
@@ -104,76 +98,57 @@ const MapComponent = ({ initialPosition, zoom = 13, onLocationSelect }) => {
 
   // Handle geolocation
   const handleLocateMe = useCallback(() => {
-    // Check if geolocation is available
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser');
       return;
     }
-    
-    try {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          try {
-            const { latitude, longitude } = pos.coords;
-            if (typeof latitude !== 'number' || typeof longitude !== 'number' || 
-                isNaN(latitude) || isNaN(longitude)) {
-              console.log('Invalid coordinates received');
-              return;
-            }
-            
-            const newPosition = [latitude, longitude];
-            setPosition(newPosition);
-            
-            // Try to get address for the location
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`)
-              .then(response => response.json())
-              .then(data => {
-                const address = data.display_name || `Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-                setAddress(address);
-              })
-              .catch(() => {
-                setAddress(`Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-              });
-            
-            // Center map on user's location
-            if (mapRef.current) {
-              mapRef.current.flyTo(newPosition, 15, {
-                animate: true,
-                duration: 1
-              });
-            }
-          } catch (err) {
-            console.log('Error processing coordinates:', err);
-          }
-        },
-        (error) => {
-          // Handle specific geolocation errors with user-friendly messages
-          let errorMessage = 'Unable to get your location. ';
-          switch(error.code) {
-            case 1: // PERMISSION_DENIED
-              errorMessage += 'Location permission denied.';
-              break;
-            case 2: // POSITION_UNAVAILABLE
-              errorMessage += 'Location information unavailable.';
-              break;
-            case 3: // TIMEOUT
-              errorMessage += 'Location request timed out.';
-              break;
-            default:
-              errorMessage += 'Unknown error occurred.';
-          }
-          alert(errorMessage + ' You can select a location manually by clicking on the map.');
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const newPosition = [latitude, longitude];
+        setPosition(newPosition);
+
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`)
+          .then(response => response.json())
+          .then(data => {
+            const address = data.display_name || `Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+            setAddress(address);
+          })
+          .catch(() => {
+            setAddress(`Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          });
+
+        if (mapRef.current) {
+          mapRef.current.flyTo(newPosition, 15, {
+            animate: true,
+            duration: 1
+          });
         }
-      );
-    } catch (e) {
-      console.log('Geolocation error:', e);
-      alert('Failed to get location. Please select a location manually by clicking on the map.');
-    }
+      },
+      (error) => {
+        let errorMessage = 'Unable to get your location. ';
+        switch(error.code) {
+          case 1: // PERMISSION_DENIED
+            errorMessage += 'Location permission denied.';
+            break;
+          case 2: // POSITION_UNAVAILABLE
+            errorMessage += 'Location information unavailable.';
+            break;
+          case 3: // TIMEOUT
+            errorMessage += 'Location request timed out.';
+            break;
+          default:
+            errorMessage += 'Unknown error occurred.';
+        }
+        alert(errorMessage + ' You can select a location manually by clicking on the map.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
   }, [mapRef, setPosition, setAddress]);
 
   if (!isClient) {
@@ -196,29 +171,31 @@ const MapComponent = ({ initialPosition, zoom = 13, onLocationSelect }) => {
           Use my location
         </button>
       </div>
-      
+
       <div className="h-64 w-full rounded-lg overflow-hidden border border-gray-200">
-        <MapContainer
-          center={position}
-          zoom={zoom}
-          style={{ height: '100%', width: '100%' }}
-          zoomControl={false}
-          whenCreated={(map) => {
-            mapRef.current = map;
-          }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          <MapClickHandler 
-            setPosition={setPosition} 
-            setAddress={setAddress} 
-          />
-          <LocationMarker position={position} />
-        </MapContainer>
+        {isClient && (
+          <MapContainer
+            center={position}
+            zoom={zoom}
+            style={{ height: '100%', width: '100%' }}
+            zoomControl={false}
+            whenCreated={(map) => {
+              mapRef.current = map;
+            }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            <MapClickHandler
+              setPosition={setPosition}
+              setAddress={setAddress}
+            />
+            <LocationMarker position={position} />
+          </MapContainer>
+        )}
       </div>
-      
+
       {position && (
         <div className="text-sm text-gray-600 p-2 bg-gray-50 rounded border border-gray-100">
           <div className="font-medium">Selected location:</div>
@@ -230,7 +207,7 @@ const MapComponent = ({ initialPosition, zoom = 13, onLocationSelect }) => {
           )}
         </div>
       )}
-      
+
       <p className="text-xs text-gray-500">
         Click on the map to select your location
       </p>
@@ -240,10 +217,10 @@ const MapComponent = ({ initialPosition, zoom = 13, onLocationSelect }) => {
 
 export default function MapLocationPicker({ onLocationSelect, initialPosition = [36.8065, 10.1815], zoom = 13 }) {
   return (
-    <MapComponent 
-      initialPosition={initialPosition} 
-      zoom={zoom} 
-      onLocationSelect={onLocationSelect} 
+    <MapComponent
+      initialPosition={initialPosition}
+      zoom={zoom}
+      onLocationSelect={onLocationSelect}
     />
   );
 }

@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 export async function POST(req: Request) {
   await connectDB()
   const body = await req.json()
-
+  console.log('Login request body:', body)
   try {
     // Find user by email
     const user = await User.findOne({ email: body.email })
@@ -20,8 +20,9 @@ export async function POST(req: Request) {
       )
     }
 
-    // Verify password
+    
     const isPasswordValid = await bcrypt.compare(body.password, user.password)
+   
     if (!isPasswordValid) {
       return NextResponse.json(
         { message: 'Invalid password', success: false },

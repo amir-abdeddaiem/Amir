@@ -9,7 +9,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import type { AxiosError } from "axios";
-import { useJwt } from "@/app/hooks/useJwt";
+import { useJwt } from "@/hooks/useJwt";
 
 interface ApiResponse {
   success: boolean;

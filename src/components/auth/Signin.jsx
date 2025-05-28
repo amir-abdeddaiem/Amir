@@ -32,6 +32,7 @@ export default function Signin({ isOpen, onClose }) {
     rememberMe: false
   });
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = useCallback((field) => (e) => {
     setFormData(prev => ({
@@ -50,18 +51,25 @@ export default function Signin({ isOpen, onClose }) {
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
 
     try {
       const { email, password } = formData;
       const response = await axios.post("/api/auth/login", { email, password });
       const { token } = response.data;
-      
+
       if (token) {
-        Cookies.set("token", token, { expires: formData.rememberMe ? 7 : 1 / 24 });
+        Cookies.set("token", token, {
+          expires: formData.rememberMe ? 7 : 1 / 24,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict"
+        });
         router.push("/user");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.message || "Login failed. Please check your credentials and try again.");
+    } finally {
+      setIsLoading(false);
     }
   }, [formData, router]);
 
@@ -78,44 +86,36 @@ export default function Signin({ isOpen, onClose }) {
       <DialogTrigger asChild>
         <Button
           variant="link"
-          className="text-[#E29578] p-0 h-auto hover:underline"
+          className="text-[#E29578] p-0 h-auto hover:underline text-sm sm:text-base"
+          aria-label="Sign in"
         >
           Sign in
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-lg">
-        <DialogHeader className="bg-[#E29578] text-white p-6 pt-8 relative">
-          <DialogTitle className="text-2xl font-semibold text-center">
+      <DialogContent className="sm:max-w-md w-full mx-auto p-0 overflow-hidden border-none shadow-2xl rounded-lg">
+        <DialogHeader className="bg-[#E29578] text-white p-4 sm:p-6 pt-6 sm:pt-8 relative">
+          <DialogTitle className="text-xl sm:text-2xl font-semibold text-center">
             Welcome Back!
           </DialogTitle>
-          <DialogDescription className="text-white/80 text-center mt-1">
+          <DialogDescription className="text-white/80 text-center mt-1 text-sm sm:text-base">
             Sign in to your Animal's Club account
           </DialogDescription>
-          <DialogClose asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleExternalClose}
-              className="absolute top-3 right-3 text-white/70 hover:text-white hover:bg-white/20 rounded-full w-8 h-8"
-            >
-              <X size={20} />
-              <span className="sr-only">Close</span>
-            </Button>
+          <DialogClose className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1">
           </DialogClose>
         </DialogHeader>
 
         <Tabs defaultValue="email" className="w-full">
-          <div className="px-6 pt-4">
-            <TabsList className="grid w-full grid-cols-2 mb-4 bg-gray-100 p-1 rounded-md">
+          <div className="px-4 sm:px-6 pt-2 sm:pt-4">
+            <TabsList className="grid w-full grid-cols-2 mb-2 sm:mb-4 bg-gray-100 p-1 rounded-md">
               <TabsTrigger
                 value="email"
-                className="text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#E29578] rounded-sm"
+                className="text-sm sm:text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#E29578] rounded-sm"
               >
                 Email
               </TabsTrigger>
               <TabsTrigger
                 value="phone"
-                className="text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#E29578] rounded-sm"
+                className="text-sm sm:text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#E29578] rounded-sm"
               >
                 Phone
               </TabsTrigger>
@@ -123,14 +123,14 @@ export default function Signin({ isOpen, onClose }) {
           </div>
 
           {error && (
-            <div className="px-6 text-red-500 text-sm text-center">
+            <div className="px-4 sm:px-6 text-red-500 text-xs sm:text-sm text-center">
               {error}
             </div>
           )}
 
-          <TabsContent value="email" className="px-6 pb-6 pt-2">
+          <TabsContent value="email" className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0 sm:pt-2">
             <form onSubmit={handleSubmit}>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="space-y-1">
                   <Label htmlFor="email-signin">Email</Label>
                   <div className="relative flex items-center">
@@ -142,7 +142,8 @@ export default function Signin({ isOpen, onClose }) {
                       value={formData.email}
                       onChange={handleChange('email')}
                       required
-                      className="pl-10"
+                      className="pl-10 text-sm sm:text-base"
+                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -154,6 +155,7 @@ export default function Signin({ isOpen, onClose }) {
                       href="/forgot-password"
                       className="text-xs text-[#E29578] hover:underline"
                       onClick={handleExternalClose}
+                      aria-label="Forgot password"
                     >
                       Forgot password?
                     </Link>
@@ -166,13 +168,14 @@ export default function Signin({ isOpen, onClose }) {
                       value={formData.password}
                       onChange={handleChange('password')}
                       required
-                      className="pl-10"
+                      className="pl-10 text-sm sm:text-base"
                       placeholder="Enter your password"
+                      autoComplete="current-password"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center justify-between pt-1 sm:pt-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="remember-signin"
@@ -182,7 +185,7 @@ export default function Signin({ isOpen, onClose }) {
                     />
                     <Label
                       htmlFor="remember-signin"
-                      className="text-sm font-normal text-gray-600 cursor-pointer"
+                      className="text-xs sm:text-sm font-normal text-gray-600 cursor-pointer"
                     >
                       Remember me
                     </Label>
@@ -191,17 +194,18 @@ export default function Signin({ isOpen, onClose }) {
 
                 <Button
                   type="submit"
-                  className="w-full bg-[#E29578] hover:bg-[#d88a6d] h-10 text-base mt-4"
+                  className="w-full bg-[#E29578] hover:bg-[#d88a6d] h-10 text-sm sm:text-base mt-2 sm:mt-4"
+                  disabled={isLoading}
                 >
-                  Sign In
+                  {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
               </div>
             </form>
           </TabsContent>
 
-          <TabsContent value="phone" className="px-6 pb-6 pt-2">
+          <TabsContent value="phone" className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0 sm:pt-2">
             <form onSubmit={handleSubmit}>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="space-y-1">
                   <Label htmlFor="phone-signin">Phone Number</Label>
                   <div className="relative flex items-center">
@@ -211,45 +215,48 @@ export default function Signin({ isOpen, onClose }) {
                       type="tel"
                       placeholder="+1 (555) 000-0000"
                       required
-                      className="pl-10"
+                      className="pl-10 text-sm sm:text-base"
+                      autoComplete="tel"
                     />
                   </div>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full bg-[#E29578] hover:bg-[#d88a6d] h-10 text-base mt-4"
+                  className="w-full bg-[#E29578] hover:bg-[#d88a6d] h-10 text-sm sm:text-base mt-2 sm:mt-4"
+                  disabled={isLoading}
                 >
-                  Send Verification Code
+                  {isLoading ? "Sending code..." : "Send Verification Code"}
                 </Button>
               </div>
             </form>
           </TabsContent>
         </Tabs>
 
-        <DialogFooter className="flex flex-col space-y-4 px-6 pb-6 pt-4 bg-gray-50 border-t border-gray-200">
-          <div className="text-center text-sm text-gray-600 w-full">
+        <DialogFooter className="grid grid-cols-1 items-center gap-3 sm:gap-4 px-4 sm:px-6 pb-4 sm:pb-6 pt-2 sm:pt-4 bg-gray-50 border-t border-gray-200">
+          <div className="text-center text-xs sm:text-sm text-gray-600">
             Don't have an account?{" "}
             <Link
               href="/register"
               className="font-medium text-[#E29578] hover:underline"
               onClick={handleExternalClose}
+              aria-label="Sign up"
             >
               Sign up
             </Link>
           </div>
 
-          <div className="flex items-center justify-center w-full py-2">
-            <div className="h-px bg-gray-200 flex-grow"></div>
-            <span className="px-4 text-gray-400 text-xs font-medium uppercase">
+          <div className="flex items-center w-full text-center">
+            <div className="h-px bg-gray-200 flex-1"></div>
+            <span className="px-3 sm:px-4 text-gray-400 text-xs font-medium uppercase whitespace-nowrap">
               Or sign in with
             </span>
-            <div className="h-px bg-gray-200 flex-grow"></div>
+            <div className="h-px bg-gray-200 flex-1"></div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full">
-            <SigninWithGoogle />
-            <SigninWithFcb />
+          <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3 w-full text-center">
+            <SigninWithGoogle className="w-full sm:w-auto" />
+            <SigninWithFcb className="w-full sm:w-auto" />
           </div>
         </DialogFooter>
       </DialogContent>
