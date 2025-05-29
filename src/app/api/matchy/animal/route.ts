@@ -27,56 +27,46 @@ interface IAnimal {
   };
   image: string;
   owner: string;
+  inmatch: boolean;
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest) {
   await connectDB();
 
   try {
     const { searchParams } = new URL(req.url);
-    const animalId =  params.id; 
+    const userId = searchParams.get('userId');
 
-    if (!animalId) {
+    if (!userId) {
       return NextResponse.json(
-        { message: 'Animal ID is required' },
+        { message: 'User ID is required in query params' },
         { status: 400 }
       );
     }
 
-    const animal = await Animal.findById(animalId).populate('owner');
+    const pets = await Animal.find({
+      inmatch: true,
+      _id: { $ne: userId },
+    });
 
-    if (!animal) {
-      return NextResponse.json(
-        { message: 'Animal not found' },
-        { status: 404 }
-      );
-    }
+    // Optionally format the data
+    const formattedPets = pets.map((pet) => ({
+      id: pet._id,
+      name: pet.name,
+      age: pet.age,
+      breed: pet.breed,
+      image: pet.image,
+      bio: pet.description,
+      temperament: Object.entries(pet.friendly)
+        .filter(([_, val]) => val)
+        .map(([key]) => key),
+    }));
 
-    // Transform the data for response
-    const animalData = {
-      id: animal._id,
-      name: animal.name,
-      type: animal.type,
-      breed: animal.breed,
-      birthDate: animal.birthDate,
-      age: animal.age,
-      gender: animal.gender,
-      weight: animal.weight,
-      description: animal.description,
-      vaccinated: animal.vaccinated,
-      neutered: animal.neutered,
-      friendly: animal.friendly,
-      image: animal.image,
-      owner: animal.owner,
-      createdAt: animal.createdAt,
-      updatedAt: animal.updatedAt
-    };
-
-    return NextResponse.json(animalData, { status: 200 });
+    return NextResponse.json({ pets: formattedPets }, { status: 200 });
   } catch (error) {
     console.error('GET Error:', error);
     return NextResponse.json(
-      { message: 'Failed to retrieve animal' },
+      { message: 'Failed to fetch pets' },
       { status: 500 }
     );
   }
@@ -86,63 +76,98 @@ export async function POST(req: NextRequest) {
   await connectDB();
 
   try {
-    const body: IAnimal = await req.json();
+    const body = await req.json();
+    const { _id, inmatch } = body;
 
-    // Basic validation
-    if (!body.owner) {
+    if (!_id) {
       return NextResponse.json(
-        { message: 'Owner is required' },
+        { message: 'Animal ID (_id) is required to update inmatch' },
         { status: 400 }
       );
     }
 
-    // Create a new animal
-    const newAnimal = await Animal.create({
-      name: body.name,
-      type: body.type,
-      breed: body.breed,
-      birthDate: body.birthDate,
-      age: body.age,
-      gender: body.gender,
-      weight: body.weight,
-      description: body.description,
-      HealthStatus: body.HealthStatus || {
-        vaccinated: false,
-        neutered: false,
-        microchipped: false
-      },
-      friendly: body.friendly || {
-        children: false,
-        dogs: false,
-        cats: false,
-        other: false
-      },
-      image: body.image,
-      owner: body.owner
-    });
+    if (inmatch === false) {
+      const updatedAnimal = await Animal.findByIdAndUpdate(
+        _id,
+        { inmatch: true },
+        { new: true }
+      );
+
+      if (!updatedAnimal) {
+        return NextResponse.json(
+          { message: 'Animal not found for update' },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          message: 'Animal updated to inmatch: true',
+          animal: updatedAnimal,
+        },
+        { status: 200 }
+      );
+    }
 
     return NextResponse.json(
-      { 
-        message: 'Animal created successfully',
-        animal: newAnimal 
-      },
-      { status: 201 }
+      { message: 'inmatch is already true or not provided — no update done.' },
+      { status: 200 }
     );
   } catch (error: any) {
     console.error('POST Error:', error);
-
-    // Handle validation errors
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err: any) => err.message);
-      return NextResponse.json(
-        { message: 'Validation failed', errors },
-        { status: 400 }
-      );
-    }
-
     return NextResponse.json(
-      { message: 'Failed to create animal' },
+      { message: 'Failed to update animal', error: error.message },
       { status: 500 }
     );
   }
 }
+export async function DELETE(req: NextRequest) {
+  await connectDB();
+
+  try {
+    const body = await req.json();
+    const { _id, inmatch } = body;
+
+    if (!_id) {
+      return NextResponse.json(
+        { message: 'Animal ID (_id) is required to update inmatch' },
+        { status: 400 }
+      );
+    }
+
+    if (inmatch === true) {
+      const updatedAnimal = await Animal.findByIdAndUpdate(
+        _id,
+        { inmatch: false },
+        { new: true }
+      );
+
+      if (!updatedAnimal) {
+        return NextResponse.json(
+          { message: 'Animal not found for update' },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          message: 'Animal updated to inmatch: false',
+          animal: updatedAnimal,
+        },
+        { status: 200 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: 'inmatch is already false or not provided — no update done.' },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error('POST Error:', error);
+    return NextResponse.json(
+      { message: 'Failed to update animal', error: error.message },
+      { status: 500 }
+    );
+  }
+}
+

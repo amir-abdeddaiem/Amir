@@ -27,6 +27,7 @@ interface IAnimal {
   };
   image: string;
   owner: string;
+  inmatch: boolean;
 }
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -68,6 +69,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       friendly: animal.friendly,
       image: animal.image,
       owner: animal.owner,
+      inmatch: animal.inmatch,
       createdAt: animal.createdAt,
       updatedAt: animal.updatedAt
     };
@@ -118,7 +120,8 @@ export async function POST(req: NextRequest) {
         other: false
       },
       image: body.image,
-      owner: body.owner
+      owner: body.owner,
+      inmatch: body.inmatch
     });
 
     return NextResponse.json(

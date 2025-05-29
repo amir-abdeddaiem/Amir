@@ -54,8 +54,6 @@ export default function FilterModal({
   const [location, setLocation] = useState<string>("")
   const [selectedTemperaments, setSelectedTemperaments] = useState<string[]>([])
   const [nearbyOnly, setNearbyOnly] = useState<boolean>(true)
-  const [availableForDating, setAvailableForDating] = useState<boolean>(true)
-  const [availableForBreeding, setAvailableForBreeding] = useState<boolean>(false)
 
   const handleTemperamentSelect = (temperament: string) => {
     if (selectedTemperaments.includes(temperament)) {
@@ -72,27 +70,39 @@ export default function FilterModal({
     setLocation("")
     setSelectedTemperaments([])
     setNearbyOnly(true)
-    setAvailableForDating(true)
-    setAvailableForBreeding(false)
+
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader className={undefined}>
-          <DialogTitle className={undefined}>Filter Pets</DialogTitle>
+      <DialogContent className="sm:max-w-md bg-[#EDF6F9] rounded-2xl p-6 shadow-xl">
+        <DialogHeader className="text-center mb-5">
+          <DialogTitle className="text-2xl font-extrabold text-[#C9745F]">
+            🐾 Filter Pets 🐾
+          </DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+
+        <div className="grid gap-6">
+          {/* Breed */}
           <div className="grid gap-2">
-            <Label htmlFor="breed" className={undefined}>Breed</Label>
-            <Select value={selectedBreed} onValueChange={setSelectedBreed}>
-              <SelectTrigger id="breed" className={undefined}>
+            <Label htmlFor="breed" className="text-[#609581] font-semibold">
+              Breed 🐶
+            </Label>
+            <Select
+              value={selectedBreed}
+              onValueChange={setSelectedBreed}
+              className="bg-white rounded-xl border-2 border-[#E0BEB5] shadow-sm"
+            >
+              <SelectTrigger id="breed" className="px-4 py-2">
                 <SelectValue placeholder="Select breed" />
               </SelectTrigger>
-              <SelectContent className={undefined}>
-                <SelectItem value="any" className={undefined}>Any breed</SelectItem>
+              <SelectContent className="bg-white">
                 {BREEDS.map((breed) => (
-                  <SelectItem key={breed} value={breed} className={undefined}>
+                  <SelectItem
+                    key={breed}
+                    value={breed}
+                    className="text-[#609581] hover:bg-[#E0BEB5]"
+                  >
                     {breed}
                   </SelectItem>
                 ))}
@@ -100,80 +110,112 @@ export default function FilterModal({
             </Select>
           </div>
 
+          {/* Age Range */}
           <div className="grid gap-2">
             <div className="flex justify-between">
-              <Label className={undefined}>Age Range</Label>
-              <span className="text-sm text-gray-500">
-                {ageRange[0]} - {ageRange[1]} years
+              <Label className="text-[#609581] font-semibold">
+                Age Range 🍼
+              </Label>
+              <span className="text-sm text-[#C9745F]">
+                {ageRange[0]} – {ageRange[1]} yrs
               </span>
             </div>
-            <Slider defaultValue={ageRange} max={15} step={1} onValueChange={setAgeRange} className="py-4" value={undefined} />
+            <Slider
+              defaultValue={ageRange}
+              max={15}
+              step={1}
+              onValueChange={setAgeRange}
+              className="py-2" value={undefined} />
           </div>
 
+          {/* Location */}
           <div className="grid gap-2">
-            <Label htmlFor="location" className={undefined}>Location</Label>
+            <Label htmlFor="location" className="text-[#609581] font-semibold">
+              Location 📍
+            </Label>
             <Input
               id="location"
               placeholder="Enter your location"
               value={location}
-              onChange={(e: { target: { value: SetStateAction<string> } }) => setLocation(e.target.value)} className={undefined} type={undefined}            />
+              onChange={(e: { target: { value: SetStateAction<string> } }) => setLocation(e.target.value)}
+              className="bg-white rounded-xl border-2 border-[#E0BEB5] px-4 py-2 shadow-sm" type={undefined} />
           </div>
 
+          {/* Distance */}
           <div className="grid gap-2">
             <div className="flex justify-between">
-              <Label className={undefined}>Distance</Label>
-              <span className="text-sm text-gray-500">{distance[0]} miles</span>
+              <Label className="text-[#609581] font-semibold">
+                Distance 🚗
+              </Label>
+              <span className="text-sm text-[#C9745F]">
+                {distance[0]} miles
+              </span>
             </div>
-            <Slider defaultValue={distance} max={100} step={5} onValueChange={setDistance} className="py-4" value={undefined} />
+            <Slider
+              defaultValue={distance}
+              max={100}
+              step={5}
+              onValueChange={setDistance}
+              className="py-2" value={undefined} />
           </div>
 
+          {/* Temperament */}
           <div className="grid gap-2">
-            <Label className={undefined}>Temperament</Label>
+            <Label className="text-[#609581] font-semibold">
+              Temperament ❤️‍🔥
+            </Label>
             <div className="flex flex-wrap gap-2">
-              {TEMPERAMENTS.map((temperament) => (
+              {TEMPERAMENTS.map((temp) => (
                 <Badge
-                  key={temperament}
-                  variant={selectedTemperaments.includes(temperament) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => handleTemperamentSelect(temperament)}
+                  key={temp}
+                  variant={selectedTemperaments.includes(temp) ? "solid" : "outline"}
+                  className={`cursor-pointer ${selectedTemperaments.includes(temp)
+                    ? "bg-[#C9745F] text-white shadow-inner"
+                    : "border-[#609581] text-[#609581]"
+                    }`}
+                  onClick={() => handleTemperamentSelect(temp)}
                 >
-                  {temperament}
-                  {selectedTemperaments.includes(temperament) && <X className="ml-1 h-3 w-3" />}
+                  {temp}
+                  {selectedTemperaments.includes(temp) && (
+                    <X className="ml-1 h-4 w-4" />
+                  )}
                 </Badge>
               ))}
             </div>
           </div>
 
-          <div className="grid gap-4 pt-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="nearby-only" className="cursor-pointer">
-                Nearby only
-              </Label>
-              <Switch id="nearby-only" checked={nearbyOnly} onCheckedChange={setNearbyOnly} className={undefined} />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="dating" className="cursor-pointer">
-                Available for dating
-              </Label>
-              <Switch id="dating" checked={availableForDating} onCheckedChange={setAvailableForDating} className={undefined} />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="breeding" className="cursor-pointer">
-                Available for breeding
-              </Label>
-              <Switch id="breeding" checked={availableForBreeding} onCheckedChange={setAvailableForBreeding} className={undefined} />
-            </div>
+          {/* Nearby Only */}
+          <div className="flex items-center justify-between pt-2">
+            <Label
+              htmlFor="nearby-only"
+              className="text-[#609581] font-semibold cursor-pointer"
+            >
+              Nearby only 📡
+            </Label>
+            <Switch
+              id="nearby-only"
+              checked={nearbyOnly}
+              onCheckedChange={setNearbyOnly}
+              className="bg-[#E0BEB5] data-[state=checked]:bg-[#609581] shadow-sm"
+            />
           </div>
         </div>
-        <DialogFooter className="flex sm:justify-between">
-          <Button variant="outline" onClick={handleReset} className={undefined} size={undefined}>
-            Reset
+
+        <DialogFooter className="flex flex-col sm:flex-row justify-between gap-4 mt-8">
+          <Button
+            variant="outline"
+            onClick={handleReset}
+            className="border-[#FFDDD2] text-[#C9745F] hover:bg-[#E0BEB5] rounded-lg px-6 py-2" size={undefined}          >
+            🔄 Reset
           </Button>
-          <Button onClick={onClose} className={undefined} variant={undefined} size={undefined}>Apply Filters</Button>
+          <Button
+            onClick={onClose}
+            className="bg-[#E29578] hover:bg-[#B86A57] text-white rounded-lg px-6 py-2 shadow-md" variant={undefined} size={undefined}          >
+            ✅ Apply Filters
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
   )
 }

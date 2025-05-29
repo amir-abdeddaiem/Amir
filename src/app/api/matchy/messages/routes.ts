@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import { connectDB } from '../../../lib/mongodb';
-import { Message } from '../../../models/Message';
-import { Match } from '../../../models/Match';
-import { Animal } from '../../../models/Animal';
+import { connectDB } from '@/lib/db';
+import { Message } from '@/models/Message';
+import { Match } from '@/models/Match';
+import { Animal } from '@/models/Animal';
 import { IMessage } from '@/types/index';
 import { NextRequest } from 'next/server';
+
 interface AuthenticatedRequest extends NextRequest {
   user?: {
     userId: string;
@@ -21,7 +22,10 @@ export async function POST(request: AuthenticatedRequest) {
   try {
     await connectDB();
     
-    // Parse the request body
+    if (!request.user?.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { matchId, content }: MessageRequestBody = await request.json();
 
     if (!matchId || !content) {
@@ -33,31 +37,40 @@ export async function POST(request: AuthenticatedRequest) {
       return NextResponse.json({ error: 'Match not found' }, { status: 404 });
     }
 
-    // Note: You'll need to handle the user authentication properly
-    // Currently using request.user!.userId assumes you have middleware setting this
-    const userPets = await Animal.find({ owner: request.user!.userId }).select('_id');
-    
+    const userPets = await Animal.find({ owner: request.user.userId }).select('_id');
     const userPetIds = userPets.map((pet) => pet._id.toString());
+    
     if (!userPetIds.includes(match.pet1.toString()) && !userPetIds.includes(match.pet2.toString())) {
       return NextResponse.json({ error: 'Unauthorized to send message in this match' }, { status: 403 });
     }
 
-    const message: IMessage = await Message.create({
+    const message = await Message.create({
       matchId,
-      sender: request.user!.userId,
+      sender: request.user.userId,
       content,
-      createdAt: new Date() // Adding timestamp if not automatically set by schema
+      createdAt: new Date()
     });
 
-    return NextResponse.json({ message: 'Message sent successfully', data: message }, { status: 201 });
+    return NextResponse.json({ 
+      message: 'Message sent successfully', 
+      data: message 
+    }, { status: 201 });
   } catch (error: unknown) {
     console.error('Error sending message:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to send message',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
+
 export async function GET(request: AuthenticatedRequest) {
   try {
     await connectDB();
+
+    if (!request.user?.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const { searchParams } = new URL(request.url);
     const matchId = searchParams.get('matchId');
@@ -71,7 +84,7 @@ export async function GET(request: AuthenticatedRequest) {
       return NextResponse.json({ error: 'Match not found' }, { status: 404 });
     }
 
-    const userPets = await Animal.find({ owner: request.user!.userId }).select('_id');
+    const userPets = await Animal.find({ owner: request.user.userId }).select('_id');
     const userPetIds = userPets.map((pet) => pet._id.toString());
 
     if (!userPetIds.includes(match.pet1.toString()) && !userPetIds.includes(match.pet2.toString())) {
@@ -79,12 +92,15 @@ export async function GET(request: AuthenticatedRequest) {
     }
 
     const messages = await Message.find({ matchId })
-      .populate('sender', 'name _id') // populate sender details (adjust as needed)
-      .sort({ createdAt: 1 }); // sort by time ascending
+      .populate('sender', 'name _id')
+      .sort({ createdAt: 1 });
 
     return NextResponse.json({ data: messages }, { status: 200 });
   } catch (error: unknown) {
     console.error('Error retrieving messages:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to retrieve messages',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

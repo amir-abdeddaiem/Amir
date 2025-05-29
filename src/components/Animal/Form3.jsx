@@ -5,11 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { Textarea } from "@/components/ui/textarea";
-
+import Uploadpic from "./Uploadpic";
 // Dynamic import to fix HMR issues
-const Upload = dynamic(() => import("lucide-react").then((mod) => mod.Upload), {
-  ssr: false,
-});
 
 export default function Form3({
   formData,
@@ -19,33 +16,10 @@ export default function Form3({
 }) {
   return (
     <div className="space-y-4">
-      <div className="grid w-full items-center gap-1.5">
-        <Label htmlFor="picture">Picture</Label>
-        <div className="flex items-center gap-4">
-          <label htmlFor="picture" className="cursor-pointer">
-            <Button variant="outline" type="button">
-              <Upload className="mr-2 h-4 w-4" />
-              Upload Image
-            </Button>
-            <Input
-              id="picture"
-              type="file"
-              className="hidden"
-              onChange={handleImageChange}
-              accept="image/*"
-            />
-          </label>
-          {previewImage && (
-            <div className="h-16 w-16 rounded-md overflow-hidden border">
-              <img
-                src={previewImage}
-                alt="Preview"
-                className="h-full w-full object-cover"
-              />
-            </div>
-          )}
-        </div>
-      </div>
+      <Uploadpic
+        handleImageChange={handleImageChange}
+        previewImage={previewImage}
+      />
 
       <div className="grid w-full items-center gap-1.5">
         <Label htmlFor="description">Description</Label>

@@ -27,7 +27,6 @@ export default function AddAnimal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
-
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -50,7 +49,7 @@ export default function AddAnimal() {
       other: false,
     },
     image: null,
-    owner:Cookies.get("userId"),
+    owner: Cookies.get("userId"),
   });
 
   // Handle form field changes
@@ -110,7 +109,7 @@ export default function AddAnimal() {
     } catch (error) {
       console.error("Network or fetch error:", error);
       // Provide user feedback for network issues
-    }finally {
+    } finally {
       setIsSubmitting(false);
     }
   };

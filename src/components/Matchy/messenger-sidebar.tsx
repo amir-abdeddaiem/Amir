@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronLeft, MessageCircle, Heart, PawPrint } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
+import axios from "axios"
 
 type Match = {
   id: string
@@ -46,21 +47,6 @@ const MATCHES: Match[] = [
   },
 ]
 
-const LIKES: Match[] = [
-  {
-    id: "5",
-    name: "Charlie",
-    image: "/dog-avatar3.png",
-    animalType: "dog"
-  },
-  {
-    id: "6",
-    name: "Bella",
-    image: "/bird-avatar.png",
-    animalType: "bird"
-  },
-]
-
 export default function MessengerSidebar({
   isOpen,
   setIsOpen,
@@ -69,6 +55,42 @@ export default function MessengerSidebar({
   setIsOpen: (isOpen: boolean) => void
 }) {
   const [activeTab, setActiveTab] = useState("matches")
+  const [likedPets, setLikedPets] = useState<Match[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch liked pets when tab changes to "likes"
+  useEffect(() => {
+    const fetchLikedPets = async () => {
+      if (activeTab === "likes") {
+        setIsLoading(true)
+        setError(null)
+        try {
+          // Replace "currentPetId" with your actual pet ID (from auth/user context)
+          const currentPetId = "6827f4069003e6c175d50824"
+
+          const response = await axios.get(`/api/matchy/likes?petId=${currentPetId}`)
+
+          // Transform the API response into Match objects
+          const pets = response.data.likes.map((like: any) => ({
+            id: like.petliked._id,
+            name: like.petliked.name || "Unknown Pet",
+            image: like.petliked.image || "/default-pet.png",
+            animalType: like.petliked.animalType || "dog"
+          }))
+
+          setLikedPets(pets)
+        } catch (err) {
+          console.error("Error fetching liked pets:", err)
+          setError("Failed to load liked pets")
+        } finally {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    fetchLikedPets()
+  }, [activeTab])
 
   const handleLogoClick = () => {
     setIsOpen(!isOpen)
@@ -79,8 +101,6 @@ export default function MessengerSidebar({
       "h-full border-r bg-[#EDF6F9] transition-all duration-300 ease-in-out shadow-lg",
       isOpen ? "w-80" : "w-20"
     )}>
-      
-
       {isOpen ? (
         <div className="w-full">
           <div className="flex border-b border-[#83C5BE]">
@@ -88,7 +108,7 @@ export default function MessengerSidebar({
               onClick={() => setActiveTab("matches")}
               className={cn(
                 "flex-1 py-3 text-center font-medium transition-colors",
-                activeTab === "matches" 
+                activeTab === "matches"
                   ? "text-[#E29578] border-b-2 border-[#E29578] bg-[#FFDDD2]"
                   : "text-[#83C5BE] hover:bg-[#FFDDD2]"
               )}
@@ -107,7 +127,7 @@ export default function MessengerSidebar({
               Likes You
             </button>
           </div>
-          
+
           <div className="overflow-y-auto h-[calc(100vh-120px)] bg-[#EDF6F9]">
             {activeTab === "matches" && (
               <div className="space-y-2 p-3">
@@ -118,9 +138,30 @@ export default function MessengerSidebar({
             )}
             {activeTab === "likes" && (
               <div className="space-y-2 p-3">
-                {LIKES.map((match) => (
-                  <MatchItem key={match.id} match={match} />
-                ))}
+                {isLoading ? (
+                  <div className="flex justify-center items-center h-20">
+                    <PawPrint className="h-6 w-6 animate-pulse text-[#E29578]" />
+                    <span className="ml-2 text-[#006D77]">Loading...</span>
+                  </div>
+                ) : error ? (
+                  <div className="text-center text-red-500 py-4">
+                    {error}
+                    <Button
+                      variant="ghost"
+                      className="mt-2 text-[#E29578]"
+                      onClick={() => setActiveTab("likes")} size={undefined}                    >
+                      Retry
+                    </Button>
+                  </div>
+                ) : likedPets.length > 0 ? (
+                  likedPets.map((pet) => (
+                    <MatchItem key={pet.id} match={pet} />
+                  ))
+                ) : (
+                  <div className="text-center text-[#83C5BE] py-4">
+                    No pets have liked you yet
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -157,7 +198,7 @@ export default function MessengerSidebar({
 
 function MatchItem({ match }: { match: Match }) {
   const getAnimalEmoji = (type?: string) => {
-    switch(type) {
+    switch (type) {
       case "dog": return "🐕";
       case "cat": return "🐈";
       case "rabbit": return "🐇";

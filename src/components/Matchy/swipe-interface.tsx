@@ -11,7 +11,6 @@ import { useMatchModal } from '@/app/hooks/use-match-modal';
 import { motion } from 'framer-motion';
 import { PetDetailModal } from './PetDetailModal';
 import { EmptyState } from './EmptyState';
-import { Pets } from '../Profile/Pets';
 
 type Pet = {
   id: string;
@@ -29,16 +28,19 @@ export default function SwipeInterface() {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [goneIds, setGoneIds] = useState<Set<string>>(new Set());
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { openMatchModal } = useMatchModal();
-  const cardRefs = useRef<{ [key: number]: any }>({});
+  const cardRefs = useRef<{ [key: number]: typeof TinderCard | null }>({});
 
-  // TODO: fetch this from your user/session context
+  // TODO: replace with real user session pet ID
   const currentUserPetId = '6833aab8a5016ba13363ad0b';
 
-  // 1️⃣ load pets on mount
+  // Load pets on mount
   useEffect(() => {
     axios
-      .get<{ pets: Pet[] }>('/api/matchy/animal')
+      .get<{ pets: Pet[] }>('/api/matchy/animal', {
+        params: { userId: currentUserPetId },
+      })
       .then((res) => {
         setPets(res.data.pets);
         setCurrentIndex(res.data.pets.length - 1);
@@ -46,53 +48,45 @@ export default function SwipeInterface() {
       .catch(console.error);
   }, []);
 
-  // 2️⃣ handle a swipe
+  // Handle swipe action
   const swiped = async (dir: string, pet: Pet, idx: number) => {
-    setSwipedPets((p) => [pet, ...p]);
+    setSwipedPets((prev) => [pet, ...prev]);
     setCurrentIndex(idx - 1);
 
-    if (dir === 'right') {
+    if (dir === 'up') {
       try {
-        await axios.post('/api/matchy/like', {
-          pet1Id: currentUserPetId,
-          pet2Id: pet.id,
+        const response = await axios.post('/api/matchy/', {
+          petlikerId: currentUserPetId,
+          petlikedId: pet.id,
         });
-        // simulate mutual match
-        if (Math.random() > 0.5) setTimeout(() => openMatchModal({ ...pet, age: Number(pet.age) }), 500);
-      } catch (e) {
-        console.error('Like error', e);
+
+
+      } catch (error) {
+        console.error('superLike error', error);
       }
     }
   };
 
-  const outOfFrame = (_: string, pet: Pet) =>
-    setGoneIds((g) => new Set(g).add(pet.id));
+  const outOfFrame = (_: string, pet: Pet) => {
+    setGoneIds((prev) => new Set(prev).add(pet.id));
+  };
 
   const swipe = (dir: 'left' | 'up' | 'right') => {
     if (currentIndex < 0) return;
-    cardRefs.current[currentIndex]?.swipe(dir);
-  };
-
-  const rewind = () => {
-    if (!swipedPets.length) return;
-    const [last, ...rest] = swipedPets;
-    setSwipedPets(rest);
-    setPets((p) => [...p, last]);
-    setGoneIds((g) => {
-      const s = new Set(g);
-      s.delete(last.id);
-      return s;
-    });
-    setCurrentIndex((i) => i + 1);
+    (cardRefs.current[currentIndex] as any)?.swipe(dir);
   };
 
   const resetAll = () => {
     setGoneIds(new Set());
     setSwipedPets([]);
-    axios.get<{ pets: Pet[] }>('/api/animal').then((res) => {
-      setPets(res.data.pets);
-      setCurrentIndex(res.data.pets.length - 1);
-    });
+    axios
+      .get<{ pets: Pet[] }>('/api/matchy/animal', {
+        params: { userId: currentUserPetId },
+      })
+      .then((res) => {
+        setPets(res.data.pets);
+        setCurrentIndex(res.data.pets.length - 1);
+      });
   };
 
   if (!pets.length || goneIds.size === pets.length) {
@@ -100,7 +94,15 @@ export default function SwipeInterface() {
       <div className="flex flex-col items-center justify-center h-full">
         <EmptyState />
         {selectedPet && (
-          <PetDetailModal pet={{ ...selectedPet, age: Number(selectedPet?.age) }} onClose={() => setSelectedPet(null)} />
+          <PetDetailModal
+            pet={{ ...selectedPet, age: Number(selectedPet.age) }}
+            open={isDetailModalOpen}
+            onOpenChange={setIsDetailModalOpen}
+            onClose={() => {
+              setSelectedPet(null);
+              setIsDetailModalOpen(false);
+            }}
+          />
         )}
       </div>
     );
@@ -113,38 +115,48 @@ export default function SwipeInterface() {
           goneIds.has(pet.id) ? null : (
             <TinderCard
               key={pet.id}
-              ref={(r) => { cardRefs.current[idx] = r; }}
-              onSwipe={(d) => swiped(d, pet, idx)}
+              ref={(ref) => {
+                if (ref) cardRefs.current[idx] = ref as any;
+              }}
+              onSwipe={(dir) => swiped(dir, pet, idx)}
               onCardLeftScreen={(dir) => outOfFrame(dir, pet)}
               preventSwipe={['down']}
               className="absolute w-full h-full"
             >
               <motion.div
-                onDoubleClick={() => setSelectedPet(pet)}
+                onClick={() => {
+                  setSelectedPet(pet);
+                  setIsDetailModalOpen(true);
+                }}
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: 'spring', stiffness: 300 }}
-                className="relative w-full h-full rounded-2xl overflow-hidden shadow-lg bg-white"
+                className="relative w-full h-full rounded-2xl overflow-hidden shadow-lg bg-white cursor-pointer"
               >
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${pet.image})` }}
+                <img
+                  src={pet.image || '/placeholder.svg'}
+                  alt={`${pet.name}'s photo`}
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
                   <h2 className="text-3xl font-bold">
                     {pet.name}, {pet.age}
                   </h2>
                   <p className="text-lg opacity-90">{pet.breed}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {pet.temperament.map((t) => (
-                      <Badge key={t} className="bg-white/20 text-white" variant={undefined}>
+                      <Badge
+                        key={t}
+                        className="bg-white/20 text-white"
+                        variant={undefined}
+                      >
                         {t}
                       </Badge>
                     ))}
                   </div>
                   <p className="mt-3 text-lg opacity-90">{pet.bio}</p>
                   <div className="absolute top-4 right-4 bg-white/20 text-white px-3 py-1 rounded-full text-sm">
-                    Double-click for details
+                    Click for details
                   </div>
                 </div>
               </motion.div>
@@ -183,14 +195,23 @@ export default function SwipeInterface() {
         </Button>
       </div>
 
+      {/* Optional Undo Button */}
       {/* {swipedPets.length > 0 && (
-        <Button variant="ghost" onClick={rewind} className={undefined} size={undefined}>
+        <Button variant="ghost" onClick={rewind}>
           <RotateCcw className="h-5 w-5 mr-2" /> Undo
         </Button>
       )} */}
 
       {selectedPet && (
-        <PetDetailModal pet={{ ...selectedPet, age: Number(selectedPet?.age) }} onClose={() => setSelectedPet(null)} />
+        <PetDetailModal
+          pet={{ ...selectedPet, age: Number(selectedPet.age) }}
+          open={isDetailModalOpen}
+          onOpenChange={setIsDetailModalOpen}
+          onClose={() => {
+            setSelectedPet(null);
+            setIsDetailModalOpen(false);
+          }}
+        />
       )}
     </div>
   );

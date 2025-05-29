@@ -19,7 +19,7 @@ const AnimalSchema = new mongoose.Schema({
   HealthStatus: {
     vaccinated: { type: Boolean, required: [true, 'Vaccinated status is required'] },
     neutered: { type: Boolean, required: [true, 'Neutered status is required'] },
-    microchipped: { type: Boolean, required: [true, 'Microchipped status is required'] },
+    microchipped: { type: Boolean },
   },
   friendly: {
     children: { type: Boolean, default: false },
@@ -34,10 +34,11 @@ const AnimalSchema = new mongoose.Schema({
     ref: 'User', 
     required: [true, 'Owner is required'] 
   },
+  inmatch :  {type: Boolean, default: false},
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
-
+  
 AnimalSchema.pre('save', function(next) {
   this.updatedAt = new Date();
   next();
