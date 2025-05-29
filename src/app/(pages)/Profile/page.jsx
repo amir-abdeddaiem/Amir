@@ -23,27 +23,7 @@ function page() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="border-none shadow-lg overflow-hidden">
-            <CardHeader className="bg-[#E29578] text-white rounded-t-lg p-6">
-              <div className="flex items-center gap-3">
-                <Paw size={28} />
-                <div>
-                  <CardTitle className="text-2xl font-semibold">
-                    Join Animal's Club
-                  </CardTitle>
-                  <CardDescription className="text-white/80 mt-1">
-                    Create your account to connect with pet lovers
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="pt-6 px-6">
-              
-            </CardContent>
-
-
-          </Card>
+          
         </motion.div>
       </div>
     </div>

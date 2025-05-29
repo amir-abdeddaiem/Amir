@@ -207,12 +207,7 @@ export default function Signup() {
           transition={{ duration: 0.5 }}
         >
           <Card className="border-none shadow-lg overflow-hidden">
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-                <p className="font-bold">Error</p>
-                <p>{error}</p>
-              </div>
-            )}
+            
             <CardHeader className="bg-[#E29578] text-white rounded-t-lg p-6">
               <div className="flex items-center gap-3">
                 <Paw size={28} />
@@ -226,6 +221,12 @@ export default function Signup() {
             </CardHeader>
 
             <CardContent className="pt-6 px-6">
+                            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                <p className="font-bold">Error</p>
+                <p>{error}</p>
+              </div>
+            )}
               <Tabs
                 value={userType} // Controlled component
                 onValueChange={(value) => setUserType(value)}
@@ -246,16 +247,16 @@ export default function Signup() {
                   </TabsTrigger>
                 </TabsList>
 
-                {/* Render content based on userType and step */} 
                 {renderStepContent()}
 
               </Tabs>
+
+
             </CardContent>
 
             <CardFooter className="flex flex-col space-y-4 border-t bg-gray-50 p-6">
               <div className="text-center text-sm text-gray-600 w-full">
                 Already have an account?
-                {/* Assuming Signin is a DialogTrigger or similar */}
                 <Signin />
               </div>
 
@@ -265,7 +266,7 @@ export default function Signup() {
                 <div className="h-px bg-gray-200 flex-grow"></div>
               </div>
 
-              <div className="flex gap-4 w-full">
+              <div className="flex items-center justify-center text-center gap-4 w-full">
                 <SigninWithGoogle />
                 <SigninWithFcb />
               </div>
