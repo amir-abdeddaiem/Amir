@@ -5,7 +5,8 @@ import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 
 interface UserData {
-    _id?: string;
+
+    id?: string;
     firstName?: string;
     lastName?: string;
     email?: string;
@@ -43,18 +44,14 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-       fetchUserData();
+        fetchUserData();
     }, []);
 
     const fetchUserData = async () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get('/api/profile', {
-                headers: {
-                    Authorization: `Bearer ${Cookies.get('token')}`
-                }
-            });
+            const response = await axios.get('/api/profile');
             setUserData(response.data.data);
         } catch (err) {
             if (axios.isAxiosError(err)) {

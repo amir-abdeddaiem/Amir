@@ -1,17 +1,17 @@
 // components/SwipeInterface.tsx
 'use client';
-
-import { useState, useEffect, useRef } from 'react';
+import { AnimatedTooltip } from "../ui/animated-tooltip";
+import { useState, useEffect, useRef, act } from 'react';
 import TinderCard from 'react-tinder-card';
 import axios from 'axios';
 import { X, Heart, Star, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useMatchModal } from '@/app/hooks/use-match-modal';
+import { useMatchModal } from '@/hooks/use-match-modal';
 import { motion } from 'framer-motion';
 import { PetDetailModal } from './PetDetailModal';
 import { EmptyState } from './EmptyState';
-
+import { useUserData } from '@/contexts/UserData';
 type Pet = {
   id: string;
   name: string;
@@ -31,16 +31,12 @@ export default function SwipeInterface() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { openMatchModal } = useMatchModal();
   const cardRefs = useRef<{ [key: number]: typeof TinderCard | null }>({});
-
-  // TODO: replace with real user session pet ID
-  const currentUserPetId = '6833aab8a5016ba13363ad0b';
-
+  const { userData, loading, error } = useUserData();
+  console.log(userData)
   // Load pets on mount
   useEffect(() => {
     axios
-      .get<{ pets: Pet[] }>('/api/matchy/animal', {
-        params: { userId: currentUserPetId },
-      })
+      .get<{ pets: Pet[] }>('/api/matchy/animal')
       .then((res) => {
         setPets(res.data.pets);
         setCurrentIndex(res.data.pets.length - 1);
@@ -53,11 +49,12 @@ export default function SwipeInterface() {
     setSwipedPets((prev) => [pet, ...prev]);
     setCurrentIndex(idx - 1);
 
-    if (dir === 'up') {
+    if (dir === 'right') {
       try {
-        const response = await axios.post('/api/matchy/', {
-          petlikerId: currentUserPetId,
-          petlikedId: pet.id,
+        const response = await axios.post('/api/matchy/matches', {
+          swiped: pet.id,
+
+          actionType: 'like',
         });
 
 
@@ -80,9 +77,7 @@ export default function SwipeInterface() {
     setGoneIds(new Set());
     setSwipedPets([]);
     axios
-      .get<{ pets: Pet[] }>('/api/matchy/animal', {
-        params: { userId: currentUserPetId },
-      })
+      .get<{ pets: Pet[] }>('/api/matchy/animal')
       .then((res) => {
         setPets(res.data.pets);
         setCurrentIndex(res.data.pets.length - 1);
@@ -92,6 +87,7 @@ export default function SwipeInterface() {
   if (!pets.length || goneIds.size === pets.length) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
+
         <EmptyState />
         {selectedPet && (
           <PetDetailModal
@@ -104,12 +100,14 @@ export default function SwipeInterface() {
             }}
           />
         )}
+
       </div>
     );
   }
 
   return (
     <div className="flex flex-col items-center justify-between h-full max-w-md mx-auto">
+
       <div className="relative w-full h-[70vh] flex items-center justify-center">
         {pets.map((pet, idx) =>
           goneIds.has(pet.id) ? null : (
@@ -202,17 +200,24 @@ export default function SwipeInterface() {
         </Button>
       )} */}
 
-      {selectedPet && (
-        <PetDetailModal
-          pet={{ ...selectedPet, age: Number(selectedPet.age) }}
-          open={isDetailModalOpen}
-          onOpenChange={setIsDetailModalOpen}
-          onClose={() => {
-            setSelectedPet(null);
-            setIsDetailModalOpen(false);
-          }}
-        />
-      )}
-    </div>
+      {
+        selectedPet && (
+          <PetDetailModal
+            pet={{ ...selectedPet, age: Number(selectedPet.age) }}
+            open={isDetailModalOpen}
+            onOpenChange={setIsDetailModalOpen}
+            onClose={() => {
+              setSelectedPet(null);
+              setIsDetailModalOpen(false);
+            }}
+          />
+        )
+      }
+
+
+
+    </div >
+
+
   );
 }

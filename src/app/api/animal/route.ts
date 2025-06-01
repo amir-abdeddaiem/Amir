@@ -26,7 +26,7 @@ interface IAnimal {
     other: boolean;
   };
   image: string;
-  owner: string;
+  owner?: string;
   inmatch: boolean;
 }
 
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       name: animal.name,
       type: animal.type,
       breed: animal.breed,
-      birthDate: animal.birthDate,
+      // birthDate: animal.birthDate,
       age: animal.age,
       gender: animal.gender,
       weight: animal.weight,
@@ -84,26 +84,20 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   await connectDB();
-
+  const Owner =  req.headers.get('x-user-id');
   try {
     const body: IAnimal = await req.json();
+    console.log(body)
 
-    // Basic validation
-    if (!body.owner) {
-      return NextResponse.json(
-        { message: 'Owner is required' },
-        { status: 400 }
-      );
-    }
 
     // Create a new animal
     const newAnimal = await Animal.create({
       name: body.name,
       type: body.type,
       breed: body.breed,
-      birthDate: body.birthDate,
+      // birthDate: body.birthDate,
       age: body.age,
       gender: body.gender,
       weight: body.weight,
@@ -120,8 +114,8 @@ export async function POST(req: NextRequest) {
         other: false
       },
       image: body.image,
-      owner: body.owner,
-      inmatch: body.inmatch
+      owner:Owner,
+      inmatch:true
     });
 
     return NextResponse.json(
@@ -139,7 +133,7 @@ export async function POST(req: NextRequest) {
       const errors = Object.values(error.errors).map((err: any) => err.message);
       return NextResponse.json(
         { message: 'Validation failed', errors },
-        { status: 400 }
+        { status: 420 }
       );
     }
 

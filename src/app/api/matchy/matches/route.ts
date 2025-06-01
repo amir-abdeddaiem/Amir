@@ -4,49 +4,43 @@ import SwipeActionModel, { SwipeType } from '@/models/Swipe';
 import { Match } from '@/models/Match';
 import { connectDB } from '@/lib/db';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     await connectDB();
-    const { swiper, swiped, actionType }: { swiper: string; swiped: string; actionType: SwipeType } = await req.json();
-
+    console.log("matched")
+    const { swiped, actionType }: { swiped: string; actionType: SwipeType } = await req.json();
+    const swiper = req.headers.get('x-user-id');
+    console.log(swiper)
     if (!swiper || !swiped || !actionType) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing fields' }, { status: 450 });
     }
 
     if (!mongoose.Types.ObjectId.isValid(swiper) || !mongoose.Types.ObjectId.isValid(swiped)) {
       return NextResponse.json({ error: 'Invalid animal IDs' }, { status: 400 });
     }
 
-    const swipe = await SwipeActionModel.findOneAndUpdate(
-      { swiper, swiped },
-      { swiper, swiped, actionType },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
+    // Insert the new swipe
+    await SwipeActionModel.create({ swiper, swiped, actionType });
 
-    if (actionType === 'like') {
-      const reciprocal = await SwipeActionModel.findOne({
-        swiper: swiped,
-        swiped: swiper,
-        actionType: 'like',
-      });
+    // Check for a reverse swipe (swiped => swiper)
+    const existingReverseSwipe = await SwipeActionModel.findOne({
+      swiper: swiped,
+      swiped: swiper,
+    });
 
-      if (reciprocal) {
-        const [id1, id2] = [swiper, swiped].sort();
-        const existingMatch = await Match.findOne({ pet1: id1, pet2: id2 });
-
-        if (!existingMatch) {
-          await Match.create({ pet1: id1, pet2: id2 });
-          console.log(`💘 Match created between ${id1} and ${id2}`);
-        }
-      }
+    if (existingReverseSwipe) {
+      console.log('🔁 Mutual interest found!');
+      console.log(existingReverseSwipe);
     }
 
-    return NextResponse.json(swipe, { status: 200 });
+    return NextResponse.json({ message: 'Swipe recorded successfully' }, { status: 200 });
+
   } catch (error: any) {
     console.error('❌ Match creation failed:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
 
 export async function GET(req: NextRequest) {
   try {

@@ -4,7 +4,6 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
 export async function middleware(request: NextRequest) {
-  console.log("✅ Middleware is running!");
 
   const token = request.cookies.get('jwt')?.value;
 
@@ -14,7 +13,7 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'b795999a079f8e38336f0dd24fcbe6830b7d6289dd7f0436f778cf034ce92d66s');
 
     const { payload } = await jwtVerify(token, secret);
     console.log("✅ Token is valid:", payload);
@@ -34,5 +33,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/:path*'],
+  matcher: ['/api/profile/:path*',"/api/matchy/:path*","/api/animal/:path*"],
 };

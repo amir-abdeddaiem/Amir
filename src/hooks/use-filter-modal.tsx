@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, createContext, useContext } from "react"
-import FilterModal from "../../components/Matchy/filter-modal"
+import FilterModal from "../components/Matchy/filter-modal"
 
 type FilterModalContextType = {
   openFilterModal: () => void

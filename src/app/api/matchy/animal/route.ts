@@ -34,8 +34,7 @@ export async function GET(req: NextRequest) {
   await connectDB();
 
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
+    const userId =req.headers.get('x-user-id');
 
     if (!userId) {
       return NextResponse.json(

@@ -19,7 +19,7 @@ import Form2 from "@/components/Animal/Form2";
 import Form3 from "@/components/Animal/Form3";
 import Form4 from "@/components/Animal/Form4";
 import axios from "axios";
-import { useUserData } from "@/contexts/UserData";
+
 export default function AddAnimal() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -27,7 +27,6 @@ export default function AddAnimal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
-  // Form state
   const [formData, setFormData] = useState({
     name: "",
     type: "",
@@ -36,23 +35,21 @@ export default function AddAnimal() {
     gender: "",
     weight: "",
     description: "",
+    birthDate: "",
     HealthStatus: {
       vaccinated: false,
       neutered: false,
       microchipped: false,
     },
-    birthDate: "",
     friendly: {
       children: false,
       dogs: false,
       cats: false,
       other: false,
     },
-    image: null,
-    owner: Cookies.get("userId"),
+    image: null, // base64 string
   });
 
-  // Handle form field changes
   const handleChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -60,7 +57,6 @@ export default function AddAnimal() {
     }));
   };
 
-  // Handle friendly checkboxes
   const handleFriendlyChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -71,7 +67,6 @@ export default function AddAnimal() {
     }));
   };
 
-  // Handle image upload
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -80,41 +75,37 @@ export default function AddAnimal() {
         setPreviewImage(reader.result);
         setFormData((prev) => ({
           ...prev,
-          image: file,
+          image: reader.result, // ✅ base64 string
         }));
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-
-    // In a real app, you would send the formData to your backend here
-    console.log("Form submitted:", formData);
-
     try {
-      const response = await axios.post("/api/animal", formData);
-      const data = response.data;
+      const response = await axios.post("/api/animal", formData, {
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": Cookies.get("userId"), // ✅ must exist
+        },
+      });
 
-      if (!data.success) {
-        console.log("Registration failed:", data.message || "Unknown error");
+      if (response.status === 201) {
+        console.log("Animal added successfully:", response.data);
       } else {
-        console.log("Registration successful:", data);
+        console.error("Failed to add animal:", response.data.message);
       }
     } catch (error) {
-      console.error("Network or fetch error:", error);
-      // Provide user feedback for network issues
+      console.error("Submission error:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Next step
   const nextStep = () => {
     if (step < 4) {
       setStep(step + 1);
@@ -122,7 +113,6 @@ export default function AddAnimal() {
     }
   };
 
-  // Previous step
   const prevStep = () => {
     if (step > 1) {
       setStep(step - 1);
@@ -130,7 +120,6 @@ export default function AddAnimal() {
     }
   };
 
-  // Render form steps
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -210,7 +199,7 @@ export default function AddAnimal() {
                       <ChevronLeft className="mr-2 h-4 w-4" /> Back
                     </Button>
                   ) : (
-                    <div></div>
+                    <div />
                   )}
 
                   {step < 4 ? (

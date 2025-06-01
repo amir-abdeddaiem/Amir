@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_SECRET = process.env.JWT_SECRET || 'b795999a079f8e38336f0dd24fcbe6830b7d6289dd7f0436f778cf034ce92d66s'
 
 export async function POST(req: Request) {
   await connectDB()

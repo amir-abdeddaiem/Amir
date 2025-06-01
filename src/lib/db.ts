@@ -1,24 +1,12 @@
-// import mongoose from 'mongoose'
-
-// let isConnected = false
-
-// export const connectDB = async () => {
-//   if (isConnected) {
-//     console.log('Already connected to MongoDB')
-//     return
-//   }
-//   try {
-//     await mongoose.connect(process.env.DB_URL as string )
-//     isConnected = true
-//     console.log('MongoDB Connected...')
-//   } catch (err: any) {
-//     console.error(err.message)
-//   }
-// }
 import mongoose from "mongoose";
 import { User } from "@/models/User";
 import { Product } from "@/models/Product";
 import { Review } from "@/models/Review";
+import { Match } from "@/models/Match";
+import  SwipeAction  from "@/models/Swipe";
+import { Message } from "@/models/Message";
+import { Like } from "@/models/Like";
+import { Favorite } from "@/models/Favorite";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
@@ -45,6 +33,12 @@ async function connectDB() {
       User;
       Product;
       Review;
+      Match;
+      SwipeAction;
+      Message;
+      Like;
+      Favorite;
+
       return mongoose;
     });
   }

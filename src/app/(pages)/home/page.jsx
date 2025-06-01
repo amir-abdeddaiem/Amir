@@ -12,7 +12,6 @@ import Footer from "@/components/footer/Footer";
 // import DogHeadMenu from "@/components/DogHeadMenu/DogHeadMenu";
 
 export default function HomePage() {
-  console.log(user);
   return (
     <div className="relative min-h-screen bg-[#EDF6F9] ">
       {/* <PawBackground /> */}

@@ -4,7 +4,7 @@ const AnimalSchema = new mongoose.Schema({
   name: { type: String, required: [true, 'Name is required'] },
   type: { type: String, required: [true, 'Type is required'] },
   breed: { type: String, required: [true, 'Breed is required'] },
-  birthDate: { type: Date },
+  // birthDate: { type: Date },
   age: { type: String, required: [true, 'Age is required'] },
   gender: { 
     type: String, 
