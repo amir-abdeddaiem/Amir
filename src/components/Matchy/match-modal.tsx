@@ -81,7 +81,7 @@ export default function MatchModal({
         <DialogDescription className="sr-only">
           You have matched with a pet that also liked your profile
         </DialogDescription>
-        
+
         <div className="p-6 text-center">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}

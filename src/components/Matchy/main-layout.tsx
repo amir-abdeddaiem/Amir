@@ -60,7 +60,8 @@ export default function MainLayout({
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isDesktop, setIsDesktop] = useState(false)
-  const [animals, setAnimals] = useState([])
+  const [animals, setAnimalsuser] = useState([])
+
   const [loading, setLoading] = useState(true)
   const { openFilterModal } = useFilterModal()
 
@@ -77,11 +78,12 @@ export default function MainLayout({
     }
   }, [])
 
+
   useEffect(() => {
-    const fetchAnimals = async () => {
+    const fetchAnimalsuser = async () => {
       try {
-        const response = await axios.get('/api/animal')
-        setAnimals(response.data)
+        const response = await axios.get('/api/matchy/animalUser')
+        setAnimalsuser(response.data.pets);
         setLoading(false)
       } catch (error) {
         console.error('Error fetching animals:', error)
@@ -89,8 +91,28 @@ export default function MainLayout({
       }
     }
 
-    fetchAnimals()
+    fetchAnimalsuser()
   }, [])
+
+
+
+
+
+
+  // useEffect(() => {
+  //   const fetchAnimals = async () => {
+  //     try {
+  //       const response = await axios.get('/api/animal')
+  //       setAnimals(response.data)
+  //       setLoading(false)
+  //     } catch (error) {
+  //       console.error('Error fetching animals:', error)
+  //       setLoading(false)
+  //     }
+  //   }
+
+  //   fetchAnimals()
+  // }, [])
 
   return (
     <div className="flex flex-col min-h-screen">

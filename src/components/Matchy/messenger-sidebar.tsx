@@ -66,19 +66,25 @@ export default function MessengerSidebar({
         setIsLoading(true)
         setError(null)
         try {
-          // Replace "currentPetId" with your actual pet ID (from auth/user context)
-          const currentPetId = "6827f4069003e6c175d50824"
 
-          const response = await axios.get(`/api/matchy/likes?petId=${currentPetId}`)
+
+          const response = await axios.get(`/api/matchy/likesU`, {
+            params: {
+              swiped: "683cb2d4d4ef14e78b692903",       // <- Replace this dynamically
+              actionType: 'superlike'
+            }
+
+          })
+
 
           // Transform the API response into Match objects
-          const pets = response.data.likes.map((like: any) => ({
-            id: like.petliked._id,
-            name: like.petliked.name || "Unknown Pet",
-            image: like.petliked.image || "/default-pet.png",
-            animalType: like.petliked.animalType || "dog"
-          }))
+          const pets = response.data.superlike.map((like: any) => ({
+            id: like.swiped._id,
+            name: like.swiped.name || "Unknown Pet",
+            image: like.swiped.image || "/default-pet.png",
 
+          }))
+          console.log(pets)
           setLikedPets(pets)
         } catch (err) {
           console.error("Error fetching liked pets:", err)

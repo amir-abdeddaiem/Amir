@@ -15,10 +15,10 @@ const AnimalSchema = new mongoose.Schema({
     }
   },
   weight: { type: String },
-  description: { type: String, required: [true, 'Description is required'] },
+  description: { type: String },
   HealthStatus: {
-    vaccinated: { type: Boolean, required: [true, 'Vaccinated status is required'] },
-    neutered: { type: Boolean, required: [true, 'Neutered status is required'] },
+    vaccinated: { type: Boolean },
+    neutered: { type: Boolean},
     microchipped: { type: Boolean },
   },
   friendly: {
@@ -34,6 +34,7 @@ const AnimalSchema = new mongoose.Schema({
     ref: 'User', 
     required: [true, 'Owner is required'] 
   },
+  Color :{type: String},
   inmatch :  {type: Boolean, default: false},
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
@@ -43,5 +44,8 @@ AnimalSchema.pre('save', function(next) {
   this.updatedAt = new Date();
   next();
 });
+
+AnimalSchema.index({ name: 1, owner: 1 }, { unique: true });
+
 
 export const Animal = mongoose.models.Animal || mongoose.model('Animal', AnimalSchema);

@@ -14,7 +14,7 @@ export default function Form4({ formData }) {
           {formData.image && (
             <div className="flex justify-center">
               <img
-                src={URL.createObjectURL(formData.image)}
+                src={formData.image}
                 alt="Pet"
                 className="h-32 w-32 rounded-full object-cover border-4 border-[#E29578]"
               />

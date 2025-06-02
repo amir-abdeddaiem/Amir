@@ -83,14 +83,15 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     );
   }
 }
-
 export async function POST(req: Request) {
   await connectDB();
-  const Owner =  req.headers.get('x-user-id');
-  try {
-    const body: IAnimal = await req.json();
-    console.log(body)
+  const Owner = req.headers.get("x-user-id");
 
+  try {
+    const body = await req.json();
+    console.log(body);
+
+   
 
     // Create a new animal
     const newAnimal = await Animal.create({
@@ -105,44 +106,44 @@ export async function POST(req: Request) {
       HealthStatus: body.HealthStatus || {
         vaccinated: false,
         neutered: false,
-        microchipped: false
+        microchipped: false,
       },
       friendly: body.friendly || {
         children: false,
         dogs: false,
         cats: false,
-        other: false
+        other: false,
       },
       image: body.image,
-      owner:Owner,
-      inmatch:true
+      owner: Owner,
+      inmatch: true,
     });
 
     return NextResponse.json(
-      { 
-        message: 'Animal created successfully',
-        animal: newAnimal 
+      {
+        message: "Animal created successfully",
+        animal: newAnimal,
       },
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('POST Error:', error);
+    console.error("POST Error:", error);
 
-    // Handle validation errors
-    if (error.name === 'ValidationError') {
+    if (error.name === "ValidationError") {
       const errors = Object.values(error.errors).map((err: any) => err.message);
       return NextResponse.json(
-        { message: 'Validation failed', errors },
+        { message: "Validation failed", errors },
         { status: 420 }
       );
     }
 
     return NextResponse.json(
-      { message: 'Failed to create animal' },
+      { message: "Failed to create animal" },
       { status: 500 }
     );
   }
 }
+
 
 export async function PUT(req: NextRequest) {
   await connectDB();

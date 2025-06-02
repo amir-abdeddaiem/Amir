@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar/Navbar";
-import Footer from "@/components/footer/Footer";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 import {
   Check,
   ChevronLeft,
@@ -36,6 +34,8 @@ export default function AddAnimal() {
     weight: "",
     description: "",
     birthDate: "",
+    image: null, // base64 string
+
     HealthStatus: {
       vaccinated: false,
       neutered: false,
@@ -47,7 +47,6 @@ export default function AddAnimal() {
       cats: false,
       other: false,
     },
-    image: null, // base64 string
   });
 
   const handleChange = (field, value) => {
@@ -67,35 +66,38 @@ export default function AddAnimal() {
     }));
   };
 
-  const handleImageChange = (e) => {
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
-        setFormData((prev) => ({
-          ...prev,
-          image: reader.result, // ✅ base64 string
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewImage(reader.result); // This is base64
+      setFormData((prev) => ({
+        ...prev,
+        image: reader.result, // base64 string
+      }));
+      console.log(reader.result); // Should start with "data:image/jpeg;base64,..."
+    };
+    reader.readAsDataURL(file); // <--- this is correct
   };
 
   const handleSubmit = async (e) => {
+    console.log(formData);
     e.preventDefault();
+
     setIsSubmitting(true);
 
     try {
       const response = await axios.post("/api/animal", formData, {
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": Cookies.get("userId"), // ✅ must exist
         },
       });
 
       if (response.status === 201) {
         console.log("Animal added successfully:", response.data);
+        router.push("/");
       } else {
         console.error("Failed to add animal:", response.data.message);
       }
@@ -135,9 +137,9 @@ export default function AddAnimal() {
       case 3:
         return (
           <Form3
-            formData={formData}
             handleChange={handleChange}
-            handleImageChange={handleImageChange}
+            formData={formData}
+            handleImageUpload={handleImageUpload}
             previewImage={previewImage}
           />
         );
@@ -150,7 +152,6 @@ export default function AddAnimal() {
 
   return (
     <div className="min-h-screen bg-[#EDF6F9]">
-      <Navbar />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-8 text-center">
@@ -237,7 +238,6 @@ export default function AddAnimal() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

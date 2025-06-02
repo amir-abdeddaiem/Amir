@@ -7,6 +7,7 @@ import  SwipeAction  from "@/models/Swipe";
 import { Message } from "@/models/Message";
 import { Like } from "@/models/Like";
 import { Favorite } from "@/models/Favorite";
+import { Animal } from "@/models/Animal";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
@@ -34,10 +35,11 @@ async function connectDB() {
       Product;
       Review;
       Match;
-      SwipeAction;
+      // SwipeAction;
       Message;
       Like;
       Favorite;
+      Animal;
 
       return mongoose;
     });

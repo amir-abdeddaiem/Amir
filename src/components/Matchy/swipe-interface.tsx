@@ -112,7 +112,7 @@ export default function SwipeInterface() {
         {pets.map((pet, idx) =>
           goneIds.has(pet.id) ? null : (
             <TinderCard
-              key={pet.id}
+              key={idx}
               ref={(ref) => {
                 if (ref) cardRefs.current[idx] = ref as any;
               }}
@@ -142,9 +142,9 @@ export default function SwipeInterface() {
                   </h2>
                   <p className="text-lg opacity-90">{pet.breed}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {pet.temperament.map((t) => (
+                    {pet.temperament.map((t, i) => (
                       <Badge
-                        key={t}
+                        key={i}
                         className="bg-white/20 text-white"
                         variant={undefined}
                       >
