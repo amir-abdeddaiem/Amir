@@ -8,6 +8,7 @@ import { Message } from "@/models/Message";
 import { Like } from "@/models/Like";
 import { Favorite } from "@/models/Favorite";
 import { Animal } from "@/models/Animal";
+import { Recover } from "@/models/Recover";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
@@ -36,6 +37,7 @@ async function connectDB() {
       Review;
       Match;
       // SwipeAction;
+      Recover;
       Message;
       Like;
       Favorite;

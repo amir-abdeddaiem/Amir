@@ -4,7 +4,6 @@ import { useState, useEffect, FormEvent, ChangeEvent, useCallback } from "react"
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { useJwt } from "@/hooks/useJwt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +19,7 @@ import axios, { AxiosError } from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useUserData } from "@/contexts/UserData";
 
 // Types
 type Gender = "male" | "female" | "other";
@@ -48,7 +48,6 @@ interface ApiResponse<T = any> {
   data?: T;
 }
 
-// Props for form fields
 interface FormFieldProps<T extends keyof ProfileData> {
   id: T;
   label: string;
@@ -67,9 +66,8 @@ const MapLocationPicker = dynamic(
 
 export default function UpdateProfile() {
   const router = useRouter();
-  const { getToken, getUserId } = useJwt();
+  const { refreshUserData, userData } = useUserData();
 
-  // State
   const [profileData, setProfileData] = useState<ProfileData>({
     id: "-1",
     firstName: "",
@@ -90,7 +88,7 @@ export default function UpdateProfile() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(true);
 
   // Memoized handler for field changes
   const handleChange = useCallback(<K extends keyof ProfileData>(
@@ -125,51 +123,27 @@ export default function UpdateProfile() {
     </div>
   );
 
-  // Fetch user ID on mount
+  // Fetch user data on mount
   useEffect(() => {
-    const fetchUserId = async () => {
+    const loadUserData = async () => {
       try {
-        const id = await getUserId();
-        if (!id) throw new Error("User ID not found");
-        setUserId(id);
+        setIsFetching(true);
+        await refreshUserData();
       } catch (err) {
-        console.error("Error fetching user ID:", err);
-      }
-    };
-    fetchUserId();
-  }, [getUserId]);
-
-  // Fetch profile data when userId changes
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!userId) return;
-
-      try {
-        setIsLoading(true);
-        const response = await axios.get<ApiResponse<ProfileData>>("/api/profile");
-
-        if (response.data.error) throw new Error(response.data.error);
-
-        const data = response.data.data;
-        if (data) {
-          setProfileData(data);
-          if (data.coordinates) {
-            setLocationData({
-              coordinates: data.coordinates,
-              address: data.location,
-            });
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching profile:", err);
+        console.error("Failed to load user data", err);
       } finally {
-        setIsLoading(false);
+        setIsFetching(false);
       }
     };
-    fetchProfile();
-  }, [userId]);
+    loadUserData();
+  }, []);
 
-  // Update location data when it changes
+  useEffect(() => {
+    if (userData && userData.id) {
+      setProfileData(userData as ProfileData);
+    }
+  }, [userData]);
+
   useEffect(() => {
     if (locationData.address) {
       setProfileData((prev) => ({
@@ -184,19 +158,18 @@ export default function UpdateProfile() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-
     try {
       setIsLoading(true);
-      if (!userId) throw new Error("User ID not found");
+      if (!profileData.id) throw new Error("User ID not found");
 
-      // Validate required fields
+      // Basic validation
       if (!profileData.firstName || !profileData.lastName || !profileData.email) {
         throw new Error("Please fill in all required fields");
       }
 
       const response = await axios.put<ApiResponse>(
         `/api/profile`,
-        profileData,
+        profileData
       );
 
       if (response.data.error) throw new Error(response.data.error);
@@ -211,6 +184,16 @@ export default function UpdateProfile() {
     }
   };
 
+  // Show loading UI until data is ready
+  if (isFetching) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <Skeleton className="h-10 w-1/3 mb-4" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -222,7 +205,9 @@ export default function UpdateProfile() {
         <CardHeader className="text-center">
           <div className="flex justify-center">
             <Avatar className="w-24 h-24">
-              <AvatarFallback className="w-24 h-24">{profileData.firstName.charAt(0)}{profileData.lastName.charAt(0)}</AvatarFallback>
+              <AvatarFallback className="w-24 h-24">
+                {profileData.firstName.charAt(0)}{profileData.lastName.charAt(0)}
+              </AvatarFallback>
             </Avatar>
           </div>
           <CardTitle className="text-2xl font-bold text-[#006D77] mt-4">Update Profile</CardTitle>
@@ -230,48 +215,17 @@ export default function UpdateProfile() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextFormField
-                id="firstName"
-                label="First Name"
-                value={profileData.firstName}
-                onChange={handleChange}
-                required
-              />
-              <TextFormField
-                id="lastName"
-                label="Last Name"
-                value={profileData.lastName}
-                onChange={handleChange}
-                required
-              />
+              <TextFormField id="firstName" label="First Name" value={profileData.firstName} onChange={handleChange} required />
+              <TextFormField id="lastName" label="Last Name" value={profileData.lastName} onChange={handleChange} required />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextFormField
-                id="email"
-                label="Email"
-                value={profileData.email}
-                onChange={handleChange}
-                type="email"
-                required
-              />
-              <TextFormField
-                id="phone"
-                label="Phone"
-                value={profileData.phone}
-                onChange={handleChange}
-                type="tel"
-              />
+              <TextFormField id="email" label="Email" value={profileData.email} onChange={handleChange} type="email" required />
+              <TextFormField id="phone" label="Phone" value={profileData.phone} onChange={handleChange} type="tel" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextFormField
-                id="birthDate"
-                label="Birth Date"
-                value={profileData.birthDate}
-                onChange={handleChange}
-                type="date"
-              />
+              <TextFormField id="birthDate" label="Birth Date" value={profileData.birthDate} onChange={handleChange} type="date" />
               <div className="space-y-2">
                 <Label className="text-lg font-semibold" htmlFor="gender">Gender</Label>
                 <Select
@@ -281,10 +235,10 @@ export default function UpdateProfile() {
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
-                  <SelectContent className="w-full">
-                    <SelectItem className="w-full" value="male">Male</SelectItem>
-                    <SelectItem className="w-full" value="female">Female</SelectItem>
-                    <SelectItem className="w-full" value="other">Other</SelectItem>
+                  <SelectContent className={"w-full"}>
+                    <SelectItem className={""} value="male">Male</SelectItem>
+                    <SelectItem  className={""} value="female">Female</SelectItem>
+                    <SelectItem  className={""} value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -309,7 +263,7 @@ export default function UpdateProfile() {
               />
             </div>
 
-            <div className="space-y-2 mt-25">
+            <div className="space-y-2 mt-6">
               <Label className="text-lg font-semibold" htmlFor="bio">About you</Label>
               <Textarea
                 id="bio"
