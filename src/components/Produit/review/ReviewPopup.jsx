@@ -26,11 +26,6 @@ export function ReviewPopup({ productId, userId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // if (!session) {
-    //   toast.error("Please sign in to leave a review");
-    //   return;
-    // }
-
     if (rating === 0) {
       toast.error("Please select a rating");
       return;

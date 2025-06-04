@@ -31,36 +31,16 @@ export default function ProductModal({
   product: initialProduct,
   show,
   onClose,
+  isFavorite,
+  toggleFavorite,
 }) {
   const { userData } = useUserData();
-  const [product] = React.useState(
-    initialProduct || {
-      _id: "682e06d2593d41b016964c69",
-      name: "Premium Pet Bed",
-      description: "Ultra-soft orthopedic pet bed with waterproof lining.",
-      price: 70,
-      images: ["/images/pet-bed-1.jpg", "/images/pet-bed-2.jpg"],
-      category: "Beds",
-      localisation: "Tunis, Tunisia",
-      petType: "Dog",
-      quantity: 15,
-      specifications: [
-        { key: "Material", value: "Memory foam" },
-        { key: "Size", value: "Medium" },
-        { key: "Color", value: "Beige" },
-        { key: "Weight Capacity", value: "50 lbs" },
-      ],
-      user: {
-        firstName: "John",
-        lastName: "PetSeller",
-        email: "john@example.com",
-        phone: "25951400",
-      },
-    }
-  );
+  const [product] = React.useState(initialProduct);
   const { refreshKey, triggerRefresh } = useRefresh();
-
   const [reviews, setReviews] = React.useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+  const [activeAccordion, setActiveAccordion] = React.useState(null);
+
   useEffect(() => {
     fetch(`/api/review?productId=${product._id}`)
       .then((response) => response.json())
@@ -68,10 +48,6 @@ export default function ProductModal({
         setReviews(data.reviews);
       });
   }, [refreshKey]);
-
-  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-  const [isFavorite, setIsFavorite] = React.useState(false);
-  const [activeAccordion, setActiveAccordion] = React.useState(null); // State for accordion
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
@@ -81,10 +57,6 @@ export default function ProductModal({
     setCurrentImageIndex(
       (prev) => (prev - 1 + product.images.length) % product.images.length
     );
-  };
-
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
   };
 
   const toggleAccordion = (section) => {
@@ -144,7 +116,6 @@ export default function ProductModal({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
       >
-        {/* Backdrop with subtle blur */}
         <motion.div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
           onClick={onClose}
@@ -153,17 +124,15 @@ export default function ProductModal({
           exit={{ opacity: 0 }}
         />
 
-        {/* Modal container - adjusted height */}
         <div className="flex items-center justify-center p-0">
           <motion.div
             className="relative w-full max-w-6xl bg-[#f8fafc] rounded-none md:rounded-xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col"
-            style={{ maxHeight: "740px" }} // ~10cm
+            style={{ maxHeight: "740px" }}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 20, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
-            {/* Close Button */}
             <button
               className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-all shadow-lg hover:scale-110"
               onClick={onClose}
@@ -171,12 +140,9 @@ export default function ProductModal({
               <X size={20} className="text-gray-600" />
             </button>
 
-            {/* Main content area with no scrolling */}
             <div className="flex flex-col md:flex-row gap-0 flex-1 overflow-hidden">
-              {/* Left: Images - now scrollable if needed */}
               <div className="relative w-full md:w-1/2 bg-white p-6 overflow-y-auto">
                 <div className="space-y-4">
-                  {/* Main Image with Navigation */}
                   <div className="relative aspect-square overflow-hidden rounded-2xl shadow-lg bg-gray-50">
                     <AnimatePresence mode="wait">
                       <motion.img
@@ -215,7 +181,6 @@ export default function ProductModal({
                       </>
                     )}
 
-                    {/* Favorite Button */}
                     <motion.button
                       onClick={toggleFavorite}
                       className="absolute top-4 right-4 bg-white/90 hover:bg-white p-2 rounded-full shadow-md z-10"
@@ -233,7 +198,6 @@ export default function ProductModal({
                     </motion.button>
                   </div>
 
-                  {/* Thumbnails */}
                   {product.images.length > 1 && (
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                       {product.images.map((img, index) => (
@@ -257,7 +221,6 @@ export default function ProductModal({
                     </div>
                   )}
 
-                  {/* Stock Status */}
                   <motion.div
                     className="flex items-center justify-between bg-gradient-to-r from-[#FFDDD2] to-[#f8c9b8] p-3 rounded-lg shadow-sm"
                     initial={{ opacity: 0, y: 10 }}
@@ -284,7 +247,6 @@ export default function ProductModal({
                     </span>
                   </motion.div>
 
-                  {/* Product tags */}
                   <div className="flex flex-wrap gap-2">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#83C5BE]/20 text-[#006D77]">
                       <PawPrint size={12} className="mr-1" />
@@ -298,9 +260,7 @@ export default function ProductModal({
                 </div>
               </div>
 
-              {/* Right: Info - now in accordion */}
               <div className="flex-1 p-6 space-y-4 overflow-hidden">
-                {/* Basic Info */}
                 <div className="space-y-3">
                   <h1 className="text-2xl md:text-3xl font-bold text-[#006D77]">
                     {product.name}
@@ -318,9 +278,7 @@ export default function ProductModal({
                   </p>
                 </div>
 
-                {/* Accordion for taller elements */}
                 <div className="space-y-2">
-                  {/* Product Details */}
                   <div className="border border-gray-100 rounded-lg">
                     <button
                       className="w-full flex justify-between items-center p-4 text-left bg-white rounded-t-lg"
@@ -360,7 +318,6 @@ export default function ProductModal({
                     )}
                   </div>
 
-                  {/* Seller Information */}
                   <div className="border border-gray-100 rounded-lg">
                     <button
                       className="w-full flex justify-between items-center p-4 text-left bg-white rounded-t-lg"
@@ -420,7 +377,6 @@ export default function ProductModal({
                     )}
                   </div>
 
-                  {/* Customer Reviews */}
                   <div className="border border-gray-100 rounded-lg">
                     <button
                       className="w-full flex justify-between items-center p-4 text-left bg-white rounded-t-lg"
@@ -510,7 +466,6 @@ export default function ProductModal({
               </div>
             </div>
 
-            {/* Footer buttons - fixed at bottom */}
             <div className="flex gap-4 bg-gradient-to-r from-[#EDF6F9] to-[#d8eef3] p-4 border-t border-[#83C5BE]/30">
               <motion.div whileHover={{ scale: 1.02 }} className="flex-1">
                 <Button

@@ -34,7 +34,7 @@ export function ProductFilters({
   setSelectedCategories,
   selectedPetTypes = [],
   setSelectedPetTypes,
-  priceRange = [0, 100],
+  priceRange = [0, 99999999999],
   setPriceRange,
   showInStock = false,
   setShowInStock,
@@ -208,8 +208,8 @@ export function ProductFilters({
               >
                 <div className="pt-4 px-2">
                   <Slider
-                    defaultValue={[0, 100]}
-                    max={100}
+                    defaultValue={[0, 99999999999]}
+                    max={99999999999}
                     step={1}
                     value={priceRange}
                     onValueChange={setPriceRange}

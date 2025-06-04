@@ -25,14 +25,14 @@ export function SidebarMenu({ open, setOpen }) {
 
     {
       label: "wishlist",
-      href: "../../../../wishlist",
+      href: "../../../../marcket_place/favorite",
       icon: (
         <IconHeart className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
       ),
     },
     {
       label: " my market",
-      href: "../../../../mymarket",
+      href: "../../../../marcket_place/mymarket",
       icon: (
         <IconShoppingCart className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
       ),
