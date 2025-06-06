@@ -1,82 +1,101 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useUserData } from "@/contexts/UserData";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Produit } from "@/components/Produit/Produit";
-import { motion, AnimatePresence } from "framer-motion";
+import { Produit } from "@/components/Produit/Produit"; // Adjust path to your Produit component
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function MarketPage() {
+export default function FavoritePage() {
+  const { userData } = useUserData();
+  const userId = userData?.id;
+  const router = useRouter();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const fetchProducts = async () => {
-    try {
-      const response = await axios.get("/api/myproduct");
-      setProducts(response.data);
-    } catch (error) {
-      console.error("Failed to fetch products:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const fetchProducts = async () => {
+      if (!userId) {
+        setLoading(false);
+        setError("Please log in to view favorites");
+        router.push("/login");
+        return;
+      }
 
-  const generateProductKey = (product, index) => {
-    if (product.id) return `product-${product.id}`;
-    if (product.name && product.category) {
-      return `product-${product.name}-${product.category}`.replace(/\s+/g, "-");
+      try {
+        setLoading(true);
+        const response = await axios.get(
+          `/api/favoriteproduct?userId=${userId}`
+        );
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        setError(
+          error.response?.data?.error || "Failed to fetch favorite products"
+        );
+        toast.error("Failed to load favorites");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [userId, router]);
+
+  const handleFavoriteChange = (productId, isFavorited) => {
+    if (!isFavorited) {
+      setProducts((prev) =>
+        prev.filter((fav) => fav.product._id !== productId)
+      );
     }
-    return `product-fallback-${index}`;
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-[#83C5BE]" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <div className="text-center py-10">
+        <h2 className="text-2xl font-bold text-[#EDF6F9]">
+          No Favorite Products
+        </h2>
+        <p className="text-[#EDF6F9]/70 mt-2">
+          Add products to your favorites to see them here!
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col">
-      <div className="flex-1">
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#006D77]"></div>
-          </div>
-        ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {products.length > 0 ? (
-                products.map((product, index) => (
-                  <motion.div
-                    key={generateProductKey(product, index)}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                  >
-                    <Produit product={product} />
-                  </motion.div>
-                ))
-              ) : (
-                <motion.div
-                  className="text-center py-12 col-span-full"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <h2 className="text-xl font-semibold mb-2">
-                    No products found
-                  </h2>
-                  <p className="text-muted-foreground">
-                    You haven't listed any products yet.
-                  </p>
-                </motion.div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        )}
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-[#EDF6F9] mb-6">
+        My Favorite Products
+      </h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {products.map((favorite) => (
+          <Produit
+            key={favorite._id}
+            product={favorite.product}
+            isFavorite={true}
+            onFavoriteChange={handleFavoriteChange}
+          />
+        ))}
       </div>
     </div>
   );

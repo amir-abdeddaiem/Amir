@@ -1,3 +1,4 @@
+// app/marketplace/page.js
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -6,6 +7,9 @@ import { Produit } from "@/components/Produit/Produit";
 import { ProductFilters } from "@/components/Produit/ProductFilters";
 import { IconSearch } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function MarketPage() {
   const [allProducts, setAllProducts] = useState([]);
@@ -16,6 +20,7 @@ export default function MarketPage() {
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [showInStock, setShowInStock] = useState(false);
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
 
   const fetchProducts = async () => {
     try {
@@ -24,10 +29,35 @@ export default function MarketPage() {
       setFilteredProducts(response.data);
     } catch (error) {
       console.error("Failed to fetch products:", error);
+      toast.error("Failed to load products. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        className: "bg-red-100 text-red-700 font-sans rounded-lg",
+      });
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get("success") === "product-added") {
+      fetchProducts(); // Refetch to include new product
+      toast.success("🎉 Product added successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        className: "bg-[#83C5BE] text-[#006D77] font-sans rounded-lg",
+        progressClassName: "bg-[#006D77]",
+      });
+    }
+  }, [searchParams]);
 
   const applyFilters = () => {
     const filtered = allProducts.filter((product) => {
@@ -61,10 +91,6 @@ export default function MarketPage() {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  useEffect(() => {
     if (allProducts.length > 0) {
       applyFilters();
     }
@@ -87,14 +113,13 @@ export default function MarketPage() {
 
   const generateProductKey = (product, index) => {
     if (product.id) return `product-${product.id}`;
-    if (product.name && product.category) {
-      return `product-${product.name}-${product.category}`.replace(/\s+/g, "-");
-    }
-    return `product-fallback-${index}`;
+    return `product-${product.name || "unnamed"}-${
+      product.category || "uncategorized"
+    }-${index}`.replace(/\s+/g, "-");
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-19 ">
+    <div className="flex flex-col md:flex-row gap-19">
       <div className="flex-1 ml-10">
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
@@ -111,7 +136,7 @@ export default function MarketPage() {
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#006D77]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-tbridges-t-2 border-b-2 border-[#006D77]"></div>
           </div>
         ) : (
           <AnimatePresence mode="wait">
@@ -126,7 +151,7 @@ export default function MarketPage() {
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product, index) => (
                   <motion.div
-                    key={index}
+                    key={generateProductKey(product, index)}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -169,6 +194,7 @@ export default function MarketPage() {
           />
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 }

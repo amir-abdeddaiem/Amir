@@ -45,6 +45,7 @@ export function ImageUploadForm({
               <div key={index} className="relative group">
                 <div className="aspect-square rounded-md overflow-hidden border border-gray-200">
                   <Image
+                    accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
                     src={image || "/placeholder.svg"}
                     alt={`Product image ${index + 1}`}
                     fill

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Lens } from "../ui/lens";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -11,18 +11,104 @@ import { toast } from "react-hot-toast";
 import ProductModal from "@/components/Produit/ProductModal";
 import { useUserData } from "@/contexts/UserData";
 
-export function Produit({ product }) {
+export function Produit({
+  product,
+  isFavorite: initialIsFavorite = false,
+  onFavoriteChange,
+}) {
   const { userData } = useUserData();
-  const userId = userData.id;
+  const userId = userData?.id;
   const [hovering, setHovering] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [showModal, setShowModal] = useState(false);
   const router = useRouter();
   const isOwner = userId === product.user;
 
-  const toggleFavorite = (e) => {
+  // Fetch initial favorite status when component mounts (if not provided)
+  useEffect(() => {
+    if (initialIsFavorite) {
+      setIsFavorite(true);
+      return;
+    }
+
+    const fetchFavoriteStatus = async () => {
+      if (!userId || !product?._id) return;
+      try {
+        const response = await fetch(`/api/favoriteproduct?userId=${userId}`);
+        if (response.ok) {
+          const favorites = await response.json();
+          const isProductFavorite = favorites.some(
+            (fav) => fav.product._id === product._id
+          );
+          setIsFavorite(isProductFavorite);
+        } else {
+          console.error("Failed to fetch favorites:", await response.json());
+        }
+      } catch (error) {
+        console.error("Error fetching favorite status:", error);
+      }
+    };
+
+    fetchFavoriteStatus();
+  }, [userId, product?._id, initialIsFavorite]);
+
+  const toggleFavorite = async (e) => {
     e?.stopPropagation();
-    setIsFavorite(!isFavorite);
+
+    if (!userId) {
+      toast.error("Please log in to add favorites");
+      router.push("/login");
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        // Remove favorite
+        const response = await fetch("/api/favoriteproduct", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId,
+            productId: product._id,
+          }),
+        });
+
+        if (response.ok) {
+          setIsFavorite(false);
+          toast.success("Removed from favorites");
+          if (onFavoriteChange) onFavoriteChange(product._id, false);
+        } else {
+          const errorData = await response.json();
+          toast.error(errorData.error || "Failed to remove favorite");
+        }
+      } else {
+        // Add favorite
+        const response = await fetch("/api/favoriteproduct", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId,
+            productId: product._id,
+          }),
+        });
+
+        if (response.ok) {
+          setIsFavorite(true);
+          toast.success("Added to favorites");
+          if (onFavoriteChange) onFavoriteChange(product._id, true);
+        } else {
+          const errorData = await response.json();
+          toast.error(errorData.error || "Failed to add favorite");
+        }
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating favorite");
+      console.error("Toggle favorite error:", error);
+    }
   };
 
   const openModal = () => setShowModal(true);
@@ -58,7 +144,7 @@ export function Produit({ product }) {
 
   const handleEdit = (e) => {
     e.stopPropagation();
-    router.push(`/edit-product/${product._id}`);
+    router.push(`/marcket_place/mymarket/edit?id=${product._id}`);
   };
 
   return (
@@ -98,57 +184,6 @@ export function Produit({ product }) {
                   />
                 )}
               </Lens>
-
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center gap-2">
-                <motion.button
-                  className="bg-white text-[#83C5BE] p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(e);
-                  }}
-                >
-                  <Heart
-                    size={20}
-                    fill={isFavorite ? "#FFDDD2" : "transparent"}
-                  />
-                </motion.button>
-
-                <motion.button
-                  className="bg-white text-[#83C5BE] p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openModal();
-                  }}
-                >
-                  <Eye size={20} />
-                </motion.button>
-
-                {isOwner && (
-                  <>
-                    <motion.button
-                      className="bg-white text-[#83C5BE] p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={(e) => handleEdit(e)}
-                    >
-                      <Pencil size={20} />
-                    </motion.button>
-
-                    <motion.button
-                      className="bg-white text-red-500 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={(e) => handleDelete(e)}
-                    >
-                      <Trash2 size={20} />
-                    </motion.button>
-                  </>
-                )}
-              </div>
             </div>
           </div>
 

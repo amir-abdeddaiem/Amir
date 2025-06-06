@@ -1,22 +1,25 @@
+// app/add-product/page.jsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Info } from "lucide-react";
 import { BasicDetailsForm } from "@/components/Produit/addingProduct/BasicDetailsForm";
 import { ImageUploadForm } from "@/components/Produit/addingProduct/ImageUploadForm";
 import { SpecificationsForm } from "@/components/Produit/addingProduct/SpecificationsForm";
 import { ProductPreview } from "@/components/Produit/addingProduct/ProductPreview";
+import { useUserData } from "@/contexts/UserData";
 
 export default function AddProduct() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImages, setPreviewImages] = useState([]);
   const [activeTab, setActiveTab] = useState("details");
-
+  const [message, setMessage] = useState(""); // Add state for message
+  const { userData } = useUserData();
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -28,7 +31,7 @@ export default function AddProduct() {
     images: [],
     specifications: [{ key: "", value: "" }],
     localisation: "",
-    user: "6824d2e30b47408a868cacaf", // à rendre dynamique plus tard
+    user: userData.id,
   });
 
   const handleChange = (field, value) => {
@@ -111,6 +114,7 @@ export default function AddProduct() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setMessage(""); // Clear previous message
 
     try {
       const response = await fetch("/api/products", {
@@ -124,13 +128,20 @@ export default function AddProduct() {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to submit product");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to submit product");
+      }
 
-      const data = await response.json();
-      router.push("/marcket_place");
+      // Show success message
+      setMessage("Product added successfully!");
+      // Delay redirect to show message
+      setTimeout(() => {
+        router.push("/marcket_place"); // Fixed typo
+      }, 3000);
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Erreur lors de l'envoi du produit.", error);
+      setMessage(error.message || "Erreur lors de l'envoi du produit.");
     } finally {
       setIsSubmitting(false);
     }
@@ -142,6 +153,18 @@ export default function AddProduct() {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
+              {message && (
+                <div
+                  className={`p-4 rounded-lg mb-4 ${
+                    message.includes("success")
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                  role="alert"
+                >
+                  {message}
+                </div>
+              )}
               <Card>
                 <CardContent className="p-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab}>

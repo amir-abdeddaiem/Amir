@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRefresh } from "@/contexts/RefreshContext";
 import {
@@ -26,6 +26,7 @@ import {
 import { ReviewPopup } from "@/components/Produit/review/ReviewPopup";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/contexts/UserData";
+import { toast } from "sonner";
 
 export default function ProductModal({
   product: initialProduct,
@@ -35,19 +36,43 @@ export default function ProductModal({
   toggleFavorite,
 }) {
   const { userData } = useUserData();
-  const [product] = React.useState(initialProduct);
+  const [product] = useState(initialProduct);
   const { refreshKey, triggerRefresh } = useRefresh();
-  const [reviews, setReviews] = React.useState([]);
-  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-  const [activeAccordion, setActiveAccordion] = React.useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [activeAccordion, setActiveAccordion] = useState(null);
+  const user = userData.id;
 
+  const productOwnerId =
+    typeof product.user === "object" ? product.user._id : product.user;
   useEffect(() => {
-    fetch(`/api/review?productId=${product._id}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setReviews(data.reviews);
-      });
-  }, [refreshKey]);
+    async function fetchReviews() {
+      try {
+        console.log("Fetching reviews for product:", product._id);
+        const response = await fetch(`/api/review?productId=${product._id}`, {
+          credentials: "include",
+        });
+        console.log("Review fetch status:", response.status);
+
+        if (!response.ok) {
+          const text = await response.text();
+          console.error("Failed to fetch reviews:", response.status, text);
+          throw new Error(`Failed to fetch reviews: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Fetched reviews:", data);
+        setReviews(data.reviews || []);
+      } catch (err) {
+        console.error("Review fetch error:", err);
+        toast.error("Failed to load reviews");
+        setReviews([]);
+      }
+    }
+    if (product._id) {
+      fetchReviews();
+    }
+  }, [refreshKey, product._id]);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
@@ -343,12 +368,12 @@ export default function ProductModal({
                       >
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-10 h-10 rounded-full bg-[#83C5BE] flex items-center justify-center text-white font-medium">
-                            {product.user?.firstName?.[0]}
-                            {product.user?.lastName?.[0]}
+                            {product.user.firstName?.[0]}
+                            {product.user.lastName?.[0]}
                           </div>
                           <div>
                             <p className="font-medium">
-                              {product.user?.firstName} {product.user?.lastName}
+                              {product.user.firstName} {product.user.lastName}
                             </p>
                             <p className="text-xs text-gray-500">
                               Verified Seller
@@ -400,14 +425,6 @@ export default function ProductModal({
                         transition={{ duration: 0.3 }}
                         className="bg-white p-4 rounded-b-lg"
                       >
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="text-[#006D77] text-lg font-semibold">
-                            Customer Reviews
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {averageRating} out of 5
-                          </span>
-                        </div>
                         <div className="space-y-4 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-[#FFDDD2] scrollbar-track-gray-100">
                           {reviews.length > 0 ? (
                             reviews.map((review) => (
@@ -437,6 +454,22 @@ export default function ProductModal({
                                     ))}
                                   </span>
                                 </div>
+                                {review.photo && (
+                                  <div className="mb-2">
+                                    <img
+                                      src={review.photo}
+                                      alt="Review photo"
+                                      className="w-32 h-32 object-cover rounded-md"
+                                      onError={(e) => {
+                                        console.log(
+                                          "Failed to load review image:",
+                                          review.photo
+                                        );
+                                        e.target.src = "/images/noImg.png";
+                                      }}
+                                    />
+                                  </div>
+                                )}
                                 <p className="text-sm text-gray-700">
                                   {review.message}
                                 </p>
@@ -453,11 +486,20 @@ export default function ProductModal({
                             </div>
                           )}
                         </div>
-                        <div className="flex justify-center pt-2">
-                          <ReviewPopup
-                            productId={product._id}
-                            userId={userData?._id}
-                          />
+                        <div className="flex justify-center pt-4">
+                          {user &&
+                          productOwnerId &&
+                          user.toString() !== productOwnerId.toString() ? (
+                            <ReviewPopup productId={product._id} />
+                          ) : (
+                            <Button
+                              variant="outline"
+                              disabled
+                              className="cursor-not-allowed opacity-70"
+                            >
+                              {"You can't review your own product"}
+                            </Button>
+                          )}
                         </div>
                       </motion.div>
                     )}

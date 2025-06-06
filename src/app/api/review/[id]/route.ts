@@ -81,15 +81,15 @@ export async function GET(req: NextRequest) {
     }
 
     if (userId && mongoose.Types.ObjectId.isValid(userId)) {
-      const review = await Review.findOne({ product: productId, user: userId }).populate(
-        "user",
-        "name email"
-      );
+      const review = await Review.findOne({ product: productId, user: userId })
+        .populate("user", "name email")
+        .select("stars message photo createdAt user");
       return NextResponse.json({ success: true, review }, { status: 200 });
     }
 
     const reviews = await Review.find({ product: productId })
-      .populate("user", "firstName lastName email")
+      .populate("user", "name email")
+      .select("stars message photo createdAt user")
       .sort({ createdAt: -1 });
 
     return NextResponse.json({ success: true, reviews }, { status: 200 });
@@ -109,20 +109,22 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     await connectDB();
-    const reviewId = req.nextUrl.pathname.split("/").pop();
-    if (!reviewId || !mongoose.Types.ObjectId.isValid(reviewId)) {
-      return NextResponse.json(
-        { success: false, message: "Invalid review ID" },
-        { status: 400 }
-      );
-    }
-
+    const pathnameParts = req.nextUrl.pathname.split("/");
+    const reviewId = pathnameParts[pathnameParts.length - 1]; // Get reviewId from URL
     const formData = await req.formData();
     const stars = parseInt(formData.get("stars") as string);
     const message = formData.get("message") as string;
     const product = formData.get("product") as string;
     const userId = req.headers.get("x-user-id"); // Get userId from header
     const photo = formData.get("photo") as string;
+
+    // Validate reviewId
+    if (!reviewId || !mongoose.Types.ObjectId.isValid(reviewId)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid review ID" },
+        { status: 400 }
+      );
+    }
 
     // Validate inputs
     if (!stars || stars < 1 || stars > 5) {
@@ -156,6 +158,15 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // First check if the review exists and belongs to the user
+    const existingReview = await Review.findOne({ _id: reviewId, user: userId });
+    if (!existingReview) {
+      return NextResponse.json(
+        { success: false, message: "Review not found or unauthorized" },
+        { status: 404 }
+      );
+    }
+
     const updatedReview = await Review.findByIdAndUpdate(
       reviewId,
       {
@@ -166,7 +177,7 @@ export async function PUT(req: NextRequest) {
         photo,
       },
       { new: true }
-    );
+    ).populate("user", "name email");
 
     if (!updatedReview) {
       return NextResponse.json(
@@ -192,11 +203,30 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     await connectDB();
-    const reviewId = req.nextUrl.pathname.split("/").pop();
+    const pathnameParts = req.nextUrl.pathname.split("/");
+    const reviewId = pathnameParts[pathnameParts.length - 1]; // Get the last segment
+    const userId = req.headers.get("x-user-id"); // Get userId from header
+
     if (!reviewId || !mongoose.Types.ObjectId.isValid(reviewId)) {
       return NextResponse.json(
         { success: false, message: "Invalid review ID" },
         { status: 400 }
+      );
+    }
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "User ID is required" },
+        { status: 401 }
+      );
+    }
+
+    // First check if the review exists and belongs to the user
+    const existingReview = await Review.findOne({ _id: reviewId, user: userId });
+    if (!existingReview) {
+      return NextResponse.json(
+        { success: false, message: "Review not found or unauthorized" },
+        { status: 404 }
       );
     }
 

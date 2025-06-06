@@ -70,7 +70,7 @@ export function SpecificationsForm({
             </>
           ) : (
             <>
-              <Check className="mr-2 h-4 w-4" /> Add Product
+              <Check className="mr-2 h-4 w-4" /> Publier
             </>
           )}
         </Button>
