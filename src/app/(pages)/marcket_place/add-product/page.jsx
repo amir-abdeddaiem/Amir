@@ -1,7 +1,7 @@
 // app/add-product/page.jsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,14 +12,15 @@ import { ImageUploadForm } from "@/components/Produit/addingProduct/ImageUploadF
 import { SpecificationsForm } from "@/components/Produit/addingProduct/SpecificationsForm";
 import { ProductPreview } from "@/components/Produit/addingProduct/ProductPreview";
 import { useUserData } from "@/contexts/UserData";
+import { toast } from "sonner";
 
 export default function AddProduct() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { userData } = useUserData();
+  const [isLoading, setIsLoading] = useState(false);
   const [previewImages, setPreviewImages] = useState([]);
   const [activeTab, setActiveTab] = useState("details");
   const [message, setMessage] = useState(""); // Add state for message
-  const { userData } = useUserData();
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -31,8 +32,23 @@ export default function AddProduct() {
     images: [],
     specifications: [{ key: "", value: "" }],
     localisation: "",
-    user: userData.id,
+    user: null, // Initialize as null
   });
+
+  // Check if user is authenticated
+  useEffect(() => {
+    if (!userData) {
+      toast.error("Please login to add a product");
+      router.push("/login");
+      return;
+    }
+
+    // Update form data with user ID once userData is available
+    setFormData((prev) => ({
+      ...prev,
+      user: userData.id,
+    }));
+  }, [userData, router]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({
@@ -41,18 +57,13 @@ export default function AddProduct() {
     }));
   };
 
-  const handleSpecChange = (index, field, value) => {
-    setFormData((prev) => {
-      const newSpecs = [...prev.specifications];
-      newSpecs[index] = {
-        ...newSpecs[index],
-        [field]: value,
-      };
-      return {
-        ...prev,
-        specifications: newSpecs,
-      };
-    });
+  const handleSpecificationChange = (index, field, value) => {
+    const newSpecifications = [...formData.specifications];
+    newSpecifications[index][field] = value;
+    setFormData((prev) => ({
+      ...prev,
+      specifications: newSpecifications,
+    }));
   };
 
   const addSpecification = () => {
@@ -63,14 +74,10 @@ export default function AddProduct() {
   };
 
   const removeSpecification = (index) => {
-    setFormData((prev) => {
-      const newSpecs = [...prev.specifications];
-      newSpecs.splice(index, 1);
-      return {
-        ...prev,
-        specifications: newSpecs.length ? newSpecs : [{ key: "", value: "" }],
-      };
-    });
+    setFormData((prev) => ({
+      ...prev,
+      specifications: prev.specifications.filter((_, i) => i !== index),
+    }));
   };
 
   const handleImageUpload = (e) => {
@@ -113,39 +120,50 @@ export default function AddProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+
+    if (!userData) {
+      toast.error("Please login to add a product");
+      router.push("/login");
+      return;
+    }
+
+    setIsLoading(true);
     setMessage(""); // Clear previous message
 
     try {
       const response = await fetch("/api/products", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          images: previewImages,
-          price: parseFloat(formData.price),
-          quantity: parseInt(formData.quantity),
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": userData.id,
+        },
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit product");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create product");
       }
 
-      // Show success message
-      setMessage("Product added successfully!");
-      // Delay redirect to show message
-      setTimeout(() => {
-        router.push("/marcket_place"); // Fixed typo
-      }, 3000);
+      const data = await response.json();
+      toast.success("Product added successfully!");
+      router.push("/marcket_place");
     } catch (error) {
-      console.error("Error submitting form:", error);
-      setMessage(error.message || "Erreur lors de l'envoi du produit.");
+      console.error("Error creating product:", error);
+      setMessage(error.message || "Failed to create product");
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
+
+  // If user is not authenticated, show loading or redirect
+  if (!userData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#006D77] border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#EDF6F9]">
@@ -196,11 +214,12 @@ export default function AddProduct() {
                     <TabsContent value="specifications" className="pt-4">
                       <SpecificationsForm
                         formData={formData}
-                        handleSpecChange={handleSpecChange}
+                        setFormData={setFormData}
+                        handleSpecificationChange={handleSpecificationChange}
                         addSpecification={addSpecification}
                         removeSpecification={removeSpecification}
                         setActiveTab={setActiveTab}
-                        isSubmitting={isSubmitting}
+                        isSubmitting={isLoading}
                         handleSubmit={handleSubmit}
                       />
                     </TabsContent>

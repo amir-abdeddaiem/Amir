@@ -1,4 +1,4 @@
-export const services = [
+export  const services = [
   {
     id: 1,
     name: "Paws & Claws Veterinary",

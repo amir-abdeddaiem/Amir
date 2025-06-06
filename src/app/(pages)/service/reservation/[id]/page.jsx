@@ -25,6 +25,7 @@ import {
 import { services } from "@/lib/mock-data";
 // import { useToast } from "@/hooks/use-toast"
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function ReservationPage() {
   const params = useParams();
@@ -70,42 +71,42 @@ export default function ReservationPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // if (!petName.trim()) {
-    //   toast({
-    //     title: "Pet name required! 🐾",
-    //     description: "Please enter your pet's name",
-    //     variant: "destructive",
-    //   })
-    //   return
-    // }
+    if (!petName.trim()) {
+      toast({
+        title: "Pet name required! 🐾",
+        description: "Please enter your pet's name",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // if (!selectedDate) {
-    //   toast({
-    //     title: "Date required! 📅",
-    //     description: "Please select a date for your appointment",
-    //     variant: "destructive",
-    //   })
-    //   return
-    // }
+    if (!selectedDate) {
+      toast({
+        title: "Date required! 📅",
+        description: "Please select a date for your appointment",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // if (!selectedTime) {
-    //   toast({
-    //     title: "Time required! ⏰",
-    //     description: "Please select a time slot",
-    //     variant: "destructive",
-    //   })
-    //   return
-    // }
+    if (!selectedTime) {
+      toast({
+        title: "Time required! ⏰",
+        description: "Please select a time slot",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // setIsSubmitting(true)
+    setIsSubmitting(true);
 
-    // // Simulate API call
-    // await new Promise((resolve) => setTimeout(resolve, 2000))
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // toast({
-    //   title: "Reservation confirmed! 🎉",
-    //   description: `${petName}'s appointment is booked for ${selectedDate} at ${selectedTime}`,
-    // })
+    toast({
+      title: "Reservation confirmed! 🎉",
+      description: `${petName}'s appointment is booked for ${selectedDate} at ${selectedTime}`,
+    });
 
     setIsSubmitting(false);
 

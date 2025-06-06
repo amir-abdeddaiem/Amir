@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -49,7 +50,9 @@ export function BasicDetailsForm({ formData, handleChange, setActiveTab }) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="price">Price ($)*</Label>
+          <Label htmlFor="price">
+            Price ($){formData.listingType === "adoption" ? "" : "*"}
+          </Label>
           <div className="relative">
             <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -61,10 +64,12 @@ export function BasicDetailsForm({ formData, handleChange, setActiveTab }) {
               step="0.01"
               min="0"
               className="pl-10"
-              required
+              required={formData.listingType !== "adoption"}
+              disabled={formData.listingType === "adoption"}
             />
           </div>
         </div>
+
         <div>
           <Label htmlFor="quantity">Quantity*</Label>
           <Input
@@ -139,11 +144,21 @@ export function BasicDetailsForm({ formData, handleChange, setActiveTab }) {
         <Label htmlFor="featured">Mark as featured product</Label>
       </div>
 
+      <div>
+        <Label htmlFor="localisation">Localisation</Label>
+        <Input
+          id="localisation"
+          value={formData.localisation || ""}
+          onChange={(e) => handleChange("localisation", e.target.value)}
+          placeholder="Enter product location"
+        />
+      </div>
+
       <Separator className="my-4" />
 
       <div className="flex justify-end mt-6">
         <Button
-          className={"bg-[#E29578] hover:bg-[#E29578]/90"}
+          className="bg-[#E29578] hover:bg-[#E29578]/90"
           onClick={() => setActiveTab("images")}
         >
           Next: Add Images
