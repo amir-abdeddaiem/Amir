@@ -3,6 +3,8 @@ import "./globals.css";
 import  NextAuthProvider  from "@/contexts/NextAuthProvider";
 import { UserDataProvider } from "@/contexts/UserData";
 import { RefreshProvider } from "@/contexts/RefreshContext";
+import Navbar from "@/components/Navbar/Navbar";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,6 +26,8 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+              <Navbar />
+
         <RefreshProvider>
         <UserDataProvider>
         <NextAuthProvider>

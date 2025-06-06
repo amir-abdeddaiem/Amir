@@ -59,12 +59,12 @@ export default function Signin({ isOpen, onClose }) {
       const { token } = response.data;
 
       if (token) {
-        Cookies.set("token", token, {
+        Cookies.set("jwt", token, {
           expires: formData.rememberMe ? 7 : 1 / 24,
           secure: process.env.NODE_ENV === "production",
           sameSite: "strict"
         });
-        router.push("/user");
+        router.push("/Profile");
       }
     } catch (err) {
       setError(err.response?.data?.message || "Login failed. Please check your credentials and try again.");

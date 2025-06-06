@@ -110,8 +110,8 @@ export default function Signup() {
 
         if (data.token) {
           Cookies.set('jwt', data.token, { expires: 7 }); 
-          Cookies.set('userId', data.user._id, { expires: 7 });
-          Cookies.set('email', data.user.email, { expires: 7 });
+        //   Cookies.set('userId', data.user._id, { expires: 7 });
+        //   Cookies.set('email', data.user.email, { expires: 7 });
         }
 
         toast.success("Registration successful! Please check your email.");

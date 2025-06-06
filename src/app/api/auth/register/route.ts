@@ -10,11 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 export async function POST(req: Request) {
   await connectDB()
   const body = await req.json()
-
   try {
-    const saltRounds = 10
-    const hashedPassword = await bcrypt.hash(body.password, saltRounds)
-
     const existingUser = await User.findOne({ email: body.email })
     if (existingUser) {
       return NextResponse.json(
@@ -22,8 +18,7 @@ export async function POST(req: Request) {
         { status: 400 }
       )
     }
-
-    const userData: any = { 
+    const userData: any = {
       accType: body.accType || 'regular',
       birthDate: body.birthDate,
       email: body.email,
@@ -31,7 +26,7 @@ export async function POST(req: Request) {
       gender: body.gender,
       lastName: body.lastName,
       location: body.location,
-      password: hashedPassword,
+      password: body.password,
       phone: body.phone,
       avatar: body.avatar,
       status: 'authenticated'
@@ -76,8 +71,8 @@ export async function POST(req: Request) {
     )
 
     return NextResponse.json(
-      { 
-        message: 'User created successfully', 
+      {
+        message: 'User created successfully',
         success: true,
         token,
         user: {
@@ -91,7 +86,7 @@ export async function POST(req: Request) {
     )
   } catch (error: any) {
     console.error('Registration error:', error)
-    
+
     if (error.code === 11000) {
       return NextResponse.json(
         { message: 'Email already registered. Please use a different email.', success: false },

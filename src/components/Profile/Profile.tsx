@@ -77,7 +77,7 @@ export function Profile({ userId, userEmail }: UserProfileProps) {
     if (sessionStatus === "authenticated") {
       fetchProfile();
     }
-  }, [sessionStatus]);
+  }, []);
 
   if (sessionStatus === "loading" || isLoading) {
     return (

@@ -4,15 +4,15 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'b795999a079f8e38336f0dd24fcbe6830b7d6289dd7f0436f778cf034ce92d66s'
+const JWT_SECRET = process.env.JWT_SECRET!
 
 export async function POST(req: Request) {
   await connectDB()
   const body = await req.json()
   console.log('Login request body:', body)
   try {
-    // Find user by email
     const user = await User.findOne({ email: body.email })
+    console.log('Found user:', user)
     if (!user) {
       return NextResponse.json(
         { message: 'User not found', success: false },
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     
     const isPasswordValid = await bcrypt.compare(body.password, user.password)
-   
+    
     if (!isPasswordValid) {
       return NextResponse.json(
         { message: 'Invalid password', success: false },
