@@ -196,50 +196,44 @@ export function Produit({
                 {product?.name}
               </h2>
               <div className="flex gap-2">
-                {isOwner ? (
-                  <>
-                    <Tooltip content="Edit product">
-                      <button
-                        onClick={handleEdit}
-                        className="text-[#EDF6F9] hover:text-yellow-300 transition-colors"
-                        aria-label="Edit product"
-                      >
-                        <Pencil size={20} />
-                      </button>
-                    </Tooltip>
-                    <Tooltip content="Delete product">
-                      <button
-                        onClick={handleDelete}
-                        className="text-[#EDF6F9] hover:text-red-500 transition-colors"
-                        aria-label="Delete product"
-                      >
-                        <Trash2 size={20} />
-                      </button>
-                    </Tooltip>
-                  </>
-                ) : (
-                  <Tooltip
-                    content={
+                <Tooltip content="Edit product">
+                  <button
+                    onClick={handleEdit}
+                    className="text-[#EDF6F9] hover:text-yellow-300 transition-colors"
+                    aria-label="Edit product"
+                  >
+                    <Pencil size={20} />
+                  </button>
+                </Tooltip>
+                <Tooltip content="Delete product">
+                  <button
+                    onClick={handleDelete}
+                    className="text-[#EDF6F9] hover:text-red-500 transition-colors"
+                    aria-label="Delete product"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </Tooltip>
+
+                <Tooltip
+                  content={
+                    isFavorite ? "Remove from favorites" : "Add to favorites"
+                  }
+                >
+                  <button
+                    onClick={toggleFavorite}
+                    className="text-[#EDF6F9] hover:text-[#FFDDD2] transition-colors"
+                    aria-label={
                       isFavorite ? "Remove from favorites" : "Add to favorites"
                     }
                   >
-                    <button
-                      onClick={toggleFavorite}
-                      className="text-[#EDF6F9] hover:text-[#FFDDD2] transition-colors"
-                      aria-label={
-                        isFavorite
-                          ? "Remove from favorites"
-                          : "Add to favorites"
-                      }
-                    >
-                      <Heart
-                        size={24}
-                        fill={isFavorite ? "#FFDDD2" : "transparent"}
-                        strokeWidth={isFavorite ? 0 : 1.5}
-                      />
-                    </button>
-                  </Tooltip>
-                )}
+                    <Heart
+                      size={24}
+                      fill={isFavorite ? "#FFDDD2" : "transparent"}
+                      strokeWidth={isFavorite ? 0 : 1.5}
+                    />
+                  </button>
+                </Tooltip>
               </div>
             </div>
 

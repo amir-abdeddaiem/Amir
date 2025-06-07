@@ -9,7 +9,6 @@ export default function MarketLayout({ children }) {
 
   return (
     <>
-      <Navbar />
       <div className="flex h-screen bg-[#EDF6F9]">
         <SidebarMenu open={open} setOpen={setOpen} />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>

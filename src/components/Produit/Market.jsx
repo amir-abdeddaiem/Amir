@@ -25,8 +25,12 @@ export default function MarketPage() {
   const fetchProducts = async () => {
     try {
       const response = await axios.get("/api/products");
-      setAllProducts(response.data);
-      setFilteredProducts(response.data);
+      if (response.data.success) {
+        setAllProducts(response.data.data.products);
+        setFilteredProducts(response.data.data.products);
+      } else {
+        throw new Error(response.data.message || "Failed to fetch products");
+      }
     } catch (error) {
       console.error("Failed to fetch products:", error);
       toast.error("Failed to load products. Please try again.", {

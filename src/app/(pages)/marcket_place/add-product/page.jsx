@@ -32,23 +32,25 @@ export default function AddProduct() {
     images: [],
     specifications: [{ key: "", value: "" }],
     localisation: "",
-    user: null, // Initialize as null
+    breed: "",
+    age: "",
+    gender: "",
+    weight: "",
+    HealthStatus: {
+      vaccinated: false,
+      neutered: false,
+      microchipped: false,
+    },
+    friendly: {
+      children: false,
+      dogs: false,
+      cats: false,
+      animals: false,
+    },
+    Color: "",
+    listingType: "sale",
+    user: null,
   });
-
-  // Check if user is authenticated
-  useEffect(() => {
-    if (!userData) {
-      toast.error("Please login to add a product");
-      router.push("/login");
-      return;
-    }
-
-    // Update form data with user ID once userData is available
-    setFormData((prev) => ({
-      ...prev,
-      user: userData.id,
-    }));
-  }, [userData, router]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({
@@ -121,9 +123,50 @@ export default function AddProduct() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!userData) {
-      toast.error("Please login to add a product");
-      router.push("/login");
+    // Validate required fields
+    const requiredFields = {
+      name: "Product name",
+      price: "Price",
+      description: "Description",
+      category: "Category",
+      petType: "Pet type",
+      breed: "Breed",
+      age: "Age",
+      gender: "Gender",
+    };
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([field]) => !formData[field])
+      .map(([_, label]) => label);
+
+    if (missingFields.length > 0) {
+      setMessage(
+        `Please fill in all required fields: ${missingFields.join(", ")}`
+      );
+      return;
+    }
+
+    // Validate price
+    if (isNaN(formData.price) || parseFloat(formData.price) <= 0) {
+      setMessage("Please enter a valid price greater than 0");
+      return;
+    }
+
+    // Validate quantity
+    if (isNaN(formData.quantity) || parseInt(formData.quantity) < 1) {
+      setMessage("Please enter a valid quantity (minimum 1)");
+      return;
+    }
+
+    // Validate gender
+    if (!["male", "female", "other"].includes(formData.gender)) {
+      setMessage("Please select a valid gender (male, female, or other)");
+      return;
+    }
+
+    // Validate images
+    if (!formData.images || formData.images.length === 0) {
+      setMessage("Please upload at least one product image");
       return;
     }
 
@@ -131,26 +174,80 @@ export default function AddProduct() {
     setMessage(""); // Clear previous message
 
     try {
+      // Convert images to base64 strings
+      const imagePromises = formData.images.map((file) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        });
+      });
+
+      const imageUrls = await Promise.all(imagePromises);
+
+      // Prepare the data for submission
+      const submitData = {
+        ...formData,
+        price: parseFloat(formData.price),
+        quantity: parseInt(formData.quantity),
+        user: userData?.id,
+        images: imageUrls,
+        gender: formData.gender,
+        breed: formData.breed,
+        age: formData.age,
+      };
+
+      // Remove any undefined or null values
+      Object.keys(submitData).forEach((key) => {
+        if (submitData[key] === undefined || submitData[key] === null) {
+          delete submitData[key];
+        }
+      });
+
+      console.log("Submitting data:", submitData); // Debug log
+
       const response = await fetch("/api/products", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": userData.id,
+          "x-user-id": userData?.id,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
+      const data = await response.json();
+      console.log("Response data:", data); // Debug log
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to create product");
+        // Handle validation errors
+        if (response.status === 400 && data.errors) {
+          const validationErrors = Object.entries(data.errors)
+            .map(([field, error]) => `${field}: ${error.message || error}`)
+            .join(", ");
+          throw new Error(`Validation failed: ${validationErrors}`);
+        }
+
+        // Handle other error cases
+        switch (response.status) {
+          case 401:
+            throw new Error("Please log in to add a product");
+          case 413:
+            throw new Error(
+              "Image files are too large. Please reduce the size"
+            );
+          default:
+            throw new Error(data.message || "Failed to create product");
+        }
       }
 
-      const data = await response.json();
       toast.success("Product added successfully!");
       router.push("/marcket_place");
     } catch (error) {
       console.error("Error creating product:", error);
-      setMessage(error.message || "Failed to create product");
+      setMessage(
+        error.message || "An unexpected error occurred. Please try again."
+      );
+      toast.error(error.message || "Failed to create product");
     } finally {
       setIsLoading(false);
     }

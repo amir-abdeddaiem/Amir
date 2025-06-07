@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRefresh } from "@/contexts/RefreshContext";
@@ -116,6 +115,10 @@ export default function ProductModal({
     }
   }, [refreshKey, product._id]);
 
+  useEffect(() => {
+    console.log("Product data:", product);
+  }, [product]);
+
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
   };
@@ -208,8 +211,6 @@ export default function ProductModal({
     );
   };
 
-  const isPetCategory = product.category === "Pets";
-
   return (
     <AnimatePresence>
       <motion.div
@@ -228,10 +229,10 @@ export default function ProductModal({
           exit={{ opacity: 0 }}
         />
 
-        <div className="flex items-center justify-center p-4">
+        <div className="flex items-center justify-center p-0">
           <motion.div
-            className="relative w-full max-w-6xl bg-[#f8fafc] rounded-xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col"
-            style={{ maxHeight: "90vh" }}
+            className="relative w-full max-w-6xl bg-[#f8fafc] rounded-none md:rounded-xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col"
+            style={{ maxHeight: "740px" }}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 20, opacity: 0 }}
@@ -326,63 +327,46 @@ export default function ProductModal({
                   )}
 
                   <motion.div
-                    className="flex items-center justify-between bg-gradient-to-r from-[#FFDDD2] to-[#f8c9b8] p-4 rounded-lg shadow-sm"
+                    className="flex items-center justify-between bg-gradient-to-r from-[#FFDDD2] to-[#f8c9b8] p-3 rounded-lg shadow-sm"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-[#006D5632]">
+                      <span className="font-medium text-[#006D77]">
                         {product.quantity > 0 ? (
-                          <div className="flex items-center gap-2">
-                            <span className="inline-block w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
+                          <>
+                            <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
                             In Stock ({product.quantity} available)
-                          </div>
+                          </>
                         ) : (
-                          <div className="flex items-center gap-2">
-                            <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span>
+                          <>
+                            <span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>
                             Out of Stock
-                          </div>
+                          </>
                         )}
                       </span>
                     </div>
-                    <span className="text-2xl font-bold text-[#E29578]">
-                      {product.listingType === "adoption"
-                        ? "For Adoption"
-                        : `$${product.price?.toFixed(2)}`}
+                    <span className="text-xl font-bold text-[#E29578]">
+                      ${product.price?.toFixed(2)}
                     </span>
                   </motion.div>
 
                   <div className="flex flex-wrap gap-2">
-                    <motion.span
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 }}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#83C5BE]/20 text-[#006D77]"
-                    >
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#83C5BE]/20 text-[#006D77]">
                       <PawPrint size={12} className="mr-1" />
                       {product.petType}
-                    </motion.span>
-                    <motion.span
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 }}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#83C5BE]/20 text-[#006D77]"
-                    >
+                    </span>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#83C5BE]/20 text-[#006D77]">
                       <MapPin size={12} className="mr-1" />
-                      {product.localisation || "Location not specified"}
-                    </motion.span>
+                      {product.localisation}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex-1 p-6 space-y-4 overflow-y-auto">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="space-y-3"
-                >
+              <div className="flex-1 p-6 space-y-4 overflow-hidden">
+                <div className="space-y-3">
                   <h1 className="text-2xl md:text-3xl font-bold text-[#006D77]">
                     {product.name}
                   </h1>
@@ -395,19 +379,14 @@ export default function ProductModal({
                   </div>
 
                   <p className="text-gray-700 leading-relaxed">
-                    {product.description || "No description provided."}
+                    {product.description}
                   </p>
-                </motion.div>
+                </div>
 
                 <div className="space-y-2">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="border border-gray-100 rounded-lg overflow-hidden"
-                  >
+                  <div className="border border-gray-100 rounded-lg">
                     <button
-                      className="w-full flex justify-between items-center p-4 text-left bg-white hover:bg-gray-50 transition-colors"
+                      className="w-full flex justify-between items-center p-4 text-left bg-white rounded-t-lg"
                       onClick={() => toggleAccordion("details")}
                     >
                       <h2 className="text-lg font-semibold text-[#006D77]">
@@ -415,46 +394,290 @@ export default function ProductModal({
                       </h2>
                       <ChevronDown
                         size={20}
-                        className={`transform transition-transform duration-200 ${
+                        className={`transform transition-transform ${
                           activeAccordion === "details" ? "rotate-180" : ""
                         }`}
                       />
                     </button>
-                    <AnimatePresence>
-                      {activeAccordion === "details" && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="bg-white"
-                        >
-                          <div className="p-4 grid grid-cols-2 gap-3 text-sm">
-                            {/* ... existing product details content ... */}
+                    {activeAccordion === "details" && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="bg-white p-4 rounded-b-lg"
+                      >
+                        {product.category === "pets" ? (
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="text-sm flex items-start">
+                              <span className="font-medium text-gray-600 min-w-[120px]">
+                                Breed:
+                              </span>{" "}
+                              <span className="text-gray-800">
+                                {product.breed || "N/A"}
+                              </span>
+                            </div>
+                            <div className="text-sm flex items-start">
+                              <span className="font-medium text-gray-600 min-w-[120px]">
+                                Age:
+                              </span>{" "}
+                              <span className="text-gray-800">
+                                {product.age || "N/A"}
+                              </span>
+                            </div>
+                            <div className="text-sm flex items-start">
+                              <span className="font-medium text-gray-600 min-w-[120px]">
+                                Gender:
+                              </span>{" "}
+                              <span className="text-gray-800">
+                                {product.gender || "N/A"}
+                              </span>
+                            </div>
+                            <div className="text-sm flex items-start">
+                              <span className="font-medium text-gray-600 min-w-[120px]">
+                                Weight:
+                              </span>{" "}
+                              <span className="text-gray-800">
+                                {product.weight || "N/A"}
+                              </span>
+                            </div>
+                            <div className="text-sm flex items-start">
+                              <span className="font-medium text-gray-600 min-w-[120px]">
+                                Color:
+                              </span>{" "}
+                              <span className="text-gray-800">
+                                {product.Color || "N/A"}
+                              </span>
+                            </div>
+                            <div className="text-sm flex items-start">
+                              <span className="font-medium text-gray-600 min-w-[120px]">
+                                Vaccinated:
+                              </span>{" "}
+                              <span className="text-gray-800">
+                                {product.HealthStatus?.vaccinated
+                                  ? "Yes"
+                                  : "No"}
+                              </span>
+                            </div>
+                            <div className="text-sm flex items-start">
+                              <span className="font-medium text-gray-600 min-w-[120px]">
+                                Neutered:
+                              </span>{" "}
+                              <span className="text-gray-800">
+                                {product.HealthStatus?.neutered ? "Yes" : "No"}
+                              </span>
+                            </div>
+                            <div className="text-sm flex items-start">
+                              <span className="font-medium text-gray-600 min-w-[120px]">
+                                Microchipped:
+                              </span>{" "}
+                              <span className="text-gray-800">
+                                {product.HealthStatus?.microchipped
+                                  ? "Yes"
+                                  : "No"}
+                              </span>
+                            </div>
                           </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3">
+                            {product.specifications?.length > 0 ? (
+                              product.specifications.map((spec, i) => (
+                                <div
+                                  key={i}
+                                  className="text-sm flex items-start"
+                                >
+                                  <span className="font-medium text-gray-600 min-w-[120px]">
+                                    {spec.key || "Unknown"}:
+                                  </span>{" "}
+                                  <span className="text-gray-800">
+                                    {spec.value || "N/A"}
+                                  </span>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-gray-500">
+                                No specifications available
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </div>
 
-                  {/* ... rest of the accordion sections with similar motion animations ... */}
+                  <div className="border border-gray-100 rounded-lg">
+                    <button
+                      className="w-full flex justify-between items-center p-4 text-left bg-white rounded-t-lg"
+                      onClick={() => toggleAccordion("seller")}
+                    >
+                      <h2 className="text-lg font-semibold text-[#006D77]">
+                        Seller Information
+                      </h2>
+                      <ChevronDown
+                        size={20}
+                        className={`transform transition-transform ${
+                          activeAccordion === "seller" ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    {activeAccordion === "seller" && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="bg-white p-4 rounded-b-lg"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-full bg-[#83C5BE] flex items-center justify-center text-white font-medium">
+                            {product.user?.firstName?.[0] || "?"}
+                            {product.user?.lastName?.[0] || ""}
+                          </div>
+                          <div>
+                            <p className="font-medium">
+                              {product.user?.firstName || "Unknown"}{" "}
+                              {product.user?.lastName || ""}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Verified Seller
+                            </p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                          {product.user?.phone ? (
+                            <motion.a
+                              href={`tel:${product.user.phone}`}
+                              className="flex items-center gap-2 text-[#006D77] hover:text-[#E29578] p-2 rounded-lg hover:bg-[#FFDDD2]/30 transition-colors"
+                              whileHover={{ x: 2 }}
+                            >
+                              <Phone size={16} />
+                              {product.user.phone}
+                            </motion.a>
+                          ) : (
+                            <p className="text-gray-500">
+                              Phone number not available
+                            </p>
+                          )}
+                          {product.user?.email ? (
+                            <motion.a
+                              href={`mailto:${product.user.email}`}
+                              className="flex items-center gap-2 text-[#006D77] hover:text-[#E29578] p-2 rounded-lg hover:bg-[#FFDDD2]/30 transition-colors"
+                              whileHover={{ x: 2 }}
+                            >
+                              <Mail size={16} />
+                              {product.user.email}
+                            </motion.a>
+                          ) : (
+                            <p className="text-gray-500">Email not available</p>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  <div className="border border-gray-100 rounded-lg">
+                    <button
+                      className="w-full flex justify-between items-center p-4 text-left bg-white rounded-t-lg"
+                      onClick={() => toggleAccordion("reviews")}
+                    >
+                      <h2 className="text-lg font-semibold text-[#006D77]">
+                        Customer Reviews
+                      </h2>
+                      <ChevronDown
+                        size={20}
+                        className={`transform transition-transform ${
+                          activeAccordion === "reviews" ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    {activeAccordion === "reviews" && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="bg-white p-4 rounded-b-lg"
+                      >
+                        <div className="space-y-4 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-[#FFDDD2] scrollbar-track-gray-100">
+                          {reviews.length > 0 ? (
+                            reviews.map((review) => (
+                              <motion.div
+                                key={review._id}
+                                className="bg-[#EDF6F9] p-3 rounded-lg"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3 }}
+                              >
+                                <div className="flex justify-between items-start mb-1">
+                                  <span className="font-semibold text-[#006D77]">
+                                    {review.user?.firstName}{" "}
+                                    {review.user?.lastName}
+                                  </span>
+                                  <span className="flex items-center gap-1 text-[#E29578]">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <StarIcon
+                                        key={star}
+                                        size={16}
+                                        className={
+                                          star <= review.stars
+                                            ? "text-yellow-400 fill-yellow-400"
+                                            : "text-gray-300"
+                                        }
+                                      />
+                                    ))}
+                                  </span>
+                                </div>
+                                {review.photo && (
+                                  <div className="mb-2">
+                                    <img
+                                      src={review.photo}
+                                      alt="Review photo"
+                                      className="w-32 h-32 object-cover rounded-md"
+                                      onError={(e) => {
+                                        console.log(
+                                          "Failed to load review image:",
+                                          review.photo
+                                        );
+                                        e.target.src = "/images/noImg.png";
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                                <p className="text-sm text-gray-700">
+                                  {review.message}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-2">
+                                  {new Date(
+                                    review.createdAt
+                                  ).toLocaleDateString()}
+                                </p>
+                              </motion.div>
+                            ))
+                          ) : (
+                            <div className="text-center py-6 text-gray-500">
+                              No reviews yet. Be the first to review!
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex justify-center pt-4">
+                          {user &&
+                          productOwnerId &&
+                          user.toString() !== productOwnerId.toString() ? (
+                            <ReviewPopup productId={product._id} />
+                          ) : (
+                            <Button
+                              variant="outline"
+                              disabled
+                              className="cursor-not-allowed opacity-70"
+                            >
+                              {"You can't review your own product"}
+                            </Button>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
                 </div>
-
-                {user &&
-                productOwnerId &&
-                user.toString() !== productOwnerId.toString() ? (
-                  <ReviewPopup productId={product._id} />
-                ) : (
-                  <Button
-                    variant="outline"
-                    disabled
-                    className="cursor-not-allowed opacity-70"
-                  >
-                    {!user
-                      ? "Please login to review"
-                      : "You can't review your own product"}
-                  </Button>
-                )}
               </div>
             </div>
 
@@ -462,7 +685,7 @@ export default function ProductModal({
               <motion.div whileHover={{ scale: 1.02 }} className="flex-1">
                 <Button
                   variant="outline"
-                  className="w-full gap-2 h-12 border-[#83C5BE] text-[#006D77] hover:bg-white hover:border-[#E29578] hover:text-[#E29578] transition-all duration-200"
+                  className="w-full gap-2 h-12 border-[#83C5BE] text-[#006D77] hover:bg-white hover:border-[#E29578] hover:text-[#E29578]"
                   onClick={toggleFavorite}
                 >
                   <Heart
