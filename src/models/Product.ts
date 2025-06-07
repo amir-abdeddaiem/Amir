@@ -14,11 +14,11 @@ const ProductSchema = new mongoose.Schema({
     key: String,
     value: String
   }],
-  breed: { type: String, required: [true, 'Breed is required'] },
-  age: { type: String, required: [true, 'Age is required'] },
+  breed: { type: String},
+  age: { type: String },
   gender: { 
     type: String, 
-    required: [true, 'Gender is required'],
+    
     enum: {
       values: ['male', 'female', 'other'],
       message: 'Gender must be either male, female, or other'
@@ -40,8 +40,7 @@ const ProductSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   listingType: { 
     type: String, 
-    enum: ['sale', 'adoption'], 
-    required: true, 
+    enum: ['sale', 'adoption'],  
     default: 'sale' 
   }, // To differentiate between sale and adoption
 }, { timestamps: true });

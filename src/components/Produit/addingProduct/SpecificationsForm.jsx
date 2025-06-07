@@ -16,7 +16,7 @@ import { X, Check } from "lucide-react";
 export function SpecificationsForm({
   formData,
   setFormData,
-  handleSpecChange,
+  handleSpecificationChange,
   addSpecification,
   removeSpecification,
   setActiveTab,
@@ -228,13 +228,15 @@ export function SpecificationsForm({
               <Input
                 placeholder="Specification name"
                 value={spec.key}
-                onChange={(e) => handleSpecChange(index, "key", e.target.value)}
+                onChange={(e) =>
+                  handleSpecificationChange(index, "key", e.target.value)
+                }
               />
               <Input
                 placeholder="Value"
                 value={spec.value}
                 onChange={(e) =>
-                  handleSpecChange(index, "value", e.target.value)
+                  handleSpecificationChange(index, "value", e.target.value)
                 }
               />
             </div>

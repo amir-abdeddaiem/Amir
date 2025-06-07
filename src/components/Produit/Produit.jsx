@@ -22,7 +22,7 @@ export function Produit({
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [showModal, setShowModal] = useState(false);
   const router = useRouter();
-  const isOwner = userId === product.user;
+  const isOwner = userId === product.user._id;
 
   // Fetch initial favorite status when component mounts (if not provided)
   useEffect(() => {
@@ -195,45 +195,52 @@ export function Produit({
               <h2 className="text-[#EDF6F9] text-2xl text-left font-bold line-clamp-1">
                 {product?.name}
               </h2>
-              <div className="flex gap-2">
-                <Tooltip content="Edit product">
-                  <button
-                    onClick={handleEdit}
-                    className="text-[#EDF6F9] hover:text-yellow-300 transition-colors"
-                    aria-label="Edit product"
-                  >
-                    <Pencil size={20} />
-                  </button>
-                </Tooltip>
-                <Tooltip content="Delete product">
-                  <button
-                    onClick={handleDelete}
-                    className="text-[#EDF6F9] hover:text-red-500 transition-colors"
-                    aria-label="Delete product"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </Tooltip>
 
-                <Tooltip
-                  content={
-                    isFavorite ? "Remove from favorites" : "Add to favorites"
-                  }
-                >
-                  <button
-                    onClick={toggleFavorite}
-                    className="text-[#EDF6F9] hover:text-[#FFDDD2] transition-colors"
-                    aria-label={
+              <div className="flex gap-2">
+                {isOwner ? (
+                  <>
+                    <Tooltip content="Edit product">
+                      <button
+                        onClick={handleEdit}
+                        className="text-[#EDF6F9] hover:text-yellow-300 transition-colors"
+                        aria-label="Edit product"
+                      >
+                        <Pencil size={20} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip content="Delete product">
+                      <button
+                        onClick={handleDelete}
+                        className="text-[#EDF6F9] hover:text-red-500 transition-colors"
+                        aria-label="Delete product"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </Tooltip>
+                  </>
+                ) : (
+                  <Tooltip
+                    content={
                       isFavorite ? "Remove from favorites" : "Add to favorites"
                     }
                   >
-                    <Heart
-                      size={24}
-                      fill={isFavorite ? "#FFDDD2" : "transparent"}
-                      strokeWidth={isFavorite ? 0 : 1.5}
-                    />
-                  </button>
-                </Tooltip>
+                    <button
+                      onClick={toggleFavorite}
+                      className="text-[#EDF6F9] hover:text-[#FFDDD2] transition-colors"
+                      aria-label={
+                        isFavorite
+                          ? "Remove from favorites"
+                          : "Add to favorites"
+                      }
+                    >
+                      <Heart
+                        size={24}
+                        fill={isFavorite ? "#FFDDD2" : "transparent"}
+                        strokeWidth={isFavorite ? 0 : 1.5}
+                      />
+                    </button>
+                  </Tooltip>
+                )}
               </div>
             </div>
 

@@ -163,15 +163,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate required fields
-    const requiredFields = ['name', 'description', 'price', 'category', 'petType', 'breed', 'age', 'gender'];
-    const missingFields = requiredFields.filter(field => !body[field]);
     
-    if (missingFields.length > 0) {
-      return NextResponse.json(
-        { message: 'Missing required fields', fields: missingFields },
-        { status: 400 }
-      );
-    }
 
     // Validate images
     if (!body.images || !Array.isArray(body.images) || body.images.length === 0) {
@@ -181,13 +173,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate gender
-    if (!['male', 'female', 'other'].includes(body.gender)) {
-      return NextResponse.json(
-        { message: 'Gender must be either male, female, or other' },
-        { status: 400 }
-      );
-    }
+    
 
     const newProduct = await Product.create({
       name: body.name,
@@ -215,7 +201,7 @@ export async function POST(req: NextRequest) {
       Color: body.Color || '',
       age: body.age,
       breed: body.breed,
-      gender: body.gender,
+      gender: body.gender||'other',
       user: {
         _id: authHeader,
         firstName: user.firstName,

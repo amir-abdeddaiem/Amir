@@ -122,45 +122,10 @@ export default function AddProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate required fields
-    const requiredFields = {
-      name: "Product name",
-      price: "Price",
-      description: "Description",
-      category: "Category",
-      petType: "Pet type",
-      breed: "Breed",
-      age: "Age",
-      gender: "Gender",
-    };
-
-    const missingFields = Object.entries(requiredFields)
-      .filter(([field]) => !formData[field])
-      .map(([_, label]) => label);
-
-    if (missingFields.length > 0) {
-      setMessage(
-        `Please fill in all required fields: ${missingFields.join(", ")}`
-      );
-      return;
-    }
-
-    // Validate price
-    if (isNaN(formData.price) || parseFloat(formData.price) <= 0) {
-      setMessage("Please enter a valid price greater than 0");
-      return;
-    }
-
+    console.log(formData.data);
     // Validate quantity
     if (isNaN(formData.quantity) || parseInt(formData.quantity) < 1) {
       setMessage("Please enter a valid quantity (minimum 1)");
-      return;
-    }
-
-    // Validate gender
-    if (!["male", "female", "other"].includes(formData.gender)) {
-      setMessage("Please select a valid gender (male, female, or other)");
       return;
     }
 
@@ -188,13 +153,8 @@ export default function AddProduct() {
       // Prepare the data for submission
       const submitData = {
         ...formData,
-        price: parseFloat(formData.price),
-        quantity: parseInt(formData.quantity),
-        user: userData?.id,
+
         images: imageUrls,
-        gender: formData.gender,
-        breed: formData.breed,
-        age: formData.age,
       };
 
       // Remove any undefined or null values

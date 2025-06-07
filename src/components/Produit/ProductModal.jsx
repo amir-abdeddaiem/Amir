@@ -27,7 +27,6 @@ import { ReviewPopup } from "@/components/Produit/review/ReviewPopup";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/contexts/UserData";
 import { toast } from "sonner";
-import { Console } from "console";
 
 export default function ProductModal({
   product: initialProduct,
@@ -46,7 +45,8 @@ export default function ProductModal({
   const [error, setError] = useState(null);
   const user = userData?.id || null;
 
-  const isOwner = user === product.user;
+  const isOwner = user === product.user._id;
+
   useEffect(() => {
     if (initialProduct) {
       setProduct(initialProduct);
@@ -282,21 +282,23 @@ export default function ProductModal({
                       </>
                     )}
 
-                    <motion.button
-                      onClick={toggleFavorite}
-                      className="absolute top-4 right-4 bg-white/90 hover:bg-white p-2 rounded-full shadow-md z-10"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <Heart
-                        size={24}
-                        className={
-                          isFavorite
-                            ? "text-[#E29578] fill-[#E29578]"
-                            : "text-gray-600"
-                        }
-                      />
-                    </motion.button>
+                    {!isOwner && (
+                      <motion.button
+                        onClick={toggleFavorite}
+                        className="absolute top-4 right-4 bg-white/90 hover:bg-white p-2 rounded-full shadow-md z-10"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <Heart
+                          size={24}
+                          className={
+                            isFavorite
+                              ? "text-[#E29578] fill-[#E29578]"
+                              : "text-gray-600"
+                          }
+                        />
+                      </motion.button>
+                    )}
                   </div>
 
                   {product.images.length > 1 && (
@@ -403,7 +405,7 @@ export default function ProductModal({
                         transition={{ duration: 0.3 }}
                         className="bg-white p-4 rounded-b-lg"
                       >
-                        {product.category === "pets" ? (
+                        {product.category === "Pets" ? (
                           <div className="grid grid-cols-2 gap-3">
                             <div className="text-sm flex items-start">
                               <span className="font-medium text-gray-600 min-w-[120px]">
@@ -656,7 +658,7 @@ export default function ProductModal({
                           )}
                         </div>
                         <div className="flex justify-center pt-4">
-                          {isOwner ? (
+                          {!isOwner ? (
                             <ReviewPopup productId={product._id} />
                           ) : (
                             <Button
@@ -681,12 +683,14 @@ export default function ProductModal({
                   variant="outline"
                   className="w-full gap-2 h-12 border-[#83C5BE] text-[#006D77] hover:bg-white hover:border-[#E29578] hover:text-[#E29578]"
                   onClick={toggleFavorite}
+                  disabled={isOwner}
                 >
                   <Heart
                     className={
                       isFavorite ? "fill-[#E29578] text-[#E29578]" : ""
                     }
                   />
+
                   {isFavorite ? "Saved to Wishlist" : "Save to Wishlist"}
                 </Button>
               </motion.div>
