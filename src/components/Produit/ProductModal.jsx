@@ -27,6 +27,7 @@ import { ReviewPopup } from "@/components/Produit/review/ReviewPopup";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/contexts/UserData";
 import { toast } from "sonner";
+import { Console } from "console";
 
 export default function ProductModal({
   product: initialProduct,
@@ -45,12 +46,7 @@ export default function ProductModal({
   const [error, setError] = useState(null);
   const user = userData?.id || null;
 
-  const productOwnerId = product?.user
-    ? typeof product.user === "object"
-      ? product.user._id
-      : product.user
-    : null;
-
+  const isOwner = user === product.user;
   useEffect(() => {
     if (initialProduct) {
       setProduct(initialProduct);
@@ -660,9 +656,7 @@ export default function ProductModal({
                           )}
                         </div>
                         <div className="flex justify-center pt-4">
-                          {user &&
-                          productOwnerId &&
-                          user.toString() !== productOwnerId.toString() ? (
+                          {isOwner ? (
                             <ReviewPopup productId={product._id} />
                           ) : (
                             <Button
