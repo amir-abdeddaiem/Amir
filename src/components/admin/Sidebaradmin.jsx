@@ -1,5 +1,6 @@
+// src/components/ui/sidebar-admin.jsx
 "use client";
-import { useState } from "react";
+
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
@@ -80,24 +81,6 @@ export default function AppSidebar({ open, setOpen }) {
       href: "/dashboard/feedback",
       icon: (
         <MessageSquare className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
-      ),
-    },
-    {
-      label: theme === "dark" ? "Light Mode" : "Dark Mode",
-      href: "#",
-      onClick: toggleTheme,
-      icon:
-        theme === "dark" ? (
-          <Sun className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
-        ) : (
-          <Moon className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
-        ),
-    },
-    {
-      label: "Settings",
-      href: "/dashboard/settings",
-      icon: (
-        <Settings className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
       ),
     },
   ];

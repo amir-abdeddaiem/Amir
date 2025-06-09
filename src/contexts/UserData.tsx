@@ -45,7 +45,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         fetchUserData();
-    }, [1]);
+    }, []);
 
     const fetchUserData = async () => {
         setLoading(true);

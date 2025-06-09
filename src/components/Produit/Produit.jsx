@@ -247,11 +247,11 @@ export function Produit({
             <div className="mt-4 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="text-[#EDF6F9] font-bold text-xl">
-                  ${product?.price}
+                  DT{product?.price}
                 </span>
                 {product?.originalPrice && (
                   <span className="text-[#EDF6F9]/70 line-through text-sm">
-                    ${product.originalPrice}
+                    DT{product.originalPrice}
                   </span>
                 )}
               </div>

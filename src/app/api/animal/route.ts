@@ -29,58 +29,42 @@ interface IAnimal {
   owner?: string;
   inmatch: boolean;
 }
-
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET() {
   await connectDB();
 
   try {
-    const { searchParams } = new URL(req.url);
-    const animalId =  params.id; 
+    const animals = await Animal.find().populate('owner');
 
-    if (!animalId) {
-      return NextResponse.json(
-        { message: 'Animal ID is required' },
-        { status: 400 }
-      );
-    }
-
-    const animal = await Animal.findById(animalId).populate('owner');
-
-    if (!animal) {
-      return NextResponse.json(
-        { message: 'Animal not found' },
-        { status: 404 }
-      );
-    }
-
-    // Transform the data for response
-    const animalData = {
+    const formattedAnimals = animals.map(animal => ({
       id: animal._id,
       name: animal.name,
       type: animal.type,
       breed: animal.breed,
-      // birthDate: animal.birthDate,
       age: animal.age,
       gender: animal.gender,
       weight: animal.weight,
       description: animal.description,
-      vaccinated: animal.vaccinated,
-      neutered: animal.neutered,
-      friendly: animal.friendly,
+      HealthStatus: animal.HealthStatus || {
+        vaccinated: animal.vaccinated,
+        neutered: animal.neutered,
+        microchipped: animal.microchipped,
+      },
+      friendly: animal.friendly || {
+        children: animal.children,
+        dogs: animal.dogs,
+        cats: animal.cats,
+        other: animal.other,
+      },
       image: animal.image,
       owner: animal.owner,
       inmatch: animal.inmatch,
       createdAt: animal.createdAt,
-      updatedAt: animal.updatedAt
-    };
+      updatedAt: animal.updatedAt,
+    }));
 
-    return NextResponse.json(animalData, { status: 200 });
+    return NextResponse.json(formattedAnimals);
   } catch (error) {
-    console.error('GET Error:', error);
-    return NextResponse.json(
-      { message: 'Failed to retrieve animal' },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Error retrieving animals' }, { status: 500 });
   }
 }
 export async function POST(req: Request) {

@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useUserData } from "@/contexts/UserData";
+import MapLocationPicker from "../ui/MapLocationPicker";
 
 // Types
 type Gender = "male" | "female" | "other";
@@ -59,10 +60,10 @@ interface FormFieldProps<T extends keyof ProfileData> {
 }
 
 // Dynamically import MapLocationPicker with SSR disabled
-const MapLocationPicker = dynamic(
-  () => import("@/components/ui/MapLocationPicker"),
-  { ssr: false, loading: () => <Skeleton className="h-64 w-full" /> }
-);
+// const MapLocationPicker = dynamic(
+//   () => import("@/components/ui/MapLocationPicker"),
+//   { ssr: false, loading: () => <Skeleton className="h-64 w-full" /> }
+// );
 
 export default function UpdateProfile() {
   const router = useRouter();
@@ -237,8 +238,8 @@ export default function UpdateProfile() {
                   </SelectTrigger>
                   <SelectContent className={"w-full"}>
                     <SelectItem className={""} value="male">Male</SelectItem>
-                    <SelectItem  className={""} value="female">Female</SelectItem>
-                    <SelectItem  className={""} value="other">Other</SelectItem>
+                    <SelectItem className={""} value="female">Female</SelectItem>
+                    <SelectItem className={""} value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

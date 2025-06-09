@@ -29,49 +29,61 @@ export default function Signin({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    rememberMe: false
+    rememberMe: false,
   });
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = useCallback((field) => (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: e.target.value
-    }));
-  }, []);
+  const handleChange = useCallback(
+    (field) => (e) => {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: e.target.value,
+      }));
+    },
+    []
+  );
 
   const handleCheckboxChange = useCallback((checked) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      rememberMe: checked
+      rememberMe: checked,
     }));
   }, []);
 
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setError(null);
+      setIsLoading(true);
 
-    try {
-      const { email, password } = formData;
-      const response = await axios.post("/api/auth/login", { email, password });
-      const { token } = response.data;
-
-      if (token) {
-        Cookies.set("jwt", token, {
-          expires: formData.rememberMe ? 7 : 1 / 24,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict"
+      try {
+        const { email, password } = formData;
+        const response = await axios.post("/api/auth/login", {
+          email,
+          password,
         });
-        router.push("/Profile");
+        const { token } = response.data;
+
+        if (token) {
+          Cookies.set("token", token, {
+            expires: formData.rememberMe ? 7 : 1 / 24,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+          });
+          router.push("/user");
+        }
+      } catch (err) {
+        setError(
+          err.response?.data?.message ||
+            "Login failed. Please check your credentials and try again."
+        );
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed. Please check your credentials and try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [formData, router]);
+    },
+    [formData, router]
+  );
 
   const handleExternalClose = useCallback(() => {
     onClose?.();
@@ -100,8 +112,7 @@ export default function Signin({ isOpen, onClose }) {
           <DialogDescription className="text-white/80 text-center mt-1 text-sm sm:text-base">
             Sign in to your Animal's Club account
           </DialogDescription>
-          <DialogClose className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1">
-          </DialogClose>
+          <DialogClose className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1"></DialogClose>
         </DialogHeader>
 
         <Tabs defaultValue="email" className="w-full">
@@ -128,7 +139,10 @@ export default function Signin({ isOpen, onClose }) {
             </div>
           )}
 
-          <TabsContent value="email" className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0 sm:pt-2">
+          <TabsContent
+            value="email"
+            className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0 sm:pt-2"
+          >
             <form onSubmit={handleSubmit}>
               <div className="space-y-3 sm:space-y-4">
                 <div className="space-y-1">
@@ -140,7 +154,7 @@ export default function Signin({ isOpen, onClose }) {
                       type="email"
                       placeholder="name@example.com"
                       value={formData.email}
-                      onChange={handleChange('email')}
+                      onChange={handleChange("email")}
                       required
                       className="pl-10 text-sm sm:text-base"
                       autoComplete="email"
@@ -166,7 +180,7 @@ export default function Signin({ isOpen, onClose }) {
                       id="password-signin"
                       type="password"
                       value={formData.password}
-                      onChange={handleChange('password')}
+                      onChange={handleChange("password")}
                       required
                       className="pl-10 text-sm sm:text-base"
                       placeholder="Enter your password"
@@ -203,7 +217,10 @@ export default function Signin({ isOpen, onClose }) {
             </form>
           </TabsContent>
 
-          <TabsContent value="phone" className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0 sm:pt-2">
+          <TabsContent
+            value="phone"
+            className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0 sm:pt-2"
+          >
             <form onSubmit={handleSubmit}>
               <div className="space-y-3 sm:space-y-4">
                 <div className="space-y-1">

@@ -1,42 +1,42 @@
-'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import dynamic from 'next/dynamic';
-import 'leaflet/dist/leaflet.css';
+"use client";
+import { useState, useEffect, useRef, useCallback } from "react";
+import dynamic from "next/dynamic";
+import "leaflet/dist/leaflet.css";
 
 // Fix for default marker icons in Next.js
-if (typeof window !== 'undefined') {
-  const L = require('leaflet');
+if (typeof window !== "undefined") {
+  const L = require("leaflet");
   delete L.Icon.Default.prototype._getIconUrl;
   L.Icon.Default.mergeOptions({
-    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+    iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+    iconRetinaUrl:
+      "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
   });
 }
 
 // Dynamically import Leaflet components to avoid SSR issues
 const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
   { ssr: false }
 );
 
 const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
   { ssr: false }
 );
 
 const Marker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
+  () => import("react-leaflet").then((mod) => mod.Marker),
   { ssr: false }
 );
 
-const Popup = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Popup),
-  { ssr: false }
-);
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
+  ssr: false,
+});
 
 const useMapEvents = dynamic(
-  () => import('react-leaflet').then((mod) => mod.useMapEvents),
+  () => import("react-leaflet").then((mod) => mod.useMapEvents),
   { ssr: false }
 );
 
@@ -49,16 +49,20 @@ const MapClickHandler = ({ setPosition, setAddress }) => {
       setPosition(newPosition);
 
       // Try to get address for the clicked location
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
-        .then(response => response.json())
-        .then(data => {
-          const address = data.display_name || `Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          const address =
+            data.display_name ||
+            `Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
           setAddress(address);
         })
         .catch(() => {
           setAddress(`Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
         });
-    }
+    },
   });
 
   return null;
@@ -77,7 +81,7 @@ const LocationMarker = ({ position }) => {
 
 const MapComponent = ({ initialPosition, zoom = 13, onLocationSelect }) => {
   const [position, setPosition] = useState(initialPosition);
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState("");
   const [isClient, setIsClient] = useState(false);
   const mapRef = useRef();
 
@@ -91,7 +95,9 @@ const MapComponent = ({ initialPosition, zoom = 13, onLocationSelect }) => {
     if (position && onLocationSelect) {
       onLocationSelect({
         coordinates: position,
-        address: address || `Location: ${position[0].toFixed(6)}, ${position[1].toFixed(6)}`
+        address:
+          address ||
+          `Location: ${position[0].toFixed(6)}, ${position[1].toFixed(6)}`,
       });
     }
   }, [position, address, onLocationSelect]);
@@ -99,7 +105,7 @@ const MapComponent = ({ initialPosition, zoom = 13, onLocationSelect }) => {
   // Handle geolocation
   const handleLocateMe = useCallback(() => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
+      alert("Geolocation is not supported by your browser");
       return;
     }
 
@@ -109,44 +115,53 @@ const MapComponent = ({ initialPosition, zoom = 13, onLocationSelect }) => {
         const newPosition = [latitude, longitude];
         setPosition(newPosition);
 
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`)
-          .then(response => response.json())
-          .then(data => {
-            const address = data.display_name || `Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+        fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            const address =
+              data.display_name ||
+              `Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
             setAddress(address);
           })
           .catch(() => {
-            setAddress(`Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+            setAddress(
+              `Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+            );
           });
 
         if (mapRef.current) {
           mapRef.current.flyTo(newPosition, 15, {
             animate: true,
-            duration: 1
+            duration: 1,
           });
         }
       },
       (error) => {
-        let errorMessage = 'Unable to get your location. ';
-        switch(error.code) {
+        let errorMessage = "Unable to get your location. ";
+        switch (error.code) {
           case 1: // PERMISSION_DENIED
-            errorMessage += 'Location permission denied.';
+            errorMessage += "Location permission denied.";
             break;
           case 2: // POSITION_UNAVAILABLE
-            errorMessage += 'Location information unavailable.';
+            errorMessage += "Location information unavailable.";
             break;
           case 3: // TIMEOUT
-            errorMessage += 'Location request timed out.';
+            errorMessage += "Location request timed out.";
             break;
           default:
-            errorMessage += 'Unknown error occurred.';
+            errorMessage += "Unknown error occurred.";
         }
-        alert(errorMessage + ' You can select a location manually by clicking on the map.');
+        alert(
+          errorMessage +
+            " You can select a location manually by clicking on the map."
+        );
       },
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 0
+        maximumAge: 0,
       }
     );
   }, [mapRef, setPosition, setAddress]);
@@ -177,7 +192,7 @@ const MapComponent = ({ initialPosition, zoom = 13, onLocationSelect }) => {
           <MapContainer
             center={position}
             zoom={zoom}
-            style={{ height: '100%', width: '100%' }}
+            style={{ height: "100%", width: "100%" }}
             zoomControl={false}
             whenCreated={(map) => {
               mapRef.current = map;
@@ -202,9 +217,7 @@ const MapComponent = ({ initialPosition, zoom = 13, onLocationSelect }) => {
           <div className="text-xs text-gray-500 mt-1">
             Coordinates: {position[0].toFixed(6)}, {position[1].toFixed(6)}
           </div>
-          {address && (
-            <div className="mt-1 text-sm">{address}</div>
-          )}
+          {address && <div className="mt-1 text-sm">{address}</div>}
         </div>
       )}
 
@@ -215,7 +228,11 @@ const MapComponent = ({ initialPosition, zoom = 13, onLocationSelect }) => {
   );
 };
 
-export default function MapLocationPicker({ onLocationSelect, initialPosition = [36.8065, 10.1815], zoom = 13 }) {
+export default function MapLocationPicker({
+  onLocationSelect,
+  initialPosition = [36.8065, 10.1815],
+  zoom = 13,
+}) {
   return (
     <MapComponent
       initialPosition={initialPosition}

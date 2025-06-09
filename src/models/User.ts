@@ -48,6 +48,5 @@ UserSchema.pre('save', function(next) {
   }
   next()
 })
-// befor updating the user, we need to hash the password if it has been modified
 
 export const User = mongoose.models.User || mongoose.model('User', UserSchema)

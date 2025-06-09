@@ -10,13 +10,13 @@ export async function middleware(request: NextRequest) {
   if (!token) {
     const loginUrl = new URL('/login', request.url);
     return NextResponse.redirect(loginUrl);
-    
   }
 
   try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'b795999a079f8e38336f0dd24fcbe6830b7d6289dd7f0436f778cf034ce92d66s');
 
     const { payload } = await jwtVerify(token, secret);
+    console.log("✅ Token is valid:", payload);
 
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-user-id', String(payload.userId));

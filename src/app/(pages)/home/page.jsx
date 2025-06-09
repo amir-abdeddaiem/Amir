@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import Navbar from "@/components/Navbar/Navbar";
+
 import HeroSection from "@/components/home/hero/HeroSection";
 import CoatsSection from "@/components/home/Coats/CoatsSection";
 
@@ -15,7 +15,7 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen bg-[#EDF6F9] ">
       {/* <PawBackground /> */}
-      <Navbar />
+
       <main className="relative z-10">
         <HeroSection />
         <CoatsSection />

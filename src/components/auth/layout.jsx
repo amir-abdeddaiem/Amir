@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { PawPrintIcon as Paw } from "lucide-react";
 import Link from "next/link";
 
@@ -16,7 +16,10 @@ const AuthLayout = ({ children }) => {
       />
 
       <div className="absolute top-6 left-6 z-10">
-        <Link href="/" className="flex items-center text-[#003049] hover:text-[#E29578] transition-colors duration-300">
+        <Link
+          href="/"
+          className="flex items-center text-[#003049] hover:text-[#E29578] transition-colors duration-300"
+        >
           <Paw size={28} className="mr-2 text-[#E29578]" />
           <span className="font-semibold text-xl">Animal's Club</span>
         </Link>

@@ -13,8 +13,9 @@ import SigninWithFcb from "@/components/SigninWithFcb/SigninWithFcb";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-
+import { useUserData } from "@/contexts/UserData";
 export default function LoginPage() {
+  const { userData, refreshUserData } = useUserData()
   const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
@@ -58,7 +59,13 @@ export default function LoginPage() {
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
           });
-          router.push("/Profile");
+          if (userData) {
+            if (userData.role == "admin") {
+              router.push("/admin");
+            }
+          }
+
+
         }
       } catch (err: any) {
         setError(err.response?.data?.message || "Login failed. Please check your credentials.");
@@ -147,7 +154,7 @@ export default function LoginPage() {
 
                 <div className="flex items-center space-x-2">
                   <Checkbox
-                  className={""}
+                    className={""}
                     id="remember"
                     checked={formData.rememberMe}
                     onCheckedChange={handleCheckboxChange}
@@ -168,7 +175,7 @@ export default function LoginPage() {
             <form onSubmit={(e) => e.preventDefault()}>
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <Label  className={""}>Phone Number</Label>
+                  <Label className={""}>Phone Number</Label>
                   <div className="relative flex items-center">
                     <AuthIcon icon={Phone} />
                     <Input
@@ -205,7 +212,7 @@ export default function LoginPage() {
 
           <div className="flex flex-col sm:flex-row justify-center gap-2">
             <SigninWithGoogle />
-            <SigninWithFcb  />
+            <SigninWithFcb />
           </div>
         </div>
       </div>

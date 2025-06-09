@@ -43,10 +43,10 @@ export default function ProductModal({
   const [activeAccordion, setActiveAccordion] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const user = userData?.id || null;
+  const user = userData?.id;
 
   const isOwner = user === product.user._id;
-
+  console.log(product.user);
   useEffect(() => {
     if (initialProduct) {
       setProduct(initialProduct);
@@ -346,7 +346,7 @@ export default function ProductModal({
                       </span>
                     </div>
                     <span className="text-xl font-bold text-[#E29578]">
-                      ${product.price?.toFixed(2)}
+                      {product.price?.toFixed(2)}DT
                     </span>
                   </motion.div>
 
