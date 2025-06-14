@@ -9,6 +9,9 @@ import { Like } from "@/models/Like";
 import { Favorite } from "@/models/Favorite";
 import { Animal } from "@/models/Animal";
 import { Recover } from "@/models/Recover";
+import { Service } from "@/models/Service";
+import { Reservation } from "@/models/Reservation";
+
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
@@ -39,9 +42,12 @@ async function connectDB() {
       // SwipeAction;
       Recover;
       Message;
-      Like;
+      // Like;
       Favorite;
       Animal;
+      SwipeAction;
+      Service;
+      Reservation;
 
       return mongoose;
     });

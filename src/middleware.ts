@@ -38,5 +38,10 @@ export const config = {
     "/api/myproduct/:path*",
     "/api/favoriteproduct/:path*",
     "/api/review/:path*",
+    "/api/myanimal/:path*",
+    "/api/provider/:path*",
+    "/api/admin/:path*",
+    "/api/services/:path*", 
+    
   ],
 };

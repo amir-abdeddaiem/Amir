@@ -3,32 +3,7 @@ import { Animal } from '@/models/Animal';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Type definitions
-interface IAnimal {
-  name: string;
-  type: string;
-  breed: string;
-  birthDate: Date;
-  age: string;
-  gender: 'male' | 'female' | 'other';
-  weight?: string;
-  description: string;
-  HealthStatus: {
-    vaccinated: boolean;
-    neutered: boolean;
-    microchipped: boolean;
-  };
 
-  friendly: {
-    children: boolean;
-    dogs: boolean;
-    cats: boolean;
-    other: boolean;
-  };
-  image: string;
-  owner?: string;
-  inmatch: boolean;
-}
 export async function GET() {
   await connectDB();
 

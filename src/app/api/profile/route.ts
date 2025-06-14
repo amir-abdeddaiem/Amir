@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
-import {IUser} from "@/types/user";
 
 export async function GET(req: Request) {
   const authHeader =  req.headers.get('x-user-id');

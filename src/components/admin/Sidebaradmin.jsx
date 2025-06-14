@@ -19,6 +19,7 @@ import {
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { Share2 } from "lucide-react";
 
 export default function AppSidebar({ open, setOpen }) {
   const pathname = usePathname();
@@ -55,16 +56,10 @@ export default function AppSidebar({ open, setOpen }) {
         <PawPrint className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
       ),
     },
-    {
-      label: "Appointments",
-      href: "/dashboard/appointments",
-      icon: (
-        <Calendar className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
-      ),
-    },
+
     {
       label: "Marketplace",
-      href: "/dashboard/marketplace",
+      href: "/dashboard/products",
       icon: (
         <ShoppingBag className="text-neutral-700 dark:text-neutral-200 h-5 w-5" />
       ),

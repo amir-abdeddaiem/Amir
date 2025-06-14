@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ProviderCalendar } from "@/components/Service/provider-calendar";
 import EnhancedCard from "@/components/Service/enhanced-card";
-// import AnimatedBackground from "components/Service/Animatedbachground";
 import {
   ArrowLeft,
   Settings,
@@ -18,36 +17,89 @@ import {
   Clock,
   TrendingUp,
 } from "lucide-react";
-import { services } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 
 export default function ProviderDashboard() {
   const params = useParams();
   const { toast } = useToast();
-  const serviceId = Number.parseInt(params.id);
-
+  const serviceId = params.id; // Type as string since params.id is a string
   const [service, setService] = useState(null);
   const [availability, setAvailability] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Define the IUser interface
 
   useEffect(() => {
-    const foundService = services.find((s) => s.id === serviceId);
-    if (foundService) {
-      setService(foundService);
-      setAvailability(foundService.availability || {});
+    const fetchservice = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/service/${id}`);
+
+        if (!response.ok) {
+          throw new Error(
+            response.status === 404
+              ? "Provider not found"
+              : "Error fetching provider"
+          );
+        }
+        const providerData = await response.json();
+
+        // Map API response to the expected service structure
+        const mappedService = {
+          id: providerData._id,
+          name:
+            providerData.businessName ||
+            `${providerData.firstName} ${providerData.lastName}`,
+          type: providerData.businessType || "Unknown",
+          description: providerData.description || "No description available",
+          image:
+            providerData.boutiqueImage ||
+            providerData.avatar ||
+            "/placeholder.svg",
+          rating: 4.5, // Placeholder: API does not provide rating
+          distance: providerData.location || "Unknown location",
+          price: "$50", // Placeholder: API does not provide price
+          availability: providerData.availability || {}, // Adjust if availability is elsewhere
+        };
+
+        setService(mappedService);
+        setAvailability(mappedService.availability || {});
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (serviceId) {
+      fetchProvider();
     }
   }, [serviceId]);
 
-  if (!service) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <EnhancedCard className="text-center max-w-md mx-4" gradient>
+          <div className="text-6xl mb-6">⏳</div>
+          <h2 className="text-2xl font-bold text-gray-700 mb-4">Loading...</h2>
+          <p className="text-gray-500 mb-6">Fetching provider details...</p>
+        </EnhancedCard>
+      </div>
+    );
+  }
+
+  if (error || !service) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <EnhancedCard className="text-center max-w-md mx-4" gradient>
           <div className="text-6xl mb-6">😿</div>
           <h2 className="text-2xl font-bold text-gray-700 mb-4">
-            Service not found
+            {error || "Service not found"}
           </h2>
           <p className="text-gray-500 mb-6">
-            The service you're looking for doesn't exist.
+            The service you're looking for doesn't exist or there was an error.
           </p>
           <Link href="/">
             <Button
@@ -235,7 +287,7 @@ export default function ProviderDashboard() {
           <EnhancedCard className="lg:col-span-1" gradient>
             <div className="text-center">
               <img
-                src={service.image || "/placeholder.svg"}
+                src={service.image}
                 alt={service.name}
                 className="w-full h-48 object-cover rounded-lg mb-4"
               />

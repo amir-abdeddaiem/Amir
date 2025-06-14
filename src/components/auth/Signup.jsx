@@ -14,41 +14,42 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, PawPrintIcon as Paw } from "lucide-react";
 import Link from "next/link";
-import Signin from "./Signin"; // Assuming Signin modal logic is handled correctly
+import Signin from "./Signin";
 import SigninWithGoogle from "@/components/SigninWithGoogle/SigninWithGoogle";
 import SigninWithFcb from "@/components/SigninWithFcb/SigninWithFcb";
-import RegularUserStep1 from "./signup/RegularUserStep1";
+import Step0 from "./signup/Step0";
 import RegularUserStep2 from "./signup/RegularUserStep2";
-import ServiceProviderStep1 from "./signup/ServiceProviderStep1";
 import ServiceProviderStep2 from "./signup/ServiceProviderStep2";
 import ServiceProviderStep3 from "./signup/ServiceProviderStep3";
 import axios from "axios";
+
 export default function Signup() {
-  const { data: session, status } = useSession();
   const [userType, setUserType] = useState("regular");
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    accType: "",
+    accType: "regular" || "provider",
     email: "",
     password: "",
     confirmPassword: "",
     location: "",
-    coordinates: null,
+    coordinates: "",
     firstName: "",
     lastName: "",
     gender: "",
     birthDate: "",
     businessName: "",
-    businessType: "",
+   
     certifications: "",
     services: [],
     description: "",
     website: "",
     phone: "",
   });
+  const [error, setError] = useState(null);
+  const router = useRouter();
 
   // --- Data Constants ---
   const serviceTypes = [
@@ -72,9 +73,6 @@ export default function Signup() {
   ];
 
   // --- Handlers ---
-  const [error, setError] = useState(null);
-  const router = useRouter();
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -94,43 +92,68 @@ export default function Signup() {
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 
+  const validateForm = () => {
+    if (!formData.email || !formData.password || !formData.confirmPassword) {
+      return "Email, password, and confirm password are required.";
+    }
+    if (formData.password !== formData.confirmPassword) {
+      return "Passwords do not match.";
+    }
+    if (userType === "regular") {
+      if (
+        !formData.firstName ||
+        !formData.lastName ||
+        !formData.birthDate ||
+        !formData.phone
+      ) {
+        return "First name, last name, birth date, and phone are required for regular users.";
+      }
+    } else if (userType === "provider") {
+      if (
+        !formData.firstName ||
+        !formData.lastName ||
+        !formData.businessName ||
+        !formData.businessType ||
+        !formData.description ||
+        formData.services.length === 0 ||
+        !formData.phone
+      ) {
+        return "First name, last name, business name, business type, description, phone, and at least one service are required for providers.";
+      }
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
+    const updatedFormData = { ...formData, accType: userType };
+    console.log("Form data being sent to backend:", updatedFormData); // Add this for debugging
+
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      toast.error(validationError, {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "#E29578",
+          color: "white",
+          borderRadius: "8px",
+          padding: "12px 24px",
+        },
+      });
+      return false;
+    }
+
     try {
-      const response = await axios.post("/api/auth/register", formData);
+      const response = await axios.post("/api/auth/register", updatedFormData);
       const data = response.data;
 
       if (!data.success) {
         setError(data.message || "Registration failed. Please try again.");
-        toast.error(data.message || "Registration failed. Please try again.");
-      } else {
-        console.log("Registration successful:", data);
-
-        if (data.token) {
-          Cookies.set("jwt", data.token, { expires: 7 });
-          //   Cookies.set('userId', data.user._id, { expires: 7 });
-          //   Cookies.set('email', data.user.email, { expires: 7 });
-        }
-
-        toast.success("Registration successful! Please check your email.");
-        router.push("/user");
-      }
-    } catch (error) {
-      // console.error("Registration error:", error);
-      setError(
-        error.response?.data?.message ||
-          "An error occurred during registration. Please try again."
-      );
-      toast.error(
-        error.response?.data?.message ||
-          "An error occurred during registration. Please try again."
-      );
-      toast.error(
-        error.response?.data?.message ||
-          "An error occurred during registration. Please try again.",
-        {
+        toast.error(data.message || "Registration failed. Please try again.", {
           duration: 3000,
           position: "top-center",
           style: {
@@ -139,94 +162,116 @@ export default function Signup() {
             borderRadius: "8px",
             padding: "12px 24px",
           },
-        }
-      );
+        });
+        return false;
+      }
+
+      console.log("Registration successful:", data);
+      if (data.token) {
+        Cookies.set("jwt", data.token, { expires: 7 });
+      }
+
+      toast.success("Registration successful! Redirecting to user dashboard.", {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "#4CAF50",
+          color: "white",
+          borderRadius: "8px",
+          padding: "12px 24px",
+        },
+      });
+      return true;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "An error occurred during registration. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage, {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "#E29578",
+          color: "white",
+          borderRadius: "8px",
+          padding: "12px 24px",
+        },
+      });
+      return false;
     }
   };
 
   // --- Effects ---
-  useEffect(() => {
-    if (session) {
-      console.log("Session Data:", session);
-    }
-  }, [session]);
 
   useEffect(() => {
-    // Pre-fill form if user is authenticated via OAuth (Google/Facebook)
-    if (session?.user) {
-      const [firstName, ...lastNameParts] = session.user.name?.split(" ") || [
-        "",
-        "",
-      ];
-      const lastName = lastNameParts.join(" ");
-
-      setFormData((prev) => ({
-        ...prev,
-        firstName: firstName || prev.firstName || "",
-        lastName: lastName || prev.lastName || "",
-        email: session.user.email || prev.email || "",
-      }));
-    }
-  }, [session]);
-
-  useEffect(() => {
-    // Reset step when user type changes
     setStep(1);
-    setFormData((prev) => ({ ...prev, accType: userType }));
+    setFormData((prev) => ({
+      ...prev,
+      accType: userType,
+    }));
   }, [userType]);
 
   // --- Render Logic ---
   const renderStepContent = () => {
-    const commonProps = { formData, handleChange, setFormData };
+    const commonProps = { formData, handleChange, setFormData, nextStep };
 
-    if (userType === "regular") {
-      switch (step) {
-        case 1:
-          return <RegularUserStep1 {...commonProps} nextStep={nextStep} />;
-        case 2:
-          return (
-            <RegularUserStep2
-              {...commonProps}
-              prevStep={prevStep}
-              handleSubmit={handleSubmit}
-            />
-          );
-        default:
-          return null;
-      }
-    } else if (userType === "provider") {
-      switch (step) {
-        case 1:
-          return (
-            <ServiceProviderStep1
-              {...commonProps}
-              nextStep={nextStep}
-              serviceTypes={serviceTypes}
-            />
-          );
-        case 2:
-          return (
-            <ServiceProviderStep2
-              {...commonProps}
-              prevStep={prevStep}
-              nextStep={nextStep}
-            />
-          );
-        case 3:
-          return (
-            <ServiceProviderStep3
-              {...commonProps}
-              prevStep={prevStep}
-              handleSubmit={handleSubmit}
-              handleServiceChange={handleServiceChange}
-              servicesList={servicesList}
-            />
-          );
-        default:
-          return null;
-      }
+    // Handle shared Step 0 for all user types
+    if (step === 1) {
+      return (
+        <Step0
+          {...commonProps}
+          userType={userType}
+          {...(userType === "provider" ? { serviceTypes } : {})}
+        />
+      );
     }
-    return null;
+
+    // Handle userType-specific steps beyond Step 1
+    switch (userType) {
+      case "regular":
+        switch (step) {
+          case 2:
+            return (
+              <RegularUserStep2
+                {...commonProps}
+                prevStep={prevStep}
+                handleSubmit={handleSubmit}
+              />
+            );
+          default:
+            console.warn(`Invalid step ${step} for regular user`);
+            return null;
+        }
+
+      case "provider":
+        switch (step) {
+          case 2:
+            return (
+              <ServiceProviderStep2
+                {...commonProps}
+                prevStep={prevStep}
+                nextStep={nextStep}
+              />
+            );
+          case 3:
+            return (
+              <ServiceProviderStep3
+                {...commonProps}
+                prevStep={prevStep}
+                handleSubmit={handleSubmit}
+                handleServiceChange={handleServiceChange}
+                servicesList={servicesList}
+              />
+            );
+          default:
+            console.warn(`Invalid step ${step} for provider`);
+            return null;
+        }
+
+      default:
+        console.error(`Invalid userType: ${userType}`);
+        return null;
+    }
   };
 
   return (
@@ -263,7 +308,7 @@ export default function Signup() {
                 </div>
               )}
               <Tabs
-                value={userType} // Controlled component
+                value={userType}
                 onValueChange={(value) => setUserType(value)}
                 className="w-full"
               >
@@ -276,7 +321,7 @@ export default function Signup() {
                   </TabsTrigger>
                   <TabsTrigger
                     value="provider"
-                    className="text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#E29578] rounded-sm"
+                    className="text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#E29578] roundedJump to code-sm"
                   >
                     Service Provider
                   </TabsTrigger>
@@ -288,8 +333,7 @@ export default function Signup() {
 
             <CardFooter className="flex flex-col space-y-4 border-t bg-gray-50 p-6">
               <div className="text-center text-sm text-gray-600 w-full">
-                Already have an account?
-                <Signin />
+                Already have an account? <Signin />
               </div>
 
               <div className="flex items-center justify-center w-full py-2">
@@ -309,6 +353,5 @@ export default function Signup() {
         </motion.div>
       </div>
     </div>
-    // </AuthLayout>
   );
 }

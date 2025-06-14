@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
 
 export default function ServiceProviderStep3({
   formData,
@@ -23,12 +24,11 @@ export default function ServiceProviderStep3({
       <form onSubmit={handleSubmit}>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="certifications">Certifications/Qualifications</Label>
-            <Textarea
-              id="certifications"
-              name="certifications"
-              placeholder="List your professional certifications and qualifications"
-              value={formData.certifications}
+            <Label htmlFor="businessName">Business Name</Label>
+            <Input
+              id="businessName"
+              name="businessName"
+              value={formData.businessName}
               onChange={handleChange}
               required
             />
@@ -38,10 +38,7 @@ export default function ServiceProviderStep3({
             <Label>Services Provided</Label>
             <div className="grid grid-cols-2 gap-2 mt-2">
               {servicesList.map((service) => (
-                <div
-                  key={service.id}
-                  className="flex items-center space-x-2"
-                >
+                <div key={service.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={service.id}
                     checked={formData.services.includes(service.id)}
@@ -64,16 +61,23 @@ export default function ServiceProviderStep3({
               required
             />
           </div>
-
+          <div className="space-y-2">
+            <Label htmlFor="website">Website (Optional)</Label>
+            <Input
+              id="website"
+              name="website"
+              type="url"
+              placeholder="https://"
+              value={formData.website}
+              onChange={handleChange}
+            />
+          </div>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Checkbox id="terms-provider" required />
               <Label htmlFor="terms-provider" className="text-sm">
                 I agree to the{" "}
-                <Link
-                  href="/terms"
-                  className="text-[#E29578] hover:underline"
-                >
+                <Link href="/terms" className="text-[#E29578] hover:underline">
                   Terms of Service
                 </Link>{" "}
                 and{" "}
@@ -99,4 +103,4 @@ export default function ServiceProviderStep3({
       </form>
     </motion.div>
   );
-} 
+}

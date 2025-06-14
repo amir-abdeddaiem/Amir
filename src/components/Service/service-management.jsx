@@ -25,34 +25,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 
-// interface Service {
-//   _id: string
-//   name: string
-//   type: string
-//   description: string
-//   price: {
-//     min: number
-//     max: number
-//     currency: string
-//   }
-//   duration: number
-//   location: {
-//     address: string
-//     city: string
-//   }
-//   images: string[]
-//   rating: number
-//   reviewCount: number
-//   isActive: boolean
-//   availability: {
-//     dayOfWeek: number
-//     timeSlots: string[]
-//   }[]
-// }
-
 export function ServiceManagement() {
   const { toast } = useToast();
-  const [services, setServices] = useState();
+  const [services, setServices] = useState([]); // Changed from serviceProvider to services
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

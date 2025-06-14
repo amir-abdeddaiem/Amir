@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EnhancedCard from "@/components/Service/enhanced-card";
-// import div from "@/components/animated-background";
+import { motion } from "framer-motion";
 import { FadeInContainer } from "@/components/Service/animations";
 import { AddServiceModal } from "@/components/Service/add-service-modal";
 import { ServiceManagement } from "@/components/Service/service-management";
@@ -32,26 +32,14 @@ import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 
 export default function ProviderProfile() {
-  const { userData, loading, refreshUserData } = useUserData();
   const { toast } = useToast();
-
+  const [serviceProvider, setServiceProvider] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState(null);
   const [showAddService, setShowAddService] = useState(false);
-  const [profileData, setProfileData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    location: "",
-    businessName: "",
-    businessType: "",
-    description: "",
-    website: "",
-    certifications: "",
-    avatar: "",
-  });
-
+  const [isLoading, setIsLoading] = useState(true);
+  const { userData } = useUserData;
   const [stats, setStats] = useState({
     totalServices: 0,
     totalReservations: 0,
@@ -60,22 +48,46 @@ export default function ProviderProfile() {
   });
 
   useEffect(() => {
-    if (userData) {
-      setProfileData({
-        firstName: userData.firstName || "",
-        lastName: userData.lastName || "",
-        email: userData.email || "",
-        phone: userData.phone || "",
-        location: userData.location || "",
-        businessName: userData.businessName || "",
-        businessType: userData.businessType || "",
-        description: userData.description || "",
-        website: userData.website || "",
-        certifications: userData.certifications || "",
-        avatar: userData.avatar || "",
-      });
-    }
+    fetchServiceProvider();
   }, [userData]);
+
+  const fetchServiceProvider = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.get("/api/provider", {
+        userData,
+      });
+
+      if (response.data.success) {
+        setServiceProvider(response.data.data);
+      } else {
+        throw new Error(
+          response.data.error || "Failed to fetch provider data."
+        );
+      }
+    } catch (err) {
+      console.error("Error fetching provider data:", err);
+      setError(err.message || "Failed to load service provider data.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const provider = serviceProvider || {
+    boutiqueImage: "/default-boutique.png",
+    businessName: userData?.businessName || "Not provided",
+    description: userData?.description || "No description provided",
+    website: userData?.website || "Not provided",
+    location: userData?.location || "Not provided",
+    services: userData?.services || "Not provided",
+    avatar: userData?.avatar || "/default-avatar.png",
+    firstName: userData?.firstName || "Unknown",
+    lastName: userData?.lastName || "Owner",
+    phone: userData?.phone || "Not provided",
+    email: userData?.email || "Not provided",
+  };
 
   useEffect(() => {
     fetchProviderStats();
@@ -83,39 +95,19 @@ export default function ProviderProfile() {
 
   const fetchProviderStats = async () => {
     try {
-      const response = await axios.get("/api/provider/stats");
+      const response = await axios.get("/api/admin/user/providers/statistic");
       setStats(response.data.data);
     } catch (error) {
       console.error("Error fetching stats:", error);
     }
   };
 
-  const handleSaveProfile = async () => {
-    setIsSaving(true);
-    try {
-      await axios.put("/api/profile", profileData);
-      await refreshUserData();
-      setIsEditing(false);
-      toast({
-        title: "Profile updated! 🎉",
-        description: "Your profile has been successfully updated.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error updating profile",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+  const handleEditClick = () => {
+    toast.info("Edit functionality not implemented yet");
+    router.push("/provider/edit");
   };
 
-  const handleInputChange = (field, value) => {
-    setProfileData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#E29578]"></div>
@@ -133,9 +125,9 @@ export default function ProviderProfile() {
               <div className="relative">
                 <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-[#83C5BE] to-[#E29578] p-1">
                   <div className="w-full h-full rounded-full overflow-hidden bg-white">
-                    {profileData.avatar ? (
+                    {provider.avatar ? (
                       <img
-                        src={profileData.avatar || "/placeholder.svg"}
+                        src={provider.avatar || "/placeholder.svg"}
                         alt="Profile"
                         className="w-full h-full object-cover"
                       />
@@ -156,12 +148,10 @@ export default function ProviderProfile() {
 
               <div>
                 <h1 className="text-3xl font-bold text-gray-800">
-                  {profileData.businessName ||
-                    `${profileData.firstName} ${profileData.lastName}`}
+                  {provider.businessName ||
+                    `${provider.firstName} ${provider.lastName}`}
                 </h1>
-                <p className="text-lg text-gray-600">
-                  {profileData.businessType}
-                </p>
+                <p className="text-lg text-gray-600">{provider.businessType}</p>
                 <div className="flex items-center gap-4 mt-2">
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -176,39 +166,27 @@ export default function ProviderProfile() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              {isEditing ? (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsEditing(false)}
-                    disabled={isSaving}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSaveProfile}
-                    disabled={isSaving}
-                    className="bg-gradient-to-r from-[#E29578] to-[#83C5BE] text-white"
-                  >
-                    {isSaving ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    ) : (
-                      <Save className="w-4 h-4 mr-2" />
-                    )}
-                    Save Changes
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  onClick={() => setIsEditing(true)}
-                  className="bg-gradient-to-r from-[#83C5BE] to-[#E29578] text-white"
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="flex justify-end"
+            >
+              <Button
+                onClick={handleEditClick}
+                className="group relative backdrop-blur-lg bg-[#006D77]/80 hover:bg-[#006D77] text-white font-medium px-6 py-3 rounded-full overflow-hidden transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
+                <span className="absolute inset-0 bg-gradient-to-r from-[#E29578]/0 via-[#E29578]/20 to-[#E29578]/0 group-hover:via-[#E29578]/40 transition-all duration-500" />
+                <motion.span
+                  className="flex items-center gap-2 relative z-10"
+                  whileHover={{ x: 4 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <Edit className="w-4 h-4 mr-2" />
+                  <Edit className="w-5 h-5" />
                   Edit Profile
-                </Button>
-              )}
-            </div>
+                </motion.span>
+              </Button>
+            </motion.div>
           </div>
         </FadeInContainer>
 
@@ -291,7 +269,7 @@ export default function ProviderProfile() {
                           First Name
                         </label>
                         <Input
-                          value={profileData.firstName}
+                          value={provider.firstName}
                           onChange={(e) =>
                             handleInputChange("firstName", e.target.value)
                           }
@@ -304,7 +282,7 @@ export default function ProviderProfile() {
                           Last Name
                         </label>
                         <Input
-                          value={profileData.lastName}
+                          value={provider.lastName}
                           onChange={(e) =>
                             handleInputChange("lastName", e.target.value)
                           }
@@ -320,7 +298,7 @@ export default function ProviderProfile() {
                         Email
                       </label>
                       <Input
-                        value={profileData.email}
+                        value={provider.email}
                         onChange={(e) =>
                           handleInputChange("email", e.target.value)
                         }
@@ -335,7 +313,7 @@ export default function ProviderProfile() {
                         Phone
                       </label>
                       <Input
-                        value={profileData.phone}
+                        value={provider.phone}
                         onChange={(e) =>
                           handleInputChange("phone", e.target.value)
                         }
@@ -350,7 +328,7 @@ export default function ProviderProfile() {
                         Location
                       </label>
                       <Input
-                        value={profileData.location}
+                        value={provider.location}
                         onChange={(e) =>
                           handleInputChange("location", e.target.value)
                         }
@@ -369,7 +347,7 @@ export default function ProviderProfile() {
                         Business Name
                       </label>
                       <Input
-                        value={profileData.businessName}
+                        value={provider.businessName}
                         onChange={(e) =>
                           handleInputChange("businessName", e.target.value)
                         }
@@ -384,7 +362,7 @@ export default function ProviderProfile() {
                         Business Type
                       </label>
                       <Input
-                        value={profileData.businessType}
+                        value={provider.businessType}
                         onChange={(e) =>
                           handleInputChange("businessType", e.target.value)
                         }
@@ -400,7 +378,7 @@ export default function ProviderProfile() {
                         Website
                       </label>
                       <Input
-                        value={profileData.website}
+                        value={provider.website}
                         onChange={(e) =>
                           handleInputChange("website", e.target.value)
                         }
@@ -416,7 +394,7 @@ export default function ProviderProfile() {
                         Certifications
                       </label>
                       <Textarea
-                        value={profileData.certifications}
+                        value={provider.certifications}
                         onChange={(e) =>
                           handleInputChange("certifications", e.target.value)
                         }
@@ -431,7 +409,7 @@ export default function ProviderProfile() {
                         Description
                       </label>
                       <Textarea
-                        value={profileData.description}
+                        value={provider.description}
                         onChange={(e) =>
                           handleInputChange("description", e.target.value)
                         }
@@ -457,16 +435,60 @@ export default function ProviderProfile() {
                       Manage your service offerings
                     </p>
                   </div>
-                  <Button
-                    onClick={() => setShowAddService(true)}
-                    className="bg-gradient-to-r from-[#E29578] to-[#83C5BE] text-white"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add New Service
-                  </Button>
-                </div>
+                  <TabsContent value="services">
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h2 className="text-2xl font-bold text-gray-800">
+                            My Services
+                          </h2>
+                          <p className="text-gray-600">
+                            Manage your service offerings
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() => setShowAddService(true)}
+                          className="bg-gradient-to-r from-[#E29578] to-[#83C5BE] text-white"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add New Service
+                        </Button>
+                      </div>
 
-                <ServiceManagement />
+                      <ServiceManagement />
+                    </div>
+                  </TabsContent>
+                  {/* <EnhancedCard gradient>
+                    <div className="text-center">
+                      <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                        Boutique Image
+                      </h3>
+                      <div className="w-full h-64 rounded-lg overflow-hidden bg-gray-100">
+                        {provider.boutiqueImage ? (
+                          <img
+                            src={provider.boutiqueImage}
+                            alt="Boutique"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-500">
+                            No boutique image uploaded
+                          </div>
+                        )}
+                      </div>
+                      {isEditing && (
+                        <Button
+                          variant="outline"
+                          className="mt-4"
+                          onClick={() => alert("Upload new boutique image")} // Replace with actual upload logic
+                        >
+                          <Camera className="w-4 h-4 mr-2" />
+                          Upload Boutique Image
+                        </Button>
+                      )}
+                    </div>
+                  </EnhancedCard> */}
+                </div>
               </div>
             </TabsContent>
 
@@ -477,7 +499,7 @@ export default function ProviderProfile() {
                   <div className="space-y-4">
                     <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
                       <h3 className="text-3xl font-bold text-green-600">
-                        ${stats.monthlyEarnings}
+                        {stats.monthlyEarnings}DT
                       </h3>
                       <p className="text-green-700">This Month</p>
                     </div>
@@ -504,8 +526,6 @@ export default function ProviderProfile() {
             </TabsContent>
           </Tabs>
         </FadeInContainer>
-
-        {/* Add Service Modal */}
         <AddServiceModal
           isOpen={showAddService}
           onClose={() => setShowAddService(false)}

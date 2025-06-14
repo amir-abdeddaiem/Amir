@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 
 export interface IUser {
   _id: Types.ObjectId;
-  accType: 'regular' | 'provider';
+  accType: 'regular' | 'provider'|'admin';
   email: string;
   firstName: string;
   lastName: string;
@@ -18,15 +18,17 @@ export interface IUser {
   avatar?: string;
   bio?: string;
   // Provider specific fields
+    businessType?: string;
+
   businessName?: string;
-  businessType?: string;
+  boutiqueImage?: string,
   services?: string[];
   certifications?: string;
   description?: string;
   website?: string;
-  // Relations
-  pets: Types.ObjectId[];
-  posts: Types.ObjectId[];
+ status: 'authenticated'| 'unauthenticated';
+  // Provider specific fields
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;

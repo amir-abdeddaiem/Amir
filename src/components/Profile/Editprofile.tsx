@@ -25,7 +25,7 @@ interface ProfileData {
     lastName: string
     email: string
     phone: string
-    birthDate: string
+    birthDate?: string
     gender: Gender
     coordinates?: [number, number] | null;
     location: string
@@ -122,7 +122,7 @@ export default function UpdateProfileImproved() {
             await refreshUserData()
 
             setTimeout(() => {
-                router.push("/dashboard")
+                router.push("/user")
             }, 2000)
         } catch (err: any) {
             setError(err.message || "Failed to update profile")
@@ -225,7 +225,6 @@ export default function UpdateProfileImproved() {
                                                 required
                                             />
                                         </div>
-
                                         <div className="space-y-2">
                                             <Label htmlFor="phone" className="text-sm font-medium text-gray-700 flex items-center">
                                                 <Phone className="w-4 h-4 mr-1" />
@@ -239,30 +238,29 @@ export default function UpdateProfileImproved() {
                                                 className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
                                             />
                                         </div>
-                                    </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                                        <div className="space-y-2">
+
+                                        <div className="w-full">
                                             <Label htmlFor="birthDate" className="text-sm font-medium text-gray-700 flex items-center">
                                                 <Calendar className="w-4 h-4 mr-1" />
-                                                Birth Date
+                                                Birth Day
                                             </Label>
                                             <Input
                                                 id="birthDate"
                                                 type="date"
-                                                value={profileData.birthDate}
-                                                onChange={(e: { target: { value: string } }) => handleChange("birthDate", e.target.value)}
+                                                value={profileData?.birthDate ? new Date(profileData.birthDate).toISOString().split("T")[0] : ""}
+                                                onChange={(e: any) => handleChange("birthDate", e.target.value)}
                                                 className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
                                             />
                                         </div>
 
-                                        <div className="space-y-2">
+                                        <div className="w-full">
                                             <Label htmlFor="gender" className="text-sm font-medium text-gray-700">
                                                 Gender
                                             </Label>
                                             <Select
                                                 value={profileData.gender}
-                                                onValueChange={(value: Gender) => handleChange("gender", value)}
+                                                onValueChange={(e: any) => handleChange("gender", e.target.value)}
                                             >
                                                 <SelectTrigger className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
                                                     <SelectValue placeholder="Select gender" />
@@ -274,6 +272,8 @@ export default function UpdateProfileImproved() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
+
+
                                     </div>
 
                                     <div className="space-y-2">

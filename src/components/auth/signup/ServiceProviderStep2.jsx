@@ -2,13 +2,14 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
 // Dynamically import MapLocationPicker with SSR disabled
 const MapLocationPicker = dynamic(
-  () => import('@/components/ui/MapLocationPicker'),
+  () => import("@/components/ui/MapLocationPicker"),
   { ssr: false }
 );
 
@@ -21,15 +22,15 @@ export default function ServiceProviderStep2({
 }) {
   const [locationData, setLocationData] = useState({
     coordinates: formData.coordinates || null,
-    address: formData.location || ''
+    address: formData.location || "",
   });
 
   useEffect(() => {
     if (locationData.address) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         location: locationData.address,
-        coordinates: locationData.coordinates
+        coordinates: locationData.coordinates,
       }));
     }
   }, [locationData, setFormData]);
@@ -44,7 +45,7 @@ export default function ServiceProviderStep2({
         onSubmit={(e) => {
           e.preventDefault();
           if (!locationData.coordinates) {
-            alert('Please select a business location on the map');
+            alert("Please select a business location on the map");
             return;
           }
           nextStep();
@@ -54,7 +55,7 @@ export default function ServiceProviderStep2({
           <div className="space-y-2">
             <Label>Business Location</Label>
             <div className="border rounded-lg p-2">
-              <MapLocationPicker 
+              <MapLocationPicker
                 onLocationSelect={setLocationData}
                 initialPosition={formData.coordinates || [36.8065, 10.1815]} // Default to Tunisia
               />
@@ -63,24 +64,46 @@ export default function ServiceProviderStep2({
               type="hidden"
               id="location"
               name="location"
-              value={formData.location || ''}
+              value={formData.location || ""}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              name="phone"
-              type="tel"
-              value={formData.phone}
+            <Label htmlFor="businessType">Business Type</Label>
+            <select
+              id="businessType"
+              name="businessType"
+              value={formData.businessType}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-md"
+              required
+            >
+              <option value="">Select a business type</option>
+              <option value="veterinarian">Veterinarian</option>
+              <option value="trainer">Pet Trainer</option>
+              <option value="groomer">Groomer</option>
+              <option value="shelter">Animal Shelter</option>
+              <option value="daycare">Pet Daycare</option>
+              <option value="shop">Pet Shop</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="certifications">
+              Certifications/Qualifications
+            </Label>
+            <Textarea
+              id="certifications"
+              name="certifications"
+              placeholder="List your professional certifications and qualifications"
+              value={formData.certifications}
               onChange={handleChange}
               required
             />
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="website">Website (Optional)</Label>
             <Input
               id="website"
@@ -90,7 +113,7 @@ export default function ServiceProviderStep2({
               value={formData.website}
               onChange={handleChange}
             />
-          </div>
+          </div> */}
 
           <div className="pt-4 flex justify-between">
             <Button type="button" variant="outline" onClick={prevStep}>
@@ -104,4 +127,4 @@ export default function ServiceProviderStep2({
       </form>
     </motion.div>
   );
-} 
+}

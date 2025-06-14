@@ -16,9 +16,10 @@ interface UserData {
     phone?: string;
     avatar?: string;
     bio?: string;
-    accType?: 'regular' | 'provider';
+    accType: 'regular' | 'provider';
     businessName?: string;
     businessType?: string;
+    boutiqueImage?: String;
     services?: string[];
     certifications?: string;
     description?: string;

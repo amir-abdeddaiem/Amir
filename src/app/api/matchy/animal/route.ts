@@ -44,9 +44,11 @@ export async function GET(req: NextRequest) {
     }
 
     const pets = await Animal.find({
+
       inmatch: true,
-      _id: { $ne: userId },
+      user: { $ne: userId },
     });
+
 
     // Optionally format the data
     const formattedPets = pets.map((pet) => ({

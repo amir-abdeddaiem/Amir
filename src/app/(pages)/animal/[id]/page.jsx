@@ -62,7 +62,7 @@ export default function AnimalProfilePage({ params }) {
     try {
       await axios.delete(`/api/animal/${id}`);
       toast({ title: "Animal deleted successfully" });
-      router.push("/my-animals");
+      router.push("/user");
     } catch (error) {
       toast({
         title: "Error",

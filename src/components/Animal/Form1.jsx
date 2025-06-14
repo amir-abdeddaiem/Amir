@@ -52,6 +52,7 @@ export default function Form1({ formData, handleChange }) {
   const filteredAnimals = animals.filter((animal) =>
     animal.label.toLowerCase().includes(search.toLowerCase())
   );
+
   return (
     <div className="space-y-4">
       <div className="grid w-full items-center gap-1.5">
@@ -117,7 +118,7 @@ export default function Form1({ formData, handleChange }) {
           value={formData.age}
           onChange={(e) => handleChange("age", e.target.value)}
           placeholder="Enter age in years"
-          min="0"
+          min="1"
         />
       </div>
     </div>

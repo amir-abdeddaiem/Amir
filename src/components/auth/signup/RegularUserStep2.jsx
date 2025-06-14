@@ -4,15 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
 // Dynamically import MapLocationPicker with SSR disabled
 const MapLocationPicker = dynamic(
-  () => import('@/components/ui/MapLocationPicker'),
+  () => import("@/components/ui/MapLocationPicker"),
   { ssr: false }
 );
 export default function RegularUserStep2({
@@ -25,15 +24,15 @@ export default function RegularUserStep2({
   const router = useRouter();
   const [locationData, setLocationData] = useState({
     coordinates: null,
-    address: ''
+    address: "",
   });
 
   useEffect(() => {
     if (locationData.address) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         location: locationData.address,
-        coordinates: locationData.coordinates
+        coordinates: locationData.coordinates,
       }));
     }
   }, [locationData, setFormData]);
@@ -42,23 +41,23 @@ export default function RegularUserStep2({
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (isSubmitting) return;
-    
+
     if (!locationData.coordinates) {
-      alert('Please select a location on the map');
+      alert("Please select a location on the map");
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Call the provided handleSubmit and wait for it to complete
       const success = await handleSubmit(e);
 
       // Only navigate if the submission was successful
       if (success) {
-        router.push("/profile");
+        router.push("/user");
       }
     } catch (error) {
       // Handle any errors that might occur during submission
@@ -79,7 +78,7 @@ export default function RegularUserStep2({
           <div className="space-y-2">
             <Label>Location</Label>
             <div className="border rounded-lg p-2">
-              <MapLocationPicker 
+              <MapLocationPicker
                 onLocationSelect={setLocationData}
                 initialPosition={formData.coordinates || [36.8065, 10.1815]} // Default to Tunisia
               />
@@ -88,7 +87,7 @@ export default function RegularUserStep2({
               type="hidden"
               id="location"
               name="location"
-              value={formData.location || ''}
+              value={formData.location || ""}
               required
             />
           </div>
@@ -102,8 +101,10 @@ export default function RegularUserStep2({
                   id="male"
                   name="gender"
                   value="male"
-                  checked={formData.gender === 'male'}
-                  onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+                  checked={formData.gender === "male"}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, gender: e.target.value }))
+                  }
                   className="h-4 w-4 border-gray-300 text-[#E29578] focus:ring-[#E29578]"
                 />
                 <Label htmlFor="male">Male</Label>
@@ -114,8 +115,10 @@ export default function RegularUserStep2({
                   id="female"
                   name="gender"
                   value="female"
-                  checked={formData.gender === 'female'}
-                  onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+                  checked={formData.gender === "female"}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, gender: e.target.value }))
+                  }
                   className="h-4 w-4 border-gray-300 text-[#E29578] focus:ring-[#E29578]"
                 />
                 <Label htmlFor="female">Female</Label>
@@ -126,8 +129,10 @@ export default function RegularUserStep2({
                   id="other"
                   name="gender"
                   value="other"
-                  checked={formData.gender === 'other'}
-                  onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+                  checked={formData.gender === "other"}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, gender: e.target.value }))
+                  }
                   className="h-4 w-4 border-gray-300 text-[#E29578] focus:ring-[#E29578]"
                 />
                 <Label htmlFor="other">Other</Label>
@@ -180,7 +185,7 @@ export default function RegularUserStep2({
               className="bg-[#E29578] hover:bg-[#d88a6d]"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Creating Account...' : 'Create Account'}
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </Button>
           </div>
         </div>

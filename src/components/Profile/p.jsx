@@ -8,27 +8,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
   Loader2,
   PawPrint,
   Store,
   Pencil,
   Heart,
   AlertTriangle,
+  Trash,
 } from "lucide-react";
 import { useUserData } from "@/contexts/UserData";
 import { toast } from "sonner";
 import { IconEdit } from "@tabler/icons-react";
 import ProductModal from "../Produit/ProductModal";
 import Link from "next/link";
-// Adding a glassmorphism effect component
+import EditProfile from "@/components/Animal/EditProfile"; // Import the EditProfile animal component
+
+// Glassmorphism effect component
 const GlassCard = ({ children, className }) => (
   <div
     className={`backdrop-blur-md bg-white/30 border border-white/20 rounded-xl shadow-lg ${className}`}
@@ -40,47 +35,135 @@ const GlassCard = ({ children, className }) => (
 export default function UserProfile() {
   const { userData } = useUserData();
   const user = userData;
+  const router = useRouter();
 
   const [pets, setPets] = useState([]);
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editedUser, setEditedUser] = useState(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedPet, setSelectedPet] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [selectedPost, setSelectedPost] = useState(null); // New state for selected post
-  const router = useRouter();
-
-  const goToEditProfile = () => {
-    router.push("/user/edit");
-  };
-
-  const fetchAnimal = async () => {
-    try {
-      const response = await axios.get("/api/animal");
-      setPets(response.data);
-    } catch (error) {
-      console.error("Failed to fetch products:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [selectedPost, setSelectedPost] = useState(null);
 
   const fetchProducts = async () => {
     try {
       const response = await axios.get("/api/myproduct");
-      setPosts(response.data);
+      const data = Array.isArray(response.data) ? response.data : [];
+      setPosts(data);
     } catch (error) {
       console.error("Failed to fetch products:", error);
-    } finally {
-      setIsLoading(false);
+      setError("Failed to load marketplace posts.");
+      setPosts([]);
+    }
+  };
+
+  const fetchAnimal = async () => {
+    try {
+      const response = await axios.get("/api/myanimal", {
+        headers: {
+          "x-user-id": user?.id,
+        },
+      });
+      const data = Array.isArray(response.data) ? response.data : [];
+      setPets(data);
+    } catch (error) {
+      console.error("Failed to fetch pets:", error);
+      if (error.response?.status === 404) {
+        setPets([]);
+      } else {
+        setError("Failed to load pets. Please try again later.");
+        setPets([]);
+      }
     }
   };
 
   useEffect(() => {
-    fetchProducts();
-    fetchAnimal();
+    Promise.all([fetchProducts(), fetchAnimal()])
+      .catch((err) => {
+        console.error("Error fetching data:", err);
+        setError("An error occurred while fetching data.");
+      })
+      .finally(() => setIsLoading(false));
   }, []);
+
+  const handleEdit = (petId) => {
+    const pet = pets.find((p) => p._id === petId);
+    if (pet) {
+      setSelectedPet(pet);
+      setIsEditDialogOpen(true);
+    }
+  };
+
+  const handleSavePet = async (updatedPet) => {
+    try {
+      // Ensure the ID matches the API's expected field (_id)
+      const petToUpdate = { ...updatedPet, _id: updatedPet.id };
+      await axios.put(`/api/myanimal/${updatedPet.id}`, petToUpdate);
+      toast.success("Pet updated successfully");
+      // Update the pets state with the updated pet
+      setPets((prevPets) =>
+        prevPets.map((pet) => (pet._id === updatedPet.id ? updatedPet : pet))
+      );
+      setIsEditDialogOpen(false);
+      setSelectedPet(null);
+    } catch (error) {
+      console.error("Failed to update pet:", error);
+      toast.error("Failed to update pet");
+    }
+  };
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    try {
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this product?"
+      );
+      if (!confirmed) return;
+
+      const response = await fetch(`/api/myproduct?id=${product._id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        toast.success("Product deleted successfully");
+        router.refresh();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to delete product");
+      }
+    } catch (error) {
+      toast.error("An error occurred while deleting the product");
+      console.error("Delete error:", error);
+    }
+  };
+  const handleEditproduct = (e, post) => {
+    e.stopPropagation();
+    router.push(`/marcket_place/mymarket/edit?id=${post._id}`);
+  };
+
+  const handleAddToTinder = (petId) => {
+    // Implement Tinder functionality
+    toast.info("Add to Tinder not implemented yet");
+  };
+
+  const handleReportLost = (petId) => {
+    // Implement report lost functionality
+    toast.info("Report lost not implemented yet");
+  };
+
+  const openModal = (post) => {
+    setSelectedPost(post);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedPost(null);
+  };
 
   if (isLoading) {
     return (
@@ -116,16 +199,6 @@ export default function UserProfile() {
     );
   }
 
-  const openModal = (post) => {
-    setSelectedPost(post); // Set the selected post
-    setShowModal(true); // Open the modal
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedPost(null); // Clear the selected post
-  };
-
   const bio =
     user?.bio || user?.businessProvider?.description || "No bio provided";
 
@@ -158,7 +231,10 @@ export default function UserProfile() {
                     </h1>
                     <p className="text-[#83C5BE] mb-4">{user?.email}</p>
                   </div>
-                  <Button onClick={goToEditProfile} className={"bg-[#E29578]"}>
+                  <Button
+                    onClick={() => router.push("/user/edit")}
+                    className="bg-[#E29578]"
+                  >
                     Edit Profile
                     <IconEdit />
                   </Button>
@@ -226,7 +302,7 @@ export default function UserProfile() {
                             className="w-full px-3 py-2 text-cyan-900 border border-teal-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
                             placeholder="Décrivez-vous en quelques mots..."
                             value={bio}
-                            onChange={(e) => setBio(e.target.value)}
+                            readOnly // Make bio read-only since it's not editable here
                           />
                           <p className="mt-1 text-xs text-gray-500">
                             {bio ? `${bio.length}/250 caractères` : "Optionnel"}
@@ -297,47 +373,79 @@ export default function UserProfile() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {pets.length > 0 ? (
                         pets.map((pet) => (
-                          <Link href={`/animal/${pet.id}`} passHref>
+                          <Link
+                            key={pet._id}
+                            href={`/animal/${pet._id}`}
+                            passHref
+                          >
                             <motion.div
-                              key={pet.id}
-                              initial={{ opacity: 0, scale: 0.9 }}
+                              initial={{ opacity: 0, scale: 0.95 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ duration: 0.3 }}
                               whileHover={{ y: -5 }}
-                              className="bg-white/50 rounded-lg p-4 shadow-md hover:shadow-xl transition-shadow"
+                              className="relative bg-white/70 backdrop-blur-md rounded-xl p-5 shadow-lg hover:shadow-2xl transition-all"
                             >
                               <img
                                 src={pet.image || "/default-pet.png"}
                                 alt={pet.name}
-                                className="w-full h-40 object-cover rounded-md mb-3"
+                                className="w-full h-40 object-cover rounded-md mb-4"
                               />
-                              <h3 className="text-lg font-semibold text-[#006D77]">
+                              <div className="absolute top-56 right-2 flex gap-2">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="text-[#006D77] hover:bg-[#006D77]/10"
+                                  onClick={(e) => {
+                                    e.preventDefault(); // Prevent Link navigation
+                                    handleEdit(pet._id);
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="text-red-500 hover:bg-red-100"
+                                  onClick={(e) => {
+                                    e.preventDefault(); // Prevent Link navigation
+                                    handleDelete(pet._id);
+                                  }}
+                                >
+                                  <Trash className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <h3 className="text-xl font-bold text-[#006D77]">
                                 {pet.name}
                               </h3>
-                              <p className="text-[#83C5BE]">
+                              <p className="text-sm text-[#83C5BE]">
                                 Breed: {pet.breed}
                               </p>
-                              <p className="text-[#83C5BE]">
+                              <p className="text-sm text-[#83C5BE] mb-4">
                                 Age: {pet.age} years
                               </p>
-                              <div className="flex gap-2 mt-3">
+                              <div className="grid grid-cols-2 gap-3">
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handleAddToTinder(pet.id)}
-                                  className="flex-1 border-[#E29578] text-[#E29578] hover:bg-[#E29578]/10"
+                                  onClick={(e) => {
+                                    e.preventDefault(); // Prevent Link navigation
+                                    handleAddToTinder(pet._id);
+                                  }}
+                                  className="border-[#E29578] text-[#E29578] hover:bg-[#E29578]/10"
                                 >
-                                  <Heart className="mr-2 h-4 w-4" /> Add to
-                                  Tinder
+                                  <Heart className="mr-2 h-4 w-4" /> Tinder
                                 </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handleReportLost(pet.id)}
-                                  className="flex-1 text-[#E29578] border-[#E29578] hover:bg-[#E29578]/10"
+                                  onClick={(e) => {
+                                    e.preventDefault(); // Prevent Link navigation
+                                    handleReportLost(pet._id);
+                                  }}
+                                  className="border-[#E29578] text-[#E29578] hover:bg-[#E29578]/10"
                                 >
                                   <AlertTriangle className="mr-2 h-4 w-4" />{" "}
-                                  Report Lost
+                                  Lost
                                 </Button>
                               </div>
                             </motion.div>
@@ -348,7 +456,7 @@ export default function UserProfile() {
                       )}
                     </div>
                     <Button
-                      onClick={() => router.push("animal/add-animal")}
+                      onClick={() => router.push("/animal/add-animal")}
                       className="mt-6 bg-[#E29578] hover:bg-[#E29578]/90 w-full"
                     >
                       Add New Pet
@@ -367,23 +475,42 @@ export default function UserProfile() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <br />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {posts.length > 0 ? (
                         posts.map((post) => (
                           <motion.div
-                            key={post.id}
+                            key={post._id}
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.3 }}
                             whileHover={{ y: -5 }}
-                            className="bg-white/50 rounded-lg p-4 shadow-md hover:shadow-xl transition-shadow"
+                            className="relative bg-white/50 backdrop-blur-md rounded-xl p-5 shadow-lg hover:shadow-2xl transition-all"
                           >
-                            <img
-                              src={post.images?.[0] || "/default-post.png"}
-                              alt={post.title}
-                              className="w-full h-40 object-cover rounded-md mb-3"
-                            />
+                            <div className="relative w-full h-40 mb-4">
+                              <img
+                                src={post.images?.[0] || "/default-post.png"}
+                                alt={post.title}
+                                className="w-full h-full object-cover rounded-md"
+                              />
+                              <div className="absolute top-60 right-1 flex gap-2">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="text-[#006D77] hover:bg-[#006D77]/10"
+                                  onClick={(e) => handleEditproduct(e, post)} // Pass the post object
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="text-red-500 hover:bg-red-100"
+                                  onClick={handleDelete}
+                                >
+                                  <Trash className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
                             <h3 className="text-lg font-semibold text-[#006D77]">
                               {post.title}
                             </h3>
@@ -391,19 +518,19 @@ export default function UserProfile() {
                               {post.description}
                             </p>
                             <p className="text-[#E29578] font-bold">
-                              {post.price}DT
+                              {post.price} DT
                             </p>
-                            <div className="flex gap-3">
+                            <div className="flex gap-3 mt-3">
                               <motion.button
-                                className="bg-transparent text-[#EDF6F9] hover:bg-[#EDF6F9]/10 flex items-center justify-center rounded-lg border border-[#EDF6F9] px-4 font-medium transition-colors"
+                                className="bg-transparent text-[#006D77] hover:bg-[#006D77]/10 flex items-center justify-center rounded-lg border border-[#006D77] px-4 py-2 font-medium transition-colors"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  openModal(post); // Pass the post to openModal
+                                  openModal(post); // Pass the `post` object
                                 }}
                               >
-                                Quick View
+                                View Product
                               </motion.button>
                             </div>
                           </motion.div>
@@ -414,17 +541,12 @@ export default function UserProfile() {
                         </p>
                       )}
                     </div>
-                    <br />
-                    <div>
-                      <Button
-                        onClick={() =>
-                          router.push("/marcket_place/add-product")
-                        }
-                        className="mt-6 bg-[#E29578] hover:bg-[#E29578]/90 w-full"
-                      >
-                        Add to Marketplace
-                      </Button>
-                    </div>
+                    <Button
+                      onClick={() => router.push("/marketplace/add-product")}
+                      className="mt-6 bg-[#E29578] hover:bg-[#E29578]/90 w-full"
+                    >
+                      Add to Marketplace
+                    </Button>
                   </CardContent>
                 </Card>
               </GlassCard>
@@ -441,6 +563,19 @@ export default function UserProfile() {
           onClose={closeModal}
           isFavorite={false}
           toggleFavorite={() => {}}
+        />
+      )}
+
+      {/* Edit Pet Dialog */}
+      {selectedPet && (
+        <EditProfile
+          isOpen={isEditDialogOpen}
+          onClose={() => {
+            setIsEditDialogOpen(false);
+            setSelectedPet(null);
+          }}
+          onSave={handleSavePet}
+          animal={selectedPet}
         />
       )}
     </>

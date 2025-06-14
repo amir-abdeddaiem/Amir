@@ -59,11 +59,11 @@ export default function LoginPage() {
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
           });
-          if (userData) {
-            if (userData.role == "admin") {
-              router.push("/admin");
-            }
-          }
+          // if (userData) {
+          //   if (userData.accType == "admin") {
+          //     router.push("/admin");
+          //   }
+          // }
 
 
         }
@@ -134,7 +134,7 @@ export default function LoginPage() {
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
                     <Label className={""} >Password</Label>
-                    <Link href="/forgot-password" className="text-xs text-[#E29578] hover:underline">
+                    <Link href="/auth/forgotpassword" className="text-xs text-[#E29578] hover:underline">
                       Forgot password?
                     </Link>
                   </div>

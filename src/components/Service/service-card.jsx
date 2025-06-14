@@ -8,6 +8,7 @@ import { Star, MapPin, Heart, Clock } from "lucide-react";
 import Link from "next/link";
 
 export function ServiceCard({ service }) {
+  console.log(service);
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 

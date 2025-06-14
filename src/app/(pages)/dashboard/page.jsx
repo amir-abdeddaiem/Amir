@@ -2,22 +2,14 @@
 
 import { useState, useEffect } from "react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
   Users,
   PawPrint,
   Calendar,
   ShoppingBag,
   Search,
+  CheckCircle,
   TrendingUp,
   AlertTriangle,
-  CheckCircle,
 } from "lucide-react";
 
 const metrics = [
@@ -27,8 +19,8 @@ const metrics = [
     change: "+12%",
     trend: "up",
     icon: Users,
-    color: "text-primary",
-    bgColor: "bg-primary/10",
+    color: "text-[#006D77]",
+    bgColor: "bg-[#006D77]/10",
   },
   {
     title: "Registered Animals",
@@ -36,8 +28,8 @@ const metrics = [
     change: "+8%",
     trend: "up",
     icon: PawPrint,
-    color: "text-accent",
-    bgColor: "bg-accent/10",
+    color: "text-[#83C5BE]",
+    bgColor: "bg-[#83C5BE]/10",
   },
   {
     title: "Active Appointments",
@@ -45,8 +37,8 @@ const metrics = [
     change: "+23%",
     trend: "up",
     icon: Calendar,
-    color: "text-auxiliary",
-    bgColor: "bg-auxiliary/10",
+    color: "text-[#E29578]",
+    bgColor: "bg-[#E29578]/10",
   },
   {
     title: "Marketplace Items",
@@ -54,8 +46,8 @@ const metrics = [
     change: "+15%",
     trend: "up",
     icon: ShoppingBag,
-    color: "text-primary",
-    bgColor: "bg-primary/10",
+    color: "text-[#006D77]",
+    bgColor: "bg-[#006D77]/10",
   },
   {
     title: "Lost Pets Reports",
@@ -63,8 +55,8 @@ const metrics = [
     change: "-5%",
     trend: "down",
     icon: Search,
-    color: "text-auxiliary",
-    bgColor: "bg-auxiliary/10",
+    color: "text-[#E29578]",
+    bgColor: "bg-[#E29578]/10",
   },
   {
     title: "Found Pets",
@@ -72,8 +64,8 @@ const metrics = [
     change: "+18%",
     trend: "up",
     icon: CheckCircle,
-    color: "text-accent",
-    bgColor: "bg-accent/10",
+    color: "text-[#83C5BE]",
+    bgColor: "bg-[#83C5BE]/10",
   },
 ];
 
@@ -112,22 +104,24 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading
     const timer = setTimeout(() => setIsLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-6 bg-[#EDF6F9] min-h-screen">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-              </CardContent>
-            </Card>
+            <div
+              key={i}
+              className="animate-pulse bg-white rounded-lg shadow-sm"
+            >
+              <div className="p-6">
+                <div className="h-4 bg-[#FFDDD2]/50 rounded w-3/4 mb-4"></div>
+                <div className="h-8 bg-[#FFDDD2]/50 rounded w-1/2"></div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -135,55 +129,57 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 p-6 bg-[#EDF6F9] min-h-screen animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-auxiliary dark:text-foreground">
-            Dashboard
-          </h1>
-          <p className="text-auxiliary/70 dark:text-muted-foreground mt-1">
+          <h1 className="text-3xl font-bold text-[#006D77]">Dashboard</h1>
+          <p className="text-[#006D77]/70 mt-2 text-lg">
             Welcome back! Here's what's happening with your platform today.
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <Button className="bg-primary hover:bg-primary/90 text-white">
+          <button className="bg-[#E29578] hover:bg-[#E29578]/90 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
             Generate Report
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {metrics.map((metric, index) => (
-          <Card
+          <div
             key={metric.title}
-            className="animate-card-hover cursor-pointer border-0 shadow-md hover:shadow-lg transition-all duration-300"
+            className="animate-card-hover bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <CardContent className="p-6">
+            <div className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-auxiliary/70 dark:text-muted-foreground">
+                  <p className="text-sm font-medium text-[#006D77]/70">
                     {metric.title}
                   </p>
-                  <p className="text-2xl font-bold text-auxiliary dark:text-foreground mt-1">
+                  <p className="text-2xl font-bold text-[#006D77] mt-1">
                     {metric.value}
                   </p>
                   <div className="flex items-center mt-2">
                     <TrendingUp
                       className={`w-4 h-4 mr-1 ${
-                        metric.trend === "up" ? "text-accent" : "text-primary"
+                        metric.trend === "up"
+                          ? "text-[#83C5BE]"
+                          : "text-[#E29578]"
                       }`}
                     />
                     <span
                       className={`text-sm font-medium ${
-                        metric.trend === "up" ? "text-accent" : "text-primary"
+                        metric.trend === "up"
+                          ? "text-[#83C5BE]"
+                          : "text-[#E29578]"
                       }`}
                     >
                       {metric.change}
                     </span>
-                    <span className="text-sm text-auxiliary/50 dark:text-muted-foreground ml-1">
+                    <span className="text-sm text-[#006D77]/50 ml-1">
                       vs last month
                     </span>
                   </div>
@@ -192,76 +188,76 @@ export default function Dashboard() {
                   <metric.icon className={`w-6 h-6 ${metric.color}`} />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Recent Activities */}
+      {/* Recent Activities and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-auxiliary dark:text-foreground">
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-[#006D77]">
               Recent Activities
-            </CardTitle>
-            <CardDescription>
+            </h2>
+            <p className="text-[#006D77]/70 mb-4">
               Latest platform activities and updates
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-start space-x-3 p-3 rounded-lg bg-surface/50 dark:bg-muted/50"
-              >
+            </p>
+            <div className="space-y-4">
+              {recentActivities.map((activity) => (
                 <div
-                  className={`w-2 h-2 rounded-full mt-2 ${
-                    activity.status === "success"
-                      ? "bg-green-500"
-                      : activity.status === "warning"
-                      ? "bg-orange-500"
-                      : "bg-blue-500"
-                  }`}
-                />
-                <div className="flex-1">
-                  <p className="text-sm text-auxiliary dark:text-foreground">
-                    {activity.message}
-                  </p>
-                  <p className="text-xs text-auxiliary/50 dark:text-muted-foreground mt-1">
-                    {activity.time}
-                  </p>
+                  key={activity.id}
+                  className="flex items-start space-x-3 p-3 rounded-lg bg-[#FFDDD2]/20"
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full mt-2 ${
+                      activity.status === "success"
+                        ? "bg-[#83C5BE]"
+                        : activity.status === "warning"
+                        ? "bg-[#E29578]"
+                        : "bg-[#006D77]"
+                    }`}
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm text-[#006D77]">{activity.message}</p>
+                    <p className="text-xs text-[#006D77]/50 mt-1">
+                      {activity.time}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </div>
+          </div>
+        </div>
 
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-auxiliary dark:text-foreground">
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-[#006D77]">
               Quick Actions
-            </CardTitle>
-            <CardDescription>Common administrative tasks</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-start">
-              <Users className="w-4 h-4 mr-2" />
-              Add New User
-            </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <PawPrint className="w-4 h-4 mr-2" />
-              Register Animal
-            </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <Calendar className="w-4 h-4 mr-2" />
-              Schedule Appointment
-            </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <AlertTriangle className="w-4 h-4 mr-2" />
-              Report Issue
-            </Button>
-          </CardContent>
-        </Card>
+            </h2>
+            <p className="text-[#006D77]/70 mb-4">
+              Common administrative tasks
+            </p>
+            <div className="space-y-3">
+              <button className="w-full text-left bg-[#FFDDD2]/20 hover:bg-[#FFDDD2]/30 text-[#006D77] font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center">
+                <Users className="w-4 h-4 mr-2" />
+                Add New User
+              </button>
+              <button className="w-full text-left bg-[#FFDDD2]/20 hover:bg-[#FFDDD2]/30 text-[#006D77] font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center">
+                <PawPrint className="w-4 h-4 mr-2" />
+                Register Animal
+              </button>
+              <button className="w-full text-left bg-[#FFDDD2]/20 hover:bg-[#FFDDD2]/30 text-[#006D77] font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center">
+                <Calendar className="w-4 h-4 mr-2" />
+                Schedule Appointment
+              </button>
+              <button className="w-full text-left bg-[#FFDDD2]/20 hover:bg-[#FFDDD2]/30 text-[#006D77] font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center">
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

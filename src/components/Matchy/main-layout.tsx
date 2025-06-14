@@ -2,7 +2,7 @@
 import { AnimatedTooltip } from "../ui/animated-tooltip";
 import type React from "react"
 import { useState, useEffect } from "react"
-import Navbar from "../Navbar/Navbar"
+
 import Footer from "../footer/Footer"
 import MessengerSidebar from "./messenger-sidebar"
 import { useFilterModal } from "@/hooks/use-filter-modal"
@@ -116,7 +116,7 @@ export default function MainLayout({
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Background elements */}

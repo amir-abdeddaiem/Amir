@@ -17,7 +17,7 @@ import Form2 from "@/components/Animal/Form2";
 import Form3 from "@/components/Animal/Form3";
 import Form4 from "@/components/Animal/Form4";
 import axios from "axios";
-
+import { useUserData } from "@/contexts/UserData";
 export default function AddAnimal() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -53,6 +53,7 @@ export default function AddAnimal() {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
+      [field]: field === "weight" ? parseFloat(value) || "" : value,
     }));
   };
 
@@ -81,7 +82,8 @@ export default function AddAnimal() {
     };
     reader.readAsDataURL(file); // <--- this is correct
   };
-
+  const { userData } = useUserData();
+  const user = userData;
   const handleSubmit = async (e) => {
     console.log(formData);
     e.preventDefault();
@@ -91,7 +93,7 @@ export default function AddAnimal() {
     try {
       const response = await axios.post("/api/animal", formData, {
         headers: {
-          "Content-Type": "application/json",
+          "x-user-id": user?.id,
         },
       });
 

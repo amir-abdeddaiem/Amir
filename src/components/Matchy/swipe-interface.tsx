@@ -122,7 +122,8 @@ export default function SwipeInterface() {
               className="absolute w-full h-full"
             >
               <motion.div
-                onClick={() => {
+
+                onDoubleClick={() => {
                   setSelectedPet(pet);
                   setIsDetailModalOpen(true);
                 }}
@@ -153,8 +154,8 @@ export default function SwipeInterface() {
                     ))}
                   </div>
                   <p className="mt-3 text-lg opacity-90">{pet.bio}</p>
-                  <div className="absolute top-4 right-4 bg-white/20 text-white px-3 py-1 rounded-full text-sm">
-                    Click for details
+                  <div className="absolute top-24 right-4 bg-white/20 text-white px-3 py-1 rounded-full text-sm">
+                    Double Click for details
                   </div>
                 </div>
               </motion.div>
