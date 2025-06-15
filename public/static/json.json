@@ -1,0 +1,44 @@
+{
+  "matches": [
+    {
+      "id": "1",
+      "name": "Bella",
+      "image": "/images/bella.png",
+      "animalType": "dog",
+      "lastMessage": "Let's go for a walk!",
+      "unread": true
+    },
+    {
+      "id": "2",
+      "name": "Milo",
+      "image": "/images/milo.png",
+      "animalType": "cat",
+      "lastMessage": "Feed me, please.",
+      "unread": false
+    },
+    {
+      "id": "3",
+      "name": "Coco",
+      "image": "/images/coco.png",
+      "animalType": "bird",
+      "lastMessage": "Chirp chirp!",
+      "unread": false
+    },
+    {
+      "id": "4",
+      "name": "Luna",
+      "image": "/images/luna.png",
+      "animalType": "rabbit",
+      "lastMessage": "Hop hop!",
+      "unread": true
+    },
+    {
+      "id": "5",
+      "name": "Max",
+      "image": "/images/max.png",
+      "animalType": "dog",
+      "lastMessage": "Throw the ball!",
+      "unread": false
+    }
+  ]
+}

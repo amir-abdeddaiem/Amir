@@ -146,7 +146,7 @@ export default function SwipeInterface() {
     return (
       <div className="flex flex-col items-center justify-center h-full">
         <p>No pets found. Add a pet to start swiping.</p>
-        <Button onClick={() => window.location.href = '/add-pet'} className={undefined} variant={undefined} size={undefined}>Add a Pet</Button>
+        <Button onClick={() => window.location.href = '/animal/AddAnimal'} className={undefined} variant={undefined} size={undefined}>Add a Pet</Button>
       </div>
     );
   }
