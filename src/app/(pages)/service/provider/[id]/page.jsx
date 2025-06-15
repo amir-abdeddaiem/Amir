@@ -35,8 +35,8 @@ export default function ProviderDashboard() {
     const fetchservice = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/service/${id}`);
-
+        const response = await fetch(`/api/services/${serviceId}`);
+        console.log(id)
         if (!response.ok) {
           throw new Error(
             response.status === 404
@@ -73,9 +73,9 @@ export default function ProviderDashboard() {
       }
     };
 
-    if (serviceId) {
-      fetchProvider();
-    }
+
+      fetchservice();
+    
   }, [serviceId]);
 
   if (loading) {

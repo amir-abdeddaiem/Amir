@@ -210,3 +210,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+
+
+
+export async function GET(req: NextRequest) {
+  try {
+    await connectDB();
+    const animals = await Animal.find({ lost: true }).populate('owner');
+
+    const formattedAnimals = animals.map(animal => ({
+      id: animal._id,
+      name: animal.name,
+      type: animal.type,
+      breed: animal.breed,
+      age: animal.age,
+      image: animal.image,
+      owner: animal.owner ? {
+        name: animal.owner?.firstName,
+        contact: animal.owner?.phone,
+      } : undefined,
+    }));
+
+    return NextResponse.json(formattedAnimals);
+  } catch (error) {
+    console.error('Error fetching animals:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

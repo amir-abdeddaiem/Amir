@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
-
+import Recapchat from "../../recapcha/Recapcha"
 export default function ServiceProviderStep3({
   formData,
   handleChange,
@@ -72,6 +72,9 @@ export default function ServiceProviderStep3({
               onChange={handleChange}
             />
           </div>
+
+                        
+
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Checkbox id="terms-provider" required />
@@ -90,8 +93,11 @@ export default function ServiceProviderStep3({
               </Label>
             </div>
           </div>
-
+           <Recapchat/>  
           <div className="pt-4 flex justify-between">
+           
+
+
             <Button type="button" variant="outline" onClick={prevStep}>
               Back
             </Button>

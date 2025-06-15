@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Heart, MapPin, Phone, Mail, Search, Filter, PawPrint, Star, Clock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
+import HeroSection from '@/components/home/hero/HeroSection';
+import Footer from '@/components/footer/Footer';
 const quotes = [
   {
     text: "Dogs are not our whole life, but they make our lives whole.",
@@ -159,7 +161,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50">
       {/* Header */}
-
+<HeroSection/>
 
       {/* Hero Section with Quotes */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -198,12 +200,16 @@ export default function Home() {
               Building a community where every pet is loved and cared for.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
-              <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white flex-1">
+              <Link href="/marcket_place" className="flex-1">
+                            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white flex-1">
                 Shop Now
               </Button>
+              </Link>
+              <Link href="/LostFoundPets" className="flex-1">
               <Button size="lg" variant="outline" className="border-orange-200 text-orange-600 hover:bg-orange-50 flex-1">
                 Report Lost Pet
               </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -385,57 +391,7 @@ export default function Home() {
       
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <PawPrint className="h-6 w-6 text-orange-500" />
-                <span className="text-xl font-bold">Animals Club</span>
-              </div>
-              <p className="text-gray-400">
-                Building a loving community for pets and their families.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#products" className="hover:text-orange-500 transition-colors">Products</a></li>
-                <li><a href="#lost-found" className="hover:text-orange-500 transition-colors">Lost & Found</a></li>
-                <li><a href="#contact" className="hover:text-orange-500 transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Services</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-orange-500 transition-colors">Pet Care</a></li>
-                <li><a href="#" className="hover:text-orange-500 transition-colors">Training</a></li>
-                <li><a href="#" className="hover:text-orange-500 transition-colors">Grooming</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Contact Info</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center">
-                  <Phone className="h-4 w-4 mr-2" />
-                  (555) 123-4567
-                </li>
-                <li className="flex items-center">
-                  <Mail className="h-4 w-4 mr-2" />
-                  info@petcare.com
-                </li>
-                <li className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  New York, NY
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 PetCare. All rights reserved. Made with ❤️ for pets and their families.</p>
-          </div>
-        </div>
-      </footer>
+     <Footer/>
     </div>
   );
 }

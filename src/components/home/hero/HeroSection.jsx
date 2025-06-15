@@ -3,10 +3,14 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { useEffect,useState } from "react";
+import axios from "axios";
 
 // import AddAnimal from "../Animal/Addanimal";";
 
 export default function HeroSection() {
+  const [data, setData] = useState("/hams.jpg");
+  
   const router = useRouter();
   const addanimal = () => {
     router.push("../../../../add-animal"); // Naviguer vers la page /about
@@ -24,7 +28,7 @@ export default function HeroSection() {
             className="relative h-[400px] w-full rounded-2xl overflow-hidden shadow-xl"
           >
             <Image
-              src="/images/hams.jpg"
+              src={data || "/images/default-pet.jpg"} // Fallback image if data is not available
               alt="Happy pet"
               fill
               className="object-cover"
@@ -68,24 +72,9 @@ export default function HeroSection() {
             </div>
             <div className="flex items-center space-x-4 pt-4">
               <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-white"
-                  >
-                    <Image
-                      src={`/placeholder.svg?height=40&width=40&text=${i}`}
-                      alt={`User ${i}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ))}
+                
               </div>
-              <p className="text-sm text-gray-600">
-                <span className="font-medium text-gray-900">2,000+</span> pet
-                owners have joined
-              </p>
+              
             </div>
           </motion.div>
         </div>
