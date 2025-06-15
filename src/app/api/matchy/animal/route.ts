@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     const pets = await Animal.find({
 
       inmatch: true,
-      user: { $ne: userId },
+      owner: { $ne: userId },
     });
 
 

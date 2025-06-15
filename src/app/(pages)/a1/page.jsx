@@ -1,11 +1,11 @@
-import AdminPage from "../../../components/admin/products";
+// import React from "react";
 
-function page() {
-  return (
-    <div>
-      <AdminPage />
-    </div>
-  );
-}
+// function page() {
+//   return (
+//     <div>
+//       <ReportFoundDialogProps></ReportFoundDialogProps>
+//     </div>
+//   );
+// }
 
-export default page;
+// export default page;

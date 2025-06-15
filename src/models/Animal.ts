@@ -28,6 +28,7 @@ const AnimalSchema = new mongoose.Schema({
     animals: { type: Boolean, default: false }
   },
   image: { type: String},
+  lost:{ type: Boolean, default: false },
   // image: { type: String, required: [true, 'Image is required'] },
   owner: { 
     type: mongoose.Schema.Types.ObjectId, 

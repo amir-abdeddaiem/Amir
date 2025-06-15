@@ -32,11 +32,9 @@ export async function POST(req: Request) {
   const missingFields = [];
   if (!body.firstName || body.firstName.trim() === "") missingFields.push("firstName");
   if (!body.lastName || body.lastName.trim() === "") missingFields.push("lastName");
-  if (!body.businessName || body.businessName.trim() === "") missingFields.push("businessName");
-  if (!body.businessType || body.businessType.trim() === "") missingFields.push("businessType");
-  if (!body.description || body.description.trim() === "") missingFields.push("description");
+  
   if (!body.phone || !/^\d{8}$/.test(body.phone)) missingFields.push("phone");
-  if (!body.services || body.services.length === 0) missingFields.push("services");
+  
   
 
   if (missingFields.length > 0) {
@@ -63,26 +61,28 @@ export async function POST(req: Request) {
     }
 
     const userData = {
-      accType: body.accType || "regular",
-      birthDate: body.birthDate,
-      email: body.email,
-      firstName: body.firstName,
-      gender: body.gender,
-      lastName: body.lastName,
-      location: body.location,
-      password: hashedPassword,
-      phone: body.phone,
-      avatar: body.avatar,
-      coordinates: body.coordinates||"",
-      status: "authenticated",
-      businessName: body.businessName || "",
-      businessType:body.businessType|| "",
-      boutiqueImage: body.boutiqueImage||"",
-      services: body.services || [],
-      certifications: body.certifications || "",
-      description: body.description || "",
-      website: body.website || "",
-    };
+  accType: body.accType || "regular",
+  birthDate: body.birthDate,
+  email: body.email,
+  firstName: body.firstName,
+  gender: body.gender,
+  lastName: body.lastName,
+  location: body.location,
+  password: hashedPassword,
+  phone: body.phone,
+  avatar: body.avatar,
+  coordinates: body.coordinates || "",
+  status: "authenticated",
+  
+  // Only include businessType if provided and not empty
+  ...(body.businessType && { businessType: body.businessType }),
+  businessName: body.businessName || "",
+  boutiqueImage: body.boutiqueImage || "",
+  services: body.services || [],
+  certifications: body.certifications || "",
+  description: body.description || "",
+  website: body.website || "",
+};
 
     // Add coordinates if provided
     if (body.coordinates) {

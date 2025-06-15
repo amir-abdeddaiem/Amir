@@ -90,11 +90,6 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
         style={{ backgroundColor: "#EDF6F9" }}
       >
-        <DialogHeader>
-          <DialogTitle className="text-[#E29578]">
-            🐾 Edit Pet Profile 🐾
-          </DialogTitle>
-        </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Image Upload */}
           <div className="flex flex-col items-center space-y-2">
@@ -113,7 +108,7 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
               )}
             </div>
             <Label htmlFor="image" className="cursor-pointer text-[#E29578]">
-              📸 Change Photo
+              Change Photo
               <Input
                 id="image"
                 type="file"
@@ -127,7 +122,7 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-[#E29578]">
-                🏷️ Pet Name
+                Pet Name
               </Label>
               <Input
                 id="name"
@@ -153,12 +148,12 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
                   <SelectValue placeholder="Select pet type" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#FFDDD2] border-[#83C5BE]">
-                  <SelectItem value="Dog">🐶 Dog</SelectItem>
-                  <SelectItem value="Cat">🐱 Cat</SelectItem>
-                  <SelectItem value="Bird">🐦 Bird</SelectItem>
-                  <SelectItem value="Fish">🐠 Fish</SelectItem>
-                  <SelectItem value="Rabbit">🐰 Rabbit</SelectItem>
-                  <SelectItem value="Other">❓ Other</SelectItem>
+                  <SelectItem value="Dog"> Dog</SelectItem>
+                  <SelectItem value="Cat"> Cat</SelectItem>
+                  <SelectItem value="Bird"> Bird</SelectItem>
+                  <SelectItem value="Fish">Fish</SelectItem>
+                  <SelectItem value="Rabbit">Rabbit</SelectItem>
+                  <SelectItem value="Other"> Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -167,7 +162,7 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="breed" className="text-[#E29578]">
-                🧬 Breed
+                Breed
               </Label>
               <Input
                 id="breed"
@@ -181,7 +176,7 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="age" className="text-[#E29578]">
-                🎂 Age (years)
+                Age (years)
               </Label>
               <Input
                 id="age"
@@ -199,7 +194,7 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="gender" className="text-[#E29578]">
-                ♂️ Gender
+                Gender
               </Label>
               <Select
                 value={formData.gender}
@@ -211,12 +206,12 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#FFDDD2] border-[#83C5BE]">
-                  <SelectItem value="Male">♂ Male</SelectItem>
-                  <SelectItem value="Female">♀ Female</SelectItem>
+                  <SelectItem value="Male"> Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="color" className="text-[#E29578]">
                 🎨 Color
               </Label>
@@ -229,10 +224,10 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
                 className="bg-[#FFDDD2] border-[#83C5BE]"
                 required
               />
-            </div>
+            </div> */}
             <div className="space-y-2">
               <Label htmlFor="weight" className="text-[#E29578]">
-                ⚖️ Weight
+                Weight
               </Label>
               <Input
                 id="weight"
@@ -249,7 +244,7 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
 
           <div className="space-y-2">
             <Label htmlFor="description" className="text-[#E29578]">
-              📝 Description
+              Description
             </Label>
             <Textarea
               id="description"
@@ -262,7 +257,11 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
               required
             />
           </div>
-
+          <div>
+            <Label htmlFor="healthStatus" className="text-[#E29578]">
+              Health Status
+            </Label>
+          </div>
           <div className="grid grid-cols-3 gap-4 py-2">
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -274,7 +273,7 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
                 className="border-[#E29578] data-[state=checked]:bg-[#E29578]"
               />
               <Label htmlFor="vaccinated" className="text-[#E29578]">
-                💉 Vaccinated
+                Vaccinated
               </Label>
             </div>
             <div className="flex items-center space-x-2">
@@ -287,7 +286,7 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
                 className="border-[#E29578] data-[state=checked]:bg-[#E29578]"
               />
               <Label htmlFor="neutered" className="text-[#E29578]">
-                ✂️ Neutered/Spayed
+                Neutered/Spayed
               </Label>
             </div>
             <div className="flex items-center space-x-2">
@@ -300,15 +299,15 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
                 className="border-[#E29578] data-[state=checked]:bg-[#E29578]"
               />
               <Label htmlFor="microchipped" className="text-[#E29578]">
-                🔍 Microchipped
+                Microchipped
               </Label>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="healthStatus" className="text-[#E29578]">
-                💊 Health Status
+                 Health Status
               </Label>
               <Select
                 value={formData.healthStatus}
@@ -320,12 +319,9 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
                   <SelectValue placeholder="Select health status" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#FFDDD2] border-[#83C5BE]">
-                  <SelectItem value="Excellent">🌟 Excellent</SelectItem>
-                  <SelectItem value="Good">👍 Good</SelectItem>
-                  <SelectItem value="Fair">😐 Fair</SelectItem>
-                  <SelectItem value="Needs Attention">
-                    ⚠️ Needs Attention
-                  </SelectItem>
+                  <SelectItem value="Vaccinated">Vaccinated</SelectItem>
+                  <SelectItem value="Neutered">Neutered</SelectItem>
+                  <SelectItem value="Microchipped">Microchipped</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -343,9 +339,9 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
                 className="bg-[#FFDDD2] border-[#83C5BE]"
               />
             </div>
-          </div>
+          </div> */}
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="favoriteActivities" className="text-[#E29578]">
               🎾 Favorite Activities (comma-separated)
             </Label>
@@ -374,7 +370,7 @@ export default function EditPetDialog({ isOpen, onClose, onSave, animal }) {
               rows={2}
               placeholder="Any special care requirements..."
             />
-          </div>
+          </div> */}
 
           <DialogFooter>
             <Button

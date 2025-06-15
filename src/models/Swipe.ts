@@ -3,16 +3,18 @@ import mongoose, { Document } from 'mongoose';
 export type SwipeType = 'like' | 'superlike' | 'ignore';
 
 export interface ISwipeAction extends Document {
-  swiper: mongoose.Types.ObjectId; // Animal who swiped
-  swiped: mongoose.Types.ObjectId; // Animal who was swiped on
+  swiper: mongoose.Types.ObjectId; // User who owns the swiperpet
+  swiperpet: mongoose.Types.ObjectId; // Animal performing the swipe
+  swipedpet: mongoose.Types.ObjectId; // Animal being swiped on
   actionType: SwipeType;
   createdAt: Date;
 }
 
 const swipeActionSchema = new mongoose.Schema<ISwipeAction>(
   {
-    swiper: { type: mongoose.Schema.Types.ObjectId, ref: 'Animal', required: true },
-    swiped: { type: mongoose.Schema.Types.ObjectId, ref: 'Animal', required: true },
+    swiper: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    swiperpet: { type: mongoose.Schema.Types.ObjectId, ref: 'Animal', required: true },
+    swipedpet: { type: mongoose.Schema.Types.ObjectId, ref: 'Animal', required: true },
     actionType: {
       type: String,
       enum: ['like', 'superlike', 'ignore'],
@@ -23,6 +25,6 @@ const swipeActionSchema = new mongoose.Schema<ISwipeAction>(
 );
 
 // Index to prevent duplicate swipes
-swipeActionSchema.index({ swiper: 1, swiped: 1 }, { unique: true });
+swipeActionSchema.index({ swiperpet: 1, swipedpet: 1 }, { unique: true });
 
 export default mongoose.models.SwipeAction || mongoose.model<ISwipeAction>('SwipeAction', swipeActionSchema);
