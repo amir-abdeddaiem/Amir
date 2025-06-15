@@ -25,38 +25,29 @@ export default function Navbar() {
 
   // SVG icons with #E29578 color
   const renderIcon = (id) => {
-    const iconColor = "#E29578";
     const iconSize = 40; // 40px for 10x10 viewBox
     
     switch(id) {
       case 1: // Marketplace
         return (
-          <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none">
-            <path d="M3 10H21L19 21H5L3 10Z" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M16 10V6C16 4.89543 15.1046 4 14 4H10C8.89543 4 8 4.89543 8 6V10" stroke={iconColor} strokeWidth="2"/>
-          </svg>
+          <img src={"/nav/x1.svg"} alt="Marketplace" width={iconSize} height={iconSize} />
         );
       case 2: // Matchy
         return (
-          <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none">
-            <path d="M17 21L12 16L7 21M7 3L12 8L17 3" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M21 12L16 7L21 2M3 12L8 7L3 2" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <img src={"/nav/x2.svg"} alt="Matchy" width={iconSize} height={iconSize} />
         );
+      
       case 3: // Services
         return (
-          <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none">
-            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M8 14C8 14 9.5 16 12 16C14.5 16 16 14 16 14M9 9H9.01M15 9H15.01" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <img src={"/nav/x3.svg"} alt="Services" width={iconSize} height={iconSize} />
         );
+         
+    
       case 4: // Lost Found
         return (
-          <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none">
-            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M12 8V12L15 15M21 12C21 13.1819 20.7672 14.3522 20.3149 15.4442C19.8626 16.5361 19.1997 17.5282 18.364 18.364C17.5282 19.1997 16.5361 19.8626 15.4442 20.3149C14.3522 20.7672 13.1819 21 12 21C10.8181 21 9.64778 20.7672 8.55585 20.3149C7.46392 19.8626 6.47177 19.1997 5.63604 18.364C4.80031 17.5282 4.13738 16.5361 3.68508 15.4442C3.23279 14.3522 3 13.1819 3 12C3 9.61305 3.94821 7.32387 5.63604 5.63604C7.32387 3.94821 9.61305 3 12 3C14.3869 3 16.6761 3.94821 18.364 5.63604C20.0518 7.32387 21 9.61305 21 12Z" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <img src={"/nav/x4.svg"} alt="Lost Found" width={iconSize} height={iconSize} />
         );
+
       default:
         return null;
     }
@@ -116,7 +107,7 @@ export default function Navbar() {
             className="h-6 w-6"
             fill="none"
             viewBox="0 0 24 24"
-            stroke={iconColor}
+            stroke={'E29578'}
           >
             <path
               strokeLinecap="round"
