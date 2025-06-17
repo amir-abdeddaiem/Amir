@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "clean": "rm -rf .next && rm -rf node_modules/.cache",
-        "install": "npm install --force"
+  "install": "npm install --legacy-peer-deps"
 
   },
   "dependencies": {
