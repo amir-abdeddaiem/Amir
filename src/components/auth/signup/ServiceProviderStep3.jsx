@@ -7,6 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import Recapchat from "../../recapcha/Recapcha"
+
+import OTPInput from "@/components/otp/otp"
 export default function ServiceProviderStep3({
   formData,
   handleChange,
@@ -72,7 +74,12 @@ export default function ServiceProviderStep3({
               onChange={handleChange}
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="website">Mail Verification</Label>
+                <OTPInput/>
+          </div>
 
+ <Recapchat/>  
                         
 
           <div className="space-y-2">
@@ -93,7 +100,7 @@ export default function ServiceProviderStep3({
               </Label>
             </div>
           </div>
-           <Recapchat/>  
+          
           <div className="pt-4 flex justify-between">
            
 

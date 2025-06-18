@@ -106,13 +106,6 @@ export async function POST(
     const { id } = await params;
 
     // Get user ID from headers
-    const userId = request.headers.get("x-user-id");
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized - User ID missing" },
-        { status: 401 }
-      );
-    }
 
     // Parse request body
     const body = await request.json();
@@ -158,7 +151,7 @@ export async function POST(
 
     // Create the appointment
     const appointment = await Appointment.create({
-      providerId: userId,
+      providerId: id,
       date: parsedDate,
       times,
       createdAt: new Date(),

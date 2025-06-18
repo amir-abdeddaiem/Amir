@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import OTPInput from "@/components/otp/otp"
 
 // Dynamically import MapLocationPicker with SSR disabled
 const MapLocationPicker = dynamic(
@@ -150,6 +151,11 @@ export default function RegularUserStep2({
               onChange={handleChange}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="birthDate">Mail Verification</Label>
+<OTPInput/>
           </div>
 
           <div className="space-y-2">

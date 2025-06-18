@@ -109,7 +109,7 @@ export default function ChatBot({ role }: ChatBotProps) {
         <ButtonRedirect url="/lost-found" variant="secondary" className="w-full">
           <Search className="mr-2" /> Lost & Found Pets
         </ButtonRedirect>
-        <ButtonRedirect url="/profile" variant="outline" className="w-full">
+        <ButtonRedirect url="/user" variant="outline" className="w-full">
           <User className="mr-2" /> My Profile
         </ButtonRedirect>
         <ButtonRedirect url="/marketplace" variant="secondary" className="w-full">

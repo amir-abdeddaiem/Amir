@@ -51,6 +51,7 @@ export default function Signin({ isOpen, onClose }) {
       rememberMe: checked,
     }));
   }, []);
+          const{refreshUserData}=useUserData()
 
   const handleSubmit = useCallback(
     async (e) => {
@@ -71,10 +72,7 @@ export default function Signin({ isOpen, onClose }) {
             expires: formData.rememberMe ? 7 : 1 / 24,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-          });
-          const{refreshUserData}=useUserData()
-          refreshUserData()
-          
+          })
           router.push("/user");
         }
       } catch (err) {
