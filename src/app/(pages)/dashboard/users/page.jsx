@@ -394,7 +394,7 @@ const UserCard = ({ user, onEdit, onDelete }) => {
                 className="bg-[#FFDDD2] text-[#006D77] hover:bg-[#FFDDD2]/80"
                 aria-label={`Edit ${fullName}`}
               >
-                Edit
+                Chnage Role
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-[#EDF6F9] max-h-[80vh] overflow-y-auto">

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {URL} from "@/hooks/url"
+import QRCode from "qrcode"
 import {
   Edit,
   Trash2,
@@ -31,6 +33,20 @@ export default function AnimalProfile({ animal, onEdit, onDelete }) {
   const handleDelete = async () => {
     await onDelete();
   };
+
+
+  const [qrCodeUrl, setQrCodeUrl] = useState('/user');
+
+
+  const generateQRCode = async (id) => {
+    try {
+      const url = await QRCode.toDataURL(`${URL}/animal/${id}`);
+      setQrCodeUrl(url);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
 
   // Gender icon mapping
   const genderIcon = {
@@ -77,9 +93,15 @@ export default function AnimalProfile({ animal, onEdit, onDelete }) {
                       Delete
                     </Button>
                   </div>
+
+                  <div className="col-span-2 text-center py-1 justify-center flex">
+
+                    <img src={qrCodeUrl} className="w-25 h-25" alt="" onError={() => { generateQRCode(animal._id) }} />
+                  </div>
                 </div>
 
                 <div className="md:w-2/3">
+
                   <h1 className="text-3xl font-bold text-gray-800 mb-2">
                     {animal.name}
                   </h1>
@@ -91,8 +113,11 @@ export default function AnimalProfile({ animal, onEdit, onDelete }) {
                     </p>
                   )}
 
+
                   {/* Basic Info Grid */}
-                  <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div onLoad={() => { generateQRCode(animal._id) }} className="grid grid-cols-2 gap-4 mb-6">
+
+
                     <div className="text-center p-3 bg-[#FFDDD2]/50 rounded-lg">
                       <Calendar className="w-5 h-5 text-[#E29578] mx-auto mb-1" />
                       <div className="text-sm text-gray-600">Age</div>
@@ -101,6 +126,7 @@ export default function AnimalProfile({ animal, onEdit, onDelete }) {
                       </div>
                     </div>
                     <div className="text-center p-3 bg-[#FFDDD2]/50 rounded-lg">
+
                       {genderIcon[animal.gender]}
                       <div className="text-sm text-gray-600">Gender</div>
                       <div className="font-semibold capitalize">
@@ -163,15 +189,14 @@ export default function AnimalProfile({ animal, onEdit, onDelete }) {
               <div>
                 <div className="text-sm text-gray-600 mb-1">Health Status</div>
                 <Badge
-                  className={`${
-                    animal.healthStatus === "Excellent"
-                      ? "bg-green-100 text-green-800 border-green-200"
-                      : animal.healthStatus === "Good"
+                  className={`${animal.healthStatus === "Excellent"
+                    ? "bg-green-100 text-green-800 border-green-200"
+                    : animal.healthStatus === "Good"
                       ? "bg-blue-100 text-blue-800 border-blue-200"
                       : animal.healthStatus === "Fair"
-                      ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                      : "bg-red-100 text-red-800 border-red-200"
-                  }`}
+                        ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                        : "bg-red-100 text-red-800 border-red-200"
+                    }`}
                 >
                   {animal.healthStatus || "Good"}
                 </Badge>

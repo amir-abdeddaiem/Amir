@@ -6,18 +6,9 @@ import { User } from "@/models/User";
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({
-        success: false,
-        error: 'Not authenticated',
-        data: null
-      }, { status: 401 });
-    }
-
+    const id = request.headers.get("x-user-id")
     await connectDB();
-    const user = await User.findOne({ email: session.user.email });
+    const user = await User.findOne({ id: id });
 
     if (!user) {
       return NextResponse.json({

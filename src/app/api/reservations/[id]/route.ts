@@ -1,94 +1,90 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { connectDB } from "@/lib/db"
-import { Reservation } from "@/models/Reservation"
+import { NextResponse, NextRequest } from "next/server";
+import { connectDB } from "@/lib/db";
+import { Reservation } from "@/models/Reservation";
+import mongoose from "mongoose";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await connectDB()
+    await connectDB();
 
-    const userId = request.headers.get("x-user-id")
+    // Authentication
+    const userId = request.headers.get("x-user-id");
     if (!userId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const reservation = await Reservation.findOne({
-      _id: params.id,
-      $or: [{ customerId: userId }, { providerId: userId }],
-    })
-      .populate("serviceId", "name type description images")
-      .populate("customerId", "firstName lastName avatar phone email")
-      .populate("providerId", "firstName lastName businessName avatar phone email")
-      .populate("petId", "name type breed age weight avatar medicalInfo behavior")
+    const body = await request.json();
+    const {
+      serviceId,
+      providerId,
+      petId,
+      date,
+      timeSlot,
+      notes = "",
+      totalPrice
+    } = body;
 
-    if (!reservation) {
-      return NextResponse.json({ success: false, error: "Reservation not found" }, { status: 404 })
+    // Validation
+    const requiredFields = ["serviceId", "providerId", "petId", "date", "timeSlot", "totalPrice"];
+    const missingFields = requiredFields.filter(field => !body[field]);
+
+    if (missingFields.length > 0) {
+      return NextResponse.json(
+        { success: false, error: `Missing required fields: ${missingFields.join(", ")}` },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: reservation,
-    })
+    // Check for existing reservation at same time
+    const existingReservation = await Reservation.findOne({
+      providerId,
+      date: new Date(date),
+      timeSlot
+    });
+
+    if (existingReservation) {
+      return NextResponse.json(
+        { success: false, error: "This time slot is already booked" },
+        { status: 409 }
+      );
+    }
+
+    // Create new reservation
+    const reservation = await Reservation.create({
+      customerId: userId,
+      service: serviceId,
+      providerId,
+      petId,
+      date: new Date(date),
+      timeSlot,
+      status: "pending",
+      totalPrice,
+      notes,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          id: reservation._id,
+          date: reservation.date,
+          timeSlot: reservation.timeSlot,
+          status: reservation.status
+        }
+      },
+      { status: 201 }
+    );
+
   } catch (error) {
-    console.error("Error fetching reservation:", error)
-    return NextResponse.json({ success: false, error: "Failed to fetch reservation" }, { status: 500 })
-  }
-}
-
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    await connectDB()
-
-    const userId = request.headers.get("x-user-id")
-    if (!userId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-    }
-
-    const { status, cancellationReason } = await request.json()
-
-    // Find reservation and check permissions
-    const reservation = await Reservation.findOne({
-      _id: params.id,
-      $or: [{ customerId: userId }, { providerId: userId }],
-    })
-
-    if (!reservation) {
-      return NextResponse.json({ success: false, error: "Reservation not found" }, { status: 404 })
-    }
-
-    // Validate status transitions
-    const allowedTransitions: { [key: string]: string[] } = {
-      pending: ["confirmed", "cancelled"],
-      confirmed: ["completed", "cancelled", "no-show"],
-      completed: [],
-      cancelled: [],
-      "no-show": [],
-    }
-
-    if (!allowedTransitions[reservation.status].includes(status)) {
-      return NextResponse.json({ success: false, error: "Invalid status transition" }, { status: 400 })
-    }
-
-    // Update reservation
-    const updateData: any = { status }
-    if (status === "cancelled" && cancellationReason) {
-      updateData.cancellationReason = cancellationReason
-    }
-
-    const updatedReservation = await Reservation.findByIdAndUpdate(params.id, updateData, {
-      new: true,
-      runValidators: true,
-    })
-      .populate("serviceId", "name type images")
-      .populate("customerId", "firstName lastName avatar phone")
-      .populate("providerId", "firstName lastName businessName avatar phone")
-      .populate("petId", "name type breed avatar")
-
-    return NextResponse.json({
-      success: true,
-      data: updatedReservation,
-    })
-  } catch (error) {
-    console.error("Error updating reservation:", error)
-    return NextResponse.json({ success: false, error: "Failed to update reservation" }, { status: 500 })
+    console.error("Error creating reservation:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to create reservation" },
+      { status: 500 }
+    );
   }
 }

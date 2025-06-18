@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
-import { Service } from "@/models/Service"
 import { Reservation } from "@/models/Reservation"
 import { ServiceReview } from "@/models/ServiceReview"
+import { User } from "@/models/User"
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total services
-    const totalServices = await Service.countDocuments({
+    const totalServices = await User.countDocuments({
       providerId: userId,
       isActive: true,
     })

@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { ChevronLeft, MessageCircle, Heart, PawPrint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,18 +34,21 @@ export default function MessengerSidebar({
 
   // Fetch matches and superlikes when tab or dependencies change
   useEffect(() => {
-    if (!userData?.id || userLoading || userError) return;
+    if (!userData?.id || userLoading || userError || !selectedPetId) {
+      setMatches([]);
+      setLikedPets([]);
+      return;
+    }
 
     const fetchData = async () => {
       setIsLoading(true);
       setError(null);
 
       try {
-        if (activeTab === 'matches' && selectedPetId) {
-          // Fetch matches only if selectedPetId is defined
+        if (activeTab === 'matches') {
           const response = await axios.get<{ matches: any[] }>('/api/matchy/matches', {
-            headers: { 'x-user-id': userData.id },
             params: { animalId: selectedPetId },
+            headers: { 'x-user-id': userData.id },
           });
 
           const transformedMatches = response.data.matches.map((match) => {
@@ -61,11 +63,7 @@ export default function MessengerSidebar({
             };
           });
           setMatches(transformedMatches);
-        } else if (activeTab === 'matches') {
-          // No pet selected, show empty matches
-          setMatches([]);
-        } else if (activeTab === 'likes' && selectedPetId) {
-          // Fetch superlikes for the selected pet
+        } else if (activeTab === 'likes') {
           const response = await axios.get<{ swipes: any[] }>('/api/matchy/likesU', {
             headers: { 'x-user-id': userData.id },
             params: { swiped: selectedPetId, actionType: 'superlike' },
@@ -80,13 +78,10 @@ export default function MessengerSidebar({
             unread: false,
           }));
           setLikedPets(pets);
-        } else if (activeTab === 'likes') {
-          // No pet selected, show empty liked pets
-          setLikedPets([]);
         }
       } catch (err: any) {
         console.error(`Error fetching ${activeTab}:`, err.response?.data || err.message);
-        setError(`Failed to load ${activeTab}`);
+        setError(`Failed to load ${activeTab}. Please try again.`);
       } finally {
         setIsLoading(false);
       }
@@ -102,10 +97,21 @@ export default function MessengerSidebar({
   return (
     <div
       className={cn(
-        'h-full border-r bg-[#EDF6F9] transition-all duration-300 ease-in-out shadow-lg',
+        'h-full border-r bg-[#EDF6F9] transition-all max-w-80 duration-300 ease-in-out shadow-lg',
         isOpen ? 'w-80' : 'w-20'
       )}
     >
+      <div className="flex items-center p-2 border-b border-[#83C5BE]">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleLogoClick}
+          className="text-[#E29578]"
+        >
+          <ChevronLeft className={cn('h-6 w-6', !isOpen && 'rotate-180')} />
+        </Button>
+      </div>
+
       {isOpen ? (
         <div className="w-full">
           <div className="flex border-b border-[#83C5BE]">
@@ -143,6 +149,8 @@ export default function MessengerSidebar({
               <div className="text-center text-red-500 py-4">{userError}</div>
             ) : !userData?.id ? (
               <div className="text-center text-[#83C5BE] py-4">Please log in to view matches</div>
+            ) : !selectedPetId ? (
+              <div className="text-center text-[#83C5BE] py-4">Please select a pet to view matches or likes</div>
             ) : (
               <>
                 {activeTab === 'matches' && (
@@ -150,7 +158,7 @@ export default function MessengerSidebar({
                     {isLoading ? (
                       <div className="flex justify-center items-center h-20">
                         <PawPrint className="h-6 w-6 animate-pulse text-[#E29578]" />
-                        <span className="ml-2 text-[#006D77]">Loading...</span>
+                        <span className="ml-2 text-[#006D77]">Loading matches...</span>
                       </div>
                     ) : error ? (
                       <div className="text-center text-red-500 py-4">
@@ -162,27 +170,19 @@ export default function MessengerSidebar({
                           Retry
                         </Button>
                       </div>
-                    ) : selectedPetId ? (
-                      matches.length > 0 ? (
-                        matches.map((match) => <MatchItem key={match.id} match={match} />)
-                      ) : (
-                        <div className="text-center text-[#83C5BE] py-4">No matches yet for this pet</div>
-                      )
+                    ) : matches.length > 0 ? (
+                      matches.map((match) => <MatchItem key={match.id} match={match} />)
                     ) : (
-                      <div className="text-center text-[#83C5BE] py-4">Please select a pet to see matches</div>
+                      <div className="text-center text-[#83C5BE] py-4">No matches yet for this pet</div>
                     )}
                   </div>
                 )}
                 {activeTab === 'likes' && (
                   <div className="space-y-2 p-3">
-                    {!selectedPetId ? (
-                      <div className="text-center text-[#83C5BE] py-4">
-                        Please select a pet to see who likes you
-                      </div>
-                    ) : isLoading ? (
+                    {isLoading ? (
                       <div className="flex justify-center items-center h-20">
                         <PawPrint className="h-6 w-6 animate-pulse text-[#E29578]" />
-                        <span className="ml-2 text-[#006D77]">Loading...</span>
+                        <span className="ml-2 text-[#006D77]">Loading likes...</span>
                       </div>
                     ) : error ? (
                       <div className="text-center text-red-500 py-4">
@@ -216,7 +216,10 @@ export default function MessengerSidebar({
               'rounded-full transition-all hover:bg-[#FFDDD2]',
               activeTab === 'matches' && 'bg-[#FFDDD2] text-[#E29578]'
             )}
-            onClick={() => setActiveTab('matches')}
+            onClick={() => {
+              setActiveTab('matches');
+              setIsOpen(true);
+            }}
           >
             <MessageCircle className="h-5 w-5" />
           </Button>
@@ -227,7 +230,10 @@ export default function MessengerSidebar({
               'rounded-full transition-all hover:bg-[#FFDDD2]',
               activeTab === 'likes' && 'bg-[#FFDDD2] text-[#E29578]'
             )}
-            onClick={() => setActiveTab('likes')}
+            onClick={() => {
+              setActiveTab('likes');
+              setIsOpen(true);
+            }}
           >
             <Heart className="h-5 w-5" />
           </Button>

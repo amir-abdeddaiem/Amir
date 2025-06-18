@@ -8,7 +8,7 @@ const AnimalSchema = new mongoose.Schema({
   age: { type: String, required: [true, 'Age is required'] },
   gender: { 
     type: String, 
-    required: [true, 'Gender is required'],
+    required: [true, 'Gender is required'], 
     enum: {
       values: ['male', 'female', 'other'],
       message: 'Gender must be either male, female, or other'
@@ -46,7 +46,6 @@ AnimalSchema.pre('save', function(next) {
   next();
 });
 
-AnimalSchema.index({ name: 1, owner: 1 }, { unique: true });
 
 
 export const Animal = mongoose.models.Animal || mongoose.model('Animal', AnimalSchema);

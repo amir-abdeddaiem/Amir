@@ -148,10 +148,8 @@ export default function MainLayout({
 
         {/* Main content area */}
         <div className="flex w-full h-full">
-          <MessengerSidebar
-            isOpen={true}
-            setIsOpen={setIsSidebarOpen}
-          />
+
+
 
           <main className="flex-1 overflow-y-auto p-4">
             {children}

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ProviderCalendar } from "@/components/Service/provider-calendar";
 import EnhancedCard from "@/components/Service/enhanced-card";
+import axios from "axios";
 import {
   ArrowLeft,
   Settings,
@@ -23,30 +24,23 @@ import Link from "next/link";
 export default function ProviderDashboard() {
   const params = useParams();
   const { toast } = useToast();
-  const serviceId = params.id; // Type as string since params.id is a string
+  const serviceId = params.id;
   const [service, setService] = useState(null);
   const [availability, setAvailability] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Define the IUser interface
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchservice = async () => {
+      console.log(serviceId);
+
       try {
         setLoading(true);
-        const response = await fetch(`/api/services/${serviceId}`);
-        console.log(id)
-        if (!response.ok) {
-          throw new Error(
-            response.status === 404
-              ? "Provider not found"
-              : "Error fetching provider"
-          );
-        }
-        const providerData = await response.json();
+        const axios = (await import("axios")).default;
+        const response = await axios.get(`/api/services/${serviceId}`);
+        const providerData = response.data;
 
-        // Map API response to the expected service structure
         const mappedService = {
           id: providerData._id,
           name:
@@ -58,25 +52,86 @@ export default function ProviderDashboard() {
             providerData.boutiqueImage ||
             providerData.avatar ||
             "/placeholder.svg",
-          rating: 4.5, // Placeholder: API does not provide rating
+          rating: 4.5,
           distance: providerData.location || "Unknown location",
-          price: "$50", // Placeholder: API does not provide price
-          availability: providerData.availability || {}, // Adjust if availability is elsewhere
+          price: "$50",
+          availability: providerData.availability || {},
         };
 
         setService(mappedService);
         setAvailability(mappedService.availability || {});
       } catch (err) {
-        setError(err.message);
+        setError(
+          err.response && err.response.status === 404
+            ? "Provider not found"
+            : "Error fetching provider"
+        );
       } finally {
         setLoading(false);
       }
     };
 
-
-      fetchservice();
-    
+    fetchservice();
   }, [serviceId]);
+
+  const handleAvailabilityChange = (newAvailability) => {
+    setAvailability(newAvailability);
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+console.log("Submitting availability data:", availability);
+    try {
+      console.log( availability[0].date)
+      await axios.post(`/api/services/${serviceId}`, {
+        date: availability[0].date,
+        times: availability[0].time
+      });
+      
+
+
+      // Here you would typically make an API call to save the data
+      // For example:
+      // const axios = (await import("axios")).default;
+      // await axios.put(`/api/services/${serviceId}/availability`, availability);
+
+      toast({
+        title: "Success!",
+        description: "Availability saved successfully.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error saving availability:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save availability.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getServiceEmoji = (type) => {
+    switch (type) {
+      case "Veterinary":
+        return "🏥";
+      case "Grooming":
+        return "✂️";
+      case "Training":
+        return "🎾";
+      case "Pet Sitting":
+        return "🏠";
+      default:
+        return "🐾";
+    }
+  };
+
+  const totalSlots = Object.values(availability).reduce(
+    (total, slots) => total + slots.length,
+    0
+  );
+  const totalDays = Object.keys(availability).length;
 
   if (loading) {
     return (
@@ -118,39 +173,6 @@ export default function ProviderDashboard() {
     );
   }
 
-  const handleAvailabilityChange = (newAvailability) => {
-    setAvailability(newAvailability);
-
-    // Simulate API call to save changes
-    setTimeout(() => {
-      toast({
-        title: "Calendar updated! 🎉",
-        description: "Your availability has been successfully saved.",
-      });
-    }, 500);
-  };
-
-  const getServiceEmoji = (type) => {
-    switch (type) {
-      case "Veterinary":
-        return "🏥";
-      case "Grooming":
-        return "✂️";
-      case "Training":
-        return "🎾";
-      case "Pet Sitting":
-        return "🏠";
-      default:
-        return "🐾";
-    }
-  };
-
-  const totalSlots = Object.values(availability).reduce(
-    (total, slots) => total + slots.length,
-    0
-  );
-  const totalDays = Object.keys(availability).length;
-
   return (
     <div className="min-h-screen">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -163,7 +185,7 @@ export default function ProviderDashboard() {
           }}
         >
           <div className="flex items-center gap-4">
-            <Link href="/">
+            <Link href="/service/">
               <Button
                 variant="ghost"
                 size="lg"
@@ -258,7 +280,7 @@ export default function ProviderDashboard() {
               >
                 <Clock className="w-6 h-6 text-[#83C5BE]" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-800">{totalSlots}</h3>
+              <h3 className="text-2xl font-bold text-gray-800"></h3>
               <p className="text-sm text-gray-600">Time Slots</p>
             </div>
           </EnhancedCard>
@@ -318,6 +340,18 @@ export default function ProviderDashboard() {
                 onAvailabilityChange={handleAvailabilityChange}
                 serviceName={service.name}
               />
+              <div className="mt-6 flex justify-end">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="text-white border-0"
+                  style={{
+                    background: "linear-gradient(135deg, #E29578 0%, rgba(226, 149, 120, 0.9) 100%)",
+                  }}
+                >
+                  {isSubmitting ? "Saving..." : "Save Availability"}
+                </Button>
+              </div>
             </EnhancedCard>
           </div>
         </div>

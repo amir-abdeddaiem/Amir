@@ -92,6 +92,11 @@ export default function Step0({ formData, handleChange, nextStep }) {
       return;
     }
     // All validations passed, proceed to next step
+
+    console.log("mail to send "+formData.email)
+
+
+
     nextStep();
   };
 

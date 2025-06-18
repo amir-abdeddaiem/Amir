@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import QRCode from 'qrcode';
+
 import {
   Loader2,
   PawPrint,
@@ -33,6 +35,8 @@ const GlassCard = ({ children, className }) => (
 );
 
 export default function UserProfile() {
+
+
   const { userData } = useUserData();
   const user = userData;
   const router = useRouter();
@@ -165,6 +169,23 @@ export default function UserProfile() {
     setSelectedPost(null);
   };
 
+
+  const [qrCodeUrl, setQrCodeUrl] = useState('/user');
+
+
+  const generateQRCode = async (id) => {
+    try {
+      const url = await QRCode.toDataURL(`http://localhost:3000/animal/${id}`);
+      setQrCodeUrl(url);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+
+
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col bg-gradient-to-br from-[#EDF6F9] to-[#FFDDD2]">
@@ -260,8 +281,8 @@ export default function UserProfile() {
                           <p className="text-[#006D77]">
                             {user?.birthDate
                               ? new Date(user.birthDate)
-                                  .toISOString()
-                                  .split("T")[0]
+                                .toISOString()
+                                .split("T")[0]
                               : "Not provided"}
                           </p>
                         </div>
@@ -420,10 +441,15 @@ export default function UserProfile() {
                               <p className="text-sm text-[#83C5BE]">
                                 Breed: {pet.breed}
                               </p>
-                              <p className="text-sm text-[#83C5BE] mb-4">
+                              <p onLoad={() => { generateQRCode(pet._id) }} className="text-sm text-[#83C5BE] mb-4">
                                 Age: {pet.age} years
                               </p>
+                              <div className="col-span-2 text-center py-1 justify-center flex">
+
+                                <img src={qrCodeUrl} className="w-25 h-25" alt="" onError={() => { generateQRCode(pet._id) }} />
+                              </div>
                               <div className="grid grid-cols-2 gap-3">
+
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -444,10 +470,13 @@ export default function UserProfile() {
                                   }}
                                   className="border-[#E29578] text-[#E29578] hover:bg-[#E29578]/10"
                                 >
+
                                   <AlertTriangle className="mr-2 h-4 w-4" />{" "}
                                   Lost
                                 </Button>
                               </div>
+
+
                             </motion.div>
                           </Link>
                         ))
@@ -562,7 +591,7 @@ export default function UserProfile() {
           show={showModal}
           onClose={closeModal}
           isFavorite={false}
-          toggleFavorite={() => {}}
+          toggleFavorite={() => { }}
         />
       )}
 

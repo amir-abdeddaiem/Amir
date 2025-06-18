@@ -3,24 +3,19 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useEffect,useState } from "react";
-import axios from "axios";
-
-// import AddAnimal from "../Animal/Addanimal";";
-
+import { useEffect, useState } from "react";
 export default function HeroSection() {
   const [data, setData] = useState("/hams.jpg");
-  
+
   const router = useRouter();
   const addanimal = () => {
-    router.push("../../../../add-animal"); // Naviguer vers la page /about
+    router.push("/animal/add-animal");
   };
 
   return (
     <section className="relative overflow-hidden py-20">
       <div className="container mx-auto px-4">
         <div className="grid gap-8 md:grid-cols-2 md:gap-12 items-center">
-          {/* Left side - Image */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -28,7 +23,7 @@ export default function HeroSection() {
             className="relative h-[400px] w-full rounded-2xl overflow-hidden shadow-xl"
           >
             <Image
-              src={data || "/images/default-pet.jpg"} // Fallback image if data is not available
+              src={data || "/images/default-pet.jpg"}
               alt="Happy pet"
               fill
               className="object-cover"
@@ -40,7 +35,6 @@ export default function HeroSection() {
             </div>
           </motion.div>
 
-          {/* Right side - Content */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -62,7 +56,6 @@ export default function HeroSection() {
               >
                 Add Animal
               </Button>
-              {/* <AddAnimal /> */}
               <Button
                 variant="outline"
                 className="border-[#83C5BE] text-[#83C5BE] hover:bg-[#83C5BE] hover:text-white px-8 py-6 text-lg"
@@ -72,9 +65,7 @@ export default function HeroSection() {
             </div>
             <div className="flex items-center space-x-4 pt-4">
               <div className="flex -space-x-2">
-                
               </div>
-              
             </div>
           </motion.div>
         </div>

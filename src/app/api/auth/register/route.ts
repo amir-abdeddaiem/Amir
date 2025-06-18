@@ -107,6 +107,7 @@ export async function POST(req: Request) {
           email: newUser.email,
           name: `${newUser.firstName} ${newUser.lastName}`,
           status: "authenticated",
+          role:newUser.accType 
         },
       },
       { status: 201 }

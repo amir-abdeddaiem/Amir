@@ -23,6 +23,7 @@ import SigninWithFcb from "@/components/SigninWithFcb/SigninWithFcb";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import { useUserData } from "@/contexts/UserData";
 
 export default function Signin({ isOpen, onClose }) {
   const router = useRouter();
@@ -66,11 +67,14 @@ export default function Signin({ isOpen, onClose }) {
         const { token } = response.data;
 
         if (token) {
-          Cookies.set("token", token, {
+          Cookies.set("jwt", token, {
             expires: formData.rememberMe ? 7 : 1 / 24,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
           });
+          const{refreshUserData}=useUserData()
+          refreshUserData()
+          
           router.push("/user");
         }
       } catch (err) {

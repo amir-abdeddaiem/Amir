@@ -91,15 +91,11 @@ export default function AddAnimal() {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post("/api/animal", formData, {
-        headers: {
-          "x-user-id": user?.id,
-        },
-      });
+      const response = await axios.post("/api/animal", formData);
 
       if (response.status === 201) {
         console.log("Animal added successfully:", response.data);
-        router.push("/");
+        router.push(`/user`);
       } else {
         console.error("Failed to add animal:", response.data.message);
       }

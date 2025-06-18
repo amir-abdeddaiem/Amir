@@ -70,7 +70,6 @@ export default function ServiceProviderProfile() {
   };
 
   const handleEditClick = () => {
-    toast.info("Edit functionality not implemented yet");
     router.push("/provider/edit");
   };
 

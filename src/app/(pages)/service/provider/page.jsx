@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { FadeInContainer } from "@/components/Service/animations";
 import { AddServiceModal } from "@/components/Service/add-service-modal";
 import { ServiceManagement } from "@/components/Service/service-management";
+import { useRouter } from "next/navigation";
 import {
   User,
   MapPin,
@@ -46,6 +47,7 @@ export default function ProviderProfile() {
     averageRating: 0,
     monthlyEarnings: 0,
   });
+  const router = useRouter()
 
   useEffect(() => {
     fetchServiceProvider();
@@ -61,6 +63,7 @@ export default function ProviderProfile() {
       });
 
       if (response.data.success) {
+        console.log(response.data)
         setServiceProvider(response.data.data);
       } else {
         throw new Error(
@@ -103,7 +106,7 @@ export default function ProviderProfile() {
   };
 
   const handleEditClick = () => {
-    toast.info("Edit functionality not implemented yet");
+    // toast.info("Edit functionality not implemented yet");
     router.push("/provider/edit");
   };
 
@@ -156,11 +159,11 @@ export default function ProviderProfile() {
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     <span className="font-semibold">
-                      {stats.averageRating.toFixed(1)}
+                      {/* {stats.averageRating.toFixed(1)} */}
                     </span>
                   </div>
                   <Badge className="bg-[#83C5BE] text-white">
-                    {stats.totalServices} Services
+                    {/* {stats.totalServices} Services */}
                   </Badge>
                 </div>
               </div>
@@ -199,7 +202,7 @@ export default function ProviderProfile() {
                   <Building className="w-6 h-6 text-[#83C5BE]" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  {stats.totalServices}
+                  {/* {stats.totalServices} */}
                 </h3>
                 <p className="text-sm text-gray-600">Active Services</p>
               </div>
@@ -211,7 +214,7 @@ export default function ProviderProfile() {
                   <Calendar className="w-6 h-6 text-[#E29578]" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  {stats.totalReservations}
+                  {/* {stats.totalReservations} */}
                 </h3>
                 <p className="text-sm text-gray-600">Total Bookings</p>
               </div>
@@ -223,7 +226,7 @@ export default function ProviderProfile() {
                   <Star className="w-6 h-6 text-yellow-500" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  {stats.averageRating.toFixed(1)}
+                  {/* {stats.averageRating.toFixed(1)} */}
                 </h3>
                 <p className="text-sm text-gray-600">Average Rating</p>
               </div>
@@ -235,7 +238,7 @@ export default function ProviderProfile() {
                   <DollarSign className="w-6 h-6 text-green-500" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  ${stats.monthlyEarnings}
+                  {/* ${stats.monthlyEarnings} */}
                 </h3>
                 <p className="text-sm text-gray-600">This Month</p>
               </div>
@@ -499,7 +502,7 @@ export default function ProviderProfile() {
                   <div className="space-y-4">
                     <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
                       <h3 className="text-3xl font-bold text-green-600">
-                        {stats.monthlyEarnings}DT
+                        {/* {stats.monthlyEarnings}DT */}
                       </h3>
                       <p className="text-green-700">This Month</p>
                     </div>
@@ -513,7 +516,7 @@ export default function ProviderProfile() {
                   <div className="space-y-4">
                     <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
                       <h3 className="text-3xl font-bold text-blue-600">
-                        {stats.totalReservations}
+                        {/* {stats.totalReservations} */}
                       </h3>
                       <p className="text-blue-700">Total Bookings</p>
                     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +39,6 @@ export function ServiceCard({ service }: ServiceCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-
   const getServiceEmoji = (type: string) => {
     const emojiMap: Record<string, string> = {
       "Veterinary": "🏥",
@@ -55,6 +54,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
     };
     return emojiMap[type] || "🐾";
   };
+
 
   const calculateAge = (birthDate: string | null) => {
     if (!birthDate) return null;
@@ -93,7 +93,6 @@ export function ServiceCard({ service }: ServiceCardProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Gradient overlay */}
       <div className="absolute inset-0" style={gradientOverlayStyle} />
 
       <CardContent className="p-0 relative z-10 flex flex-col flex-grow">
@@ -108,8 +107,6 @@ export function ServiceCard({ service }: ServiceCardProps) {
               priority={false}
             />
           </div>
-
-          {/* Image gradient overlay */}
           <div
             className="absolute inset-0 transition-opacity duration-300"
             style={{
@@ -119,7 +116,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
           />
 
           <div className="absolute top-4 left-4 flex flex-col gap-2">
-              <Badge variant="secondary" className="shadow-md hover:shadow-lg transition-all duration-200">
+            <Badge variant="secondary" className="shadow-md hover:shadow-lg transition-all duration-200">
 
               <span className="mr-1">{getServiceEmoji(service.businessType)}</span>
               {service.businessType}
@@ -147,9 +144,8 @@ export function ServiceCard({ service }: ServiceCardProps) {
             aria-label={isLiked ? "Remove from favorites" : "Add to favorites"}
           >
             <Heart
-              className={`w-5 h-5 transition-all duration-200 ${
-                isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
-              }`}
+              className={`w-5 h-5 transition-all duration-200 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
+                }`}
             />
           </button>
         </div>
@@ -186,15 +182,12 @@ export function ServiceCard({ service }: ServiceCardProps) {
               </div>
             )}
           </div>
-
-          {/* Separator */}
           <div
             className="h-px my-2"
             style={{
               background: "linear-gradient(to right, transparent 0%, rgba(156, 163, 175, 0.3) 50%, transparent 100%)",
             }}
           />
-
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <MapPin className="w-4 h-4 text-[#83C5BE] flex-shrink-0" />
@@ -248,7 +241,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
             )}
           </div>
 
-          <Link href={`/service/provider/${service._id}`} passHref>
+          <Link href={`/service/reservation/${service._id}`} passHref>
             <button
               className="w-full text-white transition-all duration-300 group-hover:shadow-lg py-3 text-base font-semibold border-0 relative overflow-hidden"
               style={{
@@ -256,9 +249,8 @@ export function ServiceCard({ service }: ServiceCardProps) {
               }}
             >
               <span
-                className={`transition-transform duration-300 mr-2 ${
-                  isHovered ? "animate-bounce" : ""
-                }`}
+                className={`transition-transform duration-300 mr-2 ${isHovered ? "animate-bounce" : ""
+                  }`}
               >
                 🐾
               </span>

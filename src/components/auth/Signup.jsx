@@ -25,10 +25,14 @@ import RegularUserStep2 from "./signup/RegularUserStep2";
 import ServiceProviderStep2 from "./signup/ServiceProviderStep2";
 import ServiceProviderStep3 from "./signup/ServiceProviderStep3";
 import axios from "axios";
+import { useUserData } from "@/contexts/UserData";
 
 export default function Signup() {
   const [userType, setUserType] = useState("regular");
   const [step, setStep] = useState(1);
+  
+    const {userData,refreshUserData}=useUserData()
+
   const [formData, setFormData] = useState({
     accType: "regular" || "provider",
     email: "",
@@ -130,7 +134,7 @@ export default function Signup() {
 
     const updatedFormData = { ...formData, accType: userType };
     console.log("Form data being sent to backend:", updatedFormData); // Add this for debugging
-
+    
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
@@ -163,8 +167,12 @@ export default function Signup() {
             padding: "12px 24px",
           },
         });
+
+
         return false;
       }
+      refreshUserData()
+      router.push("/service/provider")
 
       console.log("Registration successful:", data);
       if (data.token) {
@@ -181,6 +189,7 @@ export default function Signup() {
           padding: "12px 24px",
         },
       });
+
       return true;
     } catch (error) {
       const errorMessage =

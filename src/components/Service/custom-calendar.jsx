@@ -6,14 +6,20 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { ClientOnly } from "@/components/Service/client-only";
 
-export function CustomCalendar({ availability, onDateSelect, selectedDate }) {
-  const [mounted, setMounted] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(null);
+export function CustomCalendar({
+  availability,
+  onDateSelect, // Callback when a date is selected
+  selectedDate,
+  onMonthChange, // New callback for month changes
+  initialMonth = new Date(2024, 11) // Default to December 2024
+}) {
+  // Initialize currentMonth from initialMonth prop
+  const [currentMonth, setCurrentMonth] = useState(initialMonth);
 
+  // If you want to allow initialMonth to change after mount, use this effect:
   useEffect(() => {
-    setMounted(true);
-    setCurrentMonth(new Date(2024, 11)); // December 2024
-  }, []);
+    setCurrentMonth(initialMonth);
+  }, [initialMonth]);
 
   const monthNames = [
     "January",
@@ -32,7 +38,7 @@ export function CustomCalendar({ availability, onDateSelect, selectedDate }) {
 
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  if (!mounted || !currentMonth) {
+  if (!currentMonth) {
     return (
       <div
         className="rounded-2xl p-8 animate-pulse"
@@ -92,8 +98,20 @@ export function CustomCalendar({ availability, onDateSelect, selectedDate }) {
     setCurrentMonth((prev) => {
       const newMonth = new Date(prev);
       newMonth.setMonth(prev.getMonth() + direction);
+      
+      // Notify parent component about the month change
+      if (onMonthChange) {
+        onMonthChange(newMonth);
+      }
+      
       return newMonth;
     });
+  };
+
+  const handleDateSelect = (dateString) => {
+    if (onDateSelect) {
+      onDateSelect(dateString);
+    }
   };
 
   const days = getDaysInMonth(currentMonth);
@@ -171,9 +189,7 @@ export function CustomCalendar({ availability, onDateSelect, selectedDate }) {
                   variant="ghost"
                   size="sm"
                   disabled={!day.isAvailable}
-                  onClick={() =>
-                    day.isAvailable && onDateSelect(day.dateString)
-                  }
+                  onClick={() => day.isAvailable && handleDateSelect(day.dateString)}
                   className="w-full h-full relative transition-all duration-300 rounded-xl text-base font-semibold"
                   style={{
                     background: day.isSelected
@@ -243,7 +259,7 @@ export function CustomCalendar({ availability, onDateSelect, selectedDate }) {
               style={{ border: "2px solid rgba(131, 197, 190, 0.3)" }}
             />
             <span className="text-sm font-medium text-gray-600">Available</span>
-          </div>
+          </div>  
           <div className="flex items-center gap-2">
             <div
               className="w-4 h-4 rounded"

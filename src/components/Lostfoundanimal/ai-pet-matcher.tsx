@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { Camera, Upload, Check, X, QrCode } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
+import { Html5QrcodeScanner } from "html5-qrcode"
 
 type MatchState = "idle" | "uploading" | "match-found" | "no-match"
 
@@ -38,6 +39,61 @@ export function AIPetMatcher() {
   })
   const [error, setError] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [scanQr, setScanQr] = useState(false)
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null)
+  const qrScannerContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scanQr && qrScannerContainerRef.current) {
+      // Clear any previous scanner instance
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(error => {
+          console.error("Failed to clear QR scanner", error)
+        })
+      }
+
+      // Initialize new scanner
+      scannerRef.current = new Html5QrcodeScanner(
+        "qr-scanner-container",
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          supportedScanTypes: [],
+          rememberLastUsedCamera: true
+        },
+        false
+      )
+
+      scannerRef.current.render(
+        (decodedText) => {
+          // Success callback
+          handleQrScanSuccess(decodedText)
+        },
+        (errorMessage) => {
+          // Error callback
+          handleQrScanError(errorMessage)
+        }
+      )
+
+      return () => {
+        if (scannerRef.current) {
+          scannerRef.current.clear().catch(error => {
+            console.error("Failed to clear QR scanner on unmount", error)
+          })
+        }
+      }
+    }
+  }, [scanQr])
+
+  const handleQrScanSuccess = (decodedText: string) => {
+    setScanQr(false)
+    window.location.href = decodedText
+  }
+
+  const handleQrScanError = (errorMessage: string) => {
+    console.error(errorMessage)
+    // Don't show every error to the user, only show if scanning fails completely
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
@@ -69,18 +125,19 @@ export function AIPetMatcher() {
         })
       }, 200)
 
-      const response = await fetch("/api/animal", {
+      const response = await fetch("/api/lostfound", {
         method: "POST",
         body: formData,
       })
-
+      
       clearInterval(interval)
       setProgress(100)
 
       if (!response.ok) throw new Error("Failed to check for pet match")
 
       const data = await response.json()
-      if (data.data) {
+      console.log(data)
+      if (data.data.length>0) {
         setAnimalData(data.data)
         setMatchState("match-found")
       } else {
@@ -133,6 +190,7 @@ export function AIPetMatcher() {
     setReportData({ color: "", description: "", breed: "", gender: "", type: "" })
     setError(null)
     setDialogOpen(false)
+    setScanQr(false)
   }
 
   return (
@@ -152,7 +210,22 @@ export function AIPetMatcher() {
           <div className="mb-4 rounded-lg bg-red-100 p-3 text-sm text-red-700">{error}</div>
         )}
 
-        {matchState === "idle" && (
+        {scanQr ? (
+          <div className="space-y-4">
+            <div 
+              id="qr-scanner-container"
+              ref={qrScannerContainerRef}
+              className="w-full rounded-lg border"
+            />
+            <Button
+              onClick={() => setScanQr(false)}
+              className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300"
+              variant="ghost"
+            >
+              Cancel Scan
+            </Button>
+          </div>
+        ) : matchState === "idle" ? (
           <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-gray-300 bg-[#EDF6F9]/20 p-8 text-center">
             <div className="rounded-full bg-[#E29578]/20 p-3">
               <Upload className="h-6 w-6 text-[#E29578]" />
@@ -164,13 +237,16 @@ export function AIPetMatcher() {
             <div className="flex gap-2">
               <Button
                 onClick={() => document.getElementById("pet-image-upload")?.click()}
-                className="bg-[#E29578] hover:bg-[#E29578]/90" variant={undefined} size={undefined}              >
+                className="bg-[#E29578] hover:bg-[#E29578]/90"
+              >
                 <Upload className="mr-2 h-4 w-4" />
                 Upload Image
               </Button>
               <Button
                 variant="outline"
-                className="border-[#E29578]/20 text-[#E29578] hover:bg-[#E29578]/10" size={undefined}              >
+                className="border-[#E29578]/20 text-[#E29578] hover:bg-[#E29578]/10"
+                onClick={() => setScanQr(true)}
+              >
                 <QrCode className="mr-2 h-4 w-4" />
                 Scan QR
               </Button>
@@ -184,9 +260,7 @@ export function AIPetMatcher() {
             />
             <p className="text-xs text-gray-500">JPG, PNG, GIF (max 10MB)</p>
           </div>
-        )}
-
-        {matchState === "uploading" && (
+        ) : matchState === "uploading" ? (
           <div className="space-y-4 py-6">
             {previewUrl && (
               <div className="mx-auto mb-4 h-40 w-40 overflow-hidden rounded-lg">
@@ -200,9 +274,7 @@ export function AIPetMatcher() {
             <Progress value={progress} className="h-2 w-full" />
             <p className="text-center text-sm text-gray-500">{progress}% complete</p>
           </div>
-        )}
-
-        {matchState === "match-found" && animalData && (
+        ) : matchState === "match-found" && animalData ? (
           <div className="space-y-4 py-6">
             <div className="flex items-start gap-4">
               {previewUrl && (
@@ -236,15 +308,13 @@ export function AIPetMatcher() {
                 )}
               </div>
               {animalData.owner && (
-                <Button className="w-full bg-[#E29578] hover:bg-[#E29578]/90" variant={undefined} size={undefined}>
+                <Button className="w-full bg-[#E29578] hover:bg-[#E29578]/90">
                   Contact Owner
                 </Button>
               )}
             </div>
           </div>
-        )}
-
-        {matchState === "no-match" && (
+        ) : matchState === "no-match" ? (
           <div className="space-y-4 py-6">
             <div className="flex items-start gap-4">
               {previewUrl && (
@@ -266,84 +336,87 @@ export function AIPetMatcher() {
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full bg-[#E29578] hover:bg-[#E29578]/90" variant={undefined} size={undefined}>
+                <Button className="w-full bg-[#E29578] hover:bg-[#E29578]/90">
                   Report Found Pet
                 </Button>
               </DialogTrigger>
-              <DialogContent className={undefined} >
-                <DialogHeader className={undefined}>
-                  <DialogTitle className={undefined}>Report Found Pet</DialogTitle>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Report Found Pet</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleReportSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="type" className={undefined}>Animal Type</Label>
+                    <Label htmlFor="type">Animal Type</Label>
                     <Select onValueChange={(value: string) => handleInputChange("type", value)} value={reportData.type}>
-                      <SelectTrigger className={undefined} >
+                      <SelectTrigger>
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
-                      <SelectContent className={undefined} >
-                        <SelectItem value="dog" className={undefined} >Dog</SelectItem>
-                        <SelectItem value="cat" className={undefined} >Cat</SelectItem>
-                        <SelectItem value="bird" className={undefined} >Bird</SelectItem>
-                        <SelectItem value="other" className={undefined} >Other</SelectItem>
+                      <SelectContent>
+                        <SelectItem value="dog">Dog</SelectItem>
+                        <SelectItem value="cat">Cat</SelectItem>
+                        <SelectItem value="bird">Bird</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="breed" className={undefined}>Breed</Label>
+                    <Label htmlFor="breed">Breed</Label>
                     <Input
                       id="breed"
                       value={reportData.breed}
-                      onChange={(e: { target: { value: string } }) => handleInputChange("breed", e.target.value)}
-                      placeholder="e.g., Golden Retriever" className={undefined} type={undefined} />
+                      onChange={(e) => handleInputChange("breed", e.target.value)}
+                      placeholder="e.g., Golden Retriever"
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="color" className={undefined}>Color</Label>
+                    <Label htmlFor="color">Color</Label>
                     <Input
                       id="color"
                       value={reportData.color}
-                      onChange={(e: { target: { value: string } }) => handleInputChange("color", e.target.value)}
-                      placeholder="e.g., Brown" className={undefined} type={undefined} />
+                      onChange={(e) => handleInputChange("color", e.target.value)}
+                      placeholder="e.g., Brown"
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="gender" className={undefined}>Gender</Label>
+                    <Label htmlFor="gender">Gender</Label>
                     <Select onValueChange={(value: string) => handleInputChange("gender", value)} value={reportData.gender}>
-                      <SelectTrigger className={undefined} >
+                      <SelectTrigger>
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
-                      <SelectContent className={undefined} >
-                        <SelectItem value="male" className={undefined} >Male</SelectItem>
-                        <SelectItem value="female" className={undefined} >Female</SelectItem>
-                        <SelectItem value="unknown" className={undefined} >Unknown</SelectItem>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="unknown">Unknown</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="description" className={undefined}>Description</Label>
+                    <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
                       value={reportData.description}
-                      onChange={(e: { target: { value: string } }) => handleInputChange("description", e.target.value)}
-                      placeholder="Describe the pet (e.g., size, markings, behavior)" className={undefined} />
+                      onChange={(e) => handleInputChange("description", e.target.value)}
+                      placeholder="Describe the pet (e.g., size, markings, behavior)"
+                    />
                   </div>
-                  <Button type="submit" className="w-full bg-[#E29578] hover:bg-[#E29578]/90" variant={undefined} size={undefined}>
+                  <Button type="submit" className="w-full bg-[#E29578] hover:bg-[#E29578]/90">
                     Submit Report
                   </Button>
                 </form>
               </DialogContent>
             </Dialog>
           </div>
-        )}
+        ) : null}
       </CardContent>
 
       <CardFooter
         className={cn(
           "flex items-center justify-between bg-[#EDF6F9]/20 px-4 py-3 text-xs text-gray-500",
-          matchState !== "idle" && "justify-between",
+          matchState !== "idle" && !scanQr && "justify-between",
         )}
       >
         <span>Powered by AICeternity™ Pet Recognition</span>
-        {matchState !== "idle" && (
+        {(matchState !== "idle" || scanQr) && (
           <Button
             variant="ghost"
             size="sm"

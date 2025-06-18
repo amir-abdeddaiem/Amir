@@ -45,13 +45,12 @@ export default function Form3({
         <h3 className="text-lg font-medium mb-2">Uploaded Images</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           <div className="aspect-square rounded-md overflow-hidden border border-gray-200">
-            <img
+            {previewImage&&<img
               accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
-              src={previewImage || "/placeholder.svg"}
+              src={previewImage || ""}
               alt={`Product image`}
-              fill
               className="object-cover"
-            />
+            />}
           </div>
           <button
             type="button"

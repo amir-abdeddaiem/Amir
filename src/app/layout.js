@@ -1,9 +1,10 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import  NextAuthProvider  from "@/contexts/NextAuthProvider";
+import NextAuthProvider from "@/contexts/NextAuthProvider";
 import { UserDataProvider } from "@/contexts/UserData";
 import { RefreshProvider } from "@/contexts/RefreshContext";
 import Navbar from "@/components/Navbar/Navbar";
+import ChatBot from "@/components/ChatBot/ChatBot";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,18 +27,21 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-              <Navbar />
 
         <RefreshProvider>
-        <UserDataProvider>
-        <NextAuthProvider>
-          {/* <ThemeProvider> */}
-        {children}
-        {/* </ThemeProvider> */}
-        </NextAuthProvider>
-        </UserDataProvider>
+          <UserDataProvider>
+            <NextAuthProvider>
+              <Navbar />
+
+              {/* <ThemeProvider> */}
+
+              <ChatBot/>
+              {children}
+              {/* </ThemeProvider> */}
+            </NextAuthProvider>
+          </UserDataProvider>
         </RefreshProvider>
-        
+
       </body>
     </html>
   );
