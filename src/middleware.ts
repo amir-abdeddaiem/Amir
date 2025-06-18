@@ -77,7 +77,7 @@ export const config = {
     '/api/myanimal/:path*',
     '/api/provider/:path*',
     '/api/admin/:path*',
-    '/api/services/:path*',
+    // '/api/services/:path*',
     "/user/:path*",
     "/marcket_place/:path*",
     "/service_provider/:path*",

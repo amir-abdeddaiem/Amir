@@ -48,6 +48,8 @@ export default function ProviderProfile() {
     monthlyEarnings: 0,
   });
   const router = useRouter()
+  const Router = useRouter()
+
 
   useEffect(() => {
     fetchServiceProvider();
@@ -66,9 +68,9 @@ export default function ProviderProfile() {
         console.log(response.data)
         setServiceProvider(response.data.data);
       } else {
-        throw new Error(
-          response.data.error || "Failed to fetch provider data."
-        );
+        // throw new Error(
+        //   response.data.error || "Failed to fetch provider data."
+        // );
       }
     } catch (err) {
       console.error("Error fetching provider data:", err);

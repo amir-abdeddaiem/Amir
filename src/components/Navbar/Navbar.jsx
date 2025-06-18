@@ -16,6 +16,7 @@ import { User, Settings, LogOut, ChevronDown, Cat, Search } from "lucide-react"
 import { motion } from "framer-motion"
 import { useUserData } from "@/contexts/UserData";
 import Signout from "../Signout/Signout";
+import { userAgent } from "next/server";
 
 export default function Navbar() {
   const router = useRouter();
@@ -249,10 +250,12 @@ export default function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="focus:bg-[#FFDDD2]/50">
-                    <Link href="/service/provider" className="w-full flex items-center">
+   
+                    <Link href={`/service/provider/${userData.id}`}className="w-full flex items-center">
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Manage service</span>
                     </Link>
+                    
                   </DropdownMenuItem>
                   <DropdownMenuItem className="focus:bg-[#FFDDD2]/50">
                     <Link href="/animal/add-animal" className="w-full flex items-center">
@@ -262,12 +265,8 @@ export default function Navbar() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        localStorage.removeItem("userData");
-                        window.location.href = "/signin";
-                      }
-                    }}
+
+   
                     className="focus:bg-[#FFDDD2]/50"
                   >
                     <LogOut className="mr-2 h-4 w-4" />

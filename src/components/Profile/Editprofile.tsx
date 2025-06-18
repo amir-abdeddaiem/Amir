@@ -260,7 +260,7 @@ export default function UpdateProfileImproved() {
                                             </Label>
                                             <Select
                                                 value={profileData.gender}
-                                                onValueChange={(e: any) => handleChange("gender", e.target.value)}
+                                               
                                             >
                                                 <SelectTrigger className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
                                                     <SelectValue placeholder="Select gender" />

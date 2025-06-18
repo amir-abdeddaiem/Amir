@@ -1,90 +1,123 @@
+import React, { useState, useRef, useEffect } from 'react';
 
-"use client"; // Required for Next.js 13+ (since we're using hooks)
+interface OTPInputProps {
+  length?: number;
+  onComplete?: (otp: string) => void;
+  showMailAlert?: boolean;
+  email?: string;
+}
 
-import React, { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from 'react';
-import styles from './OTPInput.module.css'; // Optional CSS (see below)
+const OTPInput: React.FC<OTPInputProps> = ({ 
+  length = 6, 
+  onComplete = () => {},
+  showMailAlert = false,
+  email = ''
+}) => {
+  const [otp, setOtp] = useState<string[]>(Array(length).fill(''));
+  const [isVerified, setIsVerified] = useState(false);
+  const inputRefs = useRef<HTMLInputElement[]>([]);
 
-const OTP_LENGTH = 6; // Change this for different OTP lengths
-
-const OTPInput = () => {
-  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  // Auto-focus the first input on mount
   useEffect(() => {
     if (inputRefs.current[0]) {
       inputRefs.current[0].focus();
     }
   }, []);
 
-  // Handle OTP change
-  const handleChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
-    const value = e.target.value.replace(/\D/g, ''); // Allow only digits
-    if (value && !/^\d+$/.test(value)) return; // Prevent non-digits
+  useEffect(() => {
+    // Reset verification state when OTP changes
+    if (isVerified && otp.some(digit => digit === '')) {
+      setIsVerified(false);
+    }
+  }, [otp, isVerified]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const value = e.target.value;
+    
+    if (isNaN(Number(value))) return;
 
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1); // Take only the last digit (if pasted)
+    newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
 
-    // Auto-focus next input if a digit was entered
-    if (value && index < OTP_LENGTH - 1 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1]?.focus();
+    // Check if all fields are filled
+    if (newOtp.every(digit => digit !== '')) {
+      setIsVerified(true);
+      onComplete(newOtp.join(''));
+    }
+
+    // Move to next input if current input is filled
+    if (value && index < length - 1) {
+      const nextInput = inputRefs.current[index + 1];
+      if (nextInput) {
+        nextInput.focus();
+      }
     }
   };
 
-  // Handle backspace to move focus backward
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+      const prevInput = inputRefs.current[index - 1];
+      if (prevInput) {
+        prevInput.focus();
+      }
     }
   };
 
-  // Handle paste (e.g., from SMS autofill)
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text/plain').replace(/\D/g, '');
-    if (pastedData.length === OTP_LENGTH) {
-      const newOtp = [...otp];
-      for (let i = 0; i < OTP_LENGTH; i++) {
-        newOtp[i] = pastedData[i] || '';
+    const pasteData = e.clipboardData.getData('text/plain').slice(0, length);
+    const pasteArray = pasteData.split('').filter(char => !isNaN(Number(char)));
+    
+    if (pasteArray.length === length) {
+      setOtp(pasteArray);
+      setIsVerified(true);
+      onComplete(pasteArray.join(''));
+      const lastInput = inputRefs.current[length - 1];
+      if (lastInput) {
+        lastInput.focus();
       }
-      setOtp(newOtp);
-      inputRefs.current[OTP_LENGTH - 1]?.focus(); // Focus last input after paste
     }
-  };
-
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const otpCode = otp.join('');
-    alert(`OTP Submitted: ${otpCode}`); // Replace with your logic (e.g., API call)
   };
 
   return (
-    <div className={styles.container}>
-      <h2>Enter OTP</h2>
-      <form onSubmit={handleSubmit}>
-        <div className={styles.otpContainer}>
-          {Array.from({ length: OTP_LENGTH }).map((_, index) => (
-            <input
-              key={index}
-              type="text"
-              maxLength={1}
-              value={otp[index]}
-              onChange={(e) => handleChange(e, index)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              onPaste={handlePaste}
-              ref={(el) => { inputRefs.current[index] = el; }}
-              className={styles.otpInput}
-              inputMode="numeric"
-              autoComplete="one-time-code" // Helps with autofill on mobile
-            />
-          ))}
+    <div className="space-y-4">
+      {showMailAlert && (
+        <div className="bg-blue-50 text-blue-800 text-sm p-3 rounded-md mb-4">
+          A verification code has been sent to <span className="font-medium">{email || 'your email'}</span>
         </div>
-        <button type="submit" className={styles.submitButton}>
-          Verify OTP
-        </button>
-      </form>
+      )}
+      
+      <div className="flex items-center justify-center space-x-2">
+        {otp.map((digit, index) => (
+          <input
+            key={index}
+            type="text"
+            inputMode="numeric"
+            maxLength={1}
+            value={digit}
+            onChange={(e) => handleChange(e, index)}
+            onKeyDown={(e) => handleKeyDown(e, index)}
+            onPaste={handlePaste}
+            ref={(el) => {
+              if (el) inputRefs.current[index] = el;
+            }}
+            className={`w-12 h-12 text-2xl text-center border rounded-md focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-300 ${
+              isVerified && otp.every(d => d !== '')
+                ? 'border-green-500 bg-green-50 focus:ring-green-500'
+                : 'border-gray-300 focus:ring-blue-500'
+            }`}
+          />
+        ))}
+      </div>
+
+      {isVerified && otp.every(d => d !== '') && (
+        <div className="text-green-600 text-sm text-center mt-2 flex items-center justify-center">
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          Code verified!
+        </div>
+      )}
     </div>
   );
 };

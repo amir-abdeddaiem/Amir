@@ -59,11 +59,10 @@ export default function LoginPage() {
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
           });
-          // if (userData) {
-          //   if (userData.accType == "admin") {
-          //     router.push("/admin");
-          //   }
-          // }
+
+                                    router.push("/user");
+
+
 
 
         }
