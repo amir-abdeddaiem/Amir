@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { FoundAnimal } from '@/models/FoundLost';
-import { Animal } from '@/models/Animal';
-import { connectDB } from '@/lib/db';
+import sql from '@/lib/db';
 
 export async function POST(req: NextRequest) {
+  const userId = req.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
-    await connectDB();
-
-    const user = req.headers.get('x-user-id');
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const formData = await req.formData();
     const image = formData.get('image') as File;
     const color = formData.get('color') as string;
@@ -20,59 +13,32 @@ export async function POST(req: NextRequest) {
     const gender = formData.get('gender') as string;
     const type = formData.get('type') as string;
 
-    // Validate required fields
     if (!image || !color || !description || !breed || !gender || !type) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-
-    // Convert image to base64 (adjust based on your storage method, e.g., S3)
     const buffer = await image.arrayBuffer();
     const imageBase64 = `data:${image.type};base64,${Buffer.from(buffer).toString('base64')}`;
 
-    const foundAnimal = new FoundAnimal({
-      color,
-      image: imageBase64,
-      description,
-      breed,
-      gender,
-      type,
-      reporter: user,
-    });
+    const rows = await sql`
+      INSERT INTO found_lost_animals (color, image, description, breed, gender, type, reporter_id)
+      VALUES (${color}, ${imageBase64}, ${description}, ${breed}, ${gender}, ${type}, ${userId})
+      RETURNING *`;
 
-    await foundAnimal.save();
+    // Mark potential lost animals as inmatch
+    await sql`UPDATE animals SET inmatch = true, updated_at = NOW() WHERE lost = true AND type = ${type} AND (breed = ${breed} OR color = ${color} OR gender = ${gender})`;
 
-    // Check for potential matches with lost animals
-    const potentialMatches = await Animal.find({
-      lost: true,
-      type,
-      $or: [
-        { breed: breed },
-        { color: color },
-        { gender: gender },
-      ],
-    });
-
-    if (potentialMatches.length > 0) {
-      await Animal.updateMany(
-        { _id: { $in: potentialMatches.map((m) => m._id) } },
-        { $set: { inmatch: true } },
-      );
-    }
-
-    return NextResponse.json({ message: 'Found animal reported successfully', data: foundAnimal }, { status: 201 });
+    return NextResponse.json({ message: 'Found animal reported successfully', data: rows[0] }, { status: 201 });
   } catch (error) {
-    console.error('Error reporting found animal:', error);
+    console.error('foundanimal POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    await connectDB();
-    const foundAnimals = await FoundAnimal.find().sort({ createdAt: -1 });
-    return NextResponse.json({ data: foundAnimals }, { status: 200 });
+    const rows = await sql`SELECT * FROM found_lost_animals ORDER BY created_at DESC`;
+    return NextResponse.json({ data: rows });
   } catch (error) {
-    console.error('Error fetching found animals:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

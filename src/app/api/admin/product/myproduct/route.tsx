@@ -1,60 +1,28 @@
-import { connectDB } from '@/lib/db';
-import { Product } from '@/models/Product';
 import { NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
 export async function GET() {
-    try {
-        await connectDB();
+  try {
+    const products = await sql`
+      SELECT p.*, u.first_name, u.last_name, u.email
+      FROM products p LEFT JOIN users u ON u.id = p.user_id
+      ORDER BY p.created_at DESC`;
 
-        const products = await Product.find()
-            .populate('user', 'firstName lastName email')
-            .lean();
+    const formatted = products.map((p: any) => ({
+      id: p.id,
+      name: p.name, description: p.description, price: p.price,
+      images: p.images || [], category: p.category,
+      localisation: p.localisation || '', featured: p.featured,
+      petType: p.pet_type, quantity: p.quantity,
+      user: p.user_id ? { id: p.user_id, firstName: p.first_name, lastName: p.last_name, email: p.email } : null,
+      breed: p.breed || '', age: p.age || '', gender: p.gender || '',
+      weight: p.weight || '', Color: p.color || '',
+      listingType: p.listing_type || 'sale',
+      createdAt: p.created_at, updatedAt: p.updated_at,
+    }));
 
-        const formattedProducts = products.map(product => ({
-            _id: product._id,
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            images: product.images || [],
-            category: product.category,
-            localisation: product.localisation || '',
-            featured: product.featured,
-            petType: product.petType,
-            quantity: product.quantity,
-            user: product.user || null,
-            ...(product.category === 'pets' && {
-                breed: product.breed || '',
-                age: product.age || '',
-                gender: product.gender || '',
-                weight: product.weight || '',
-                HealthStatus: product.HealthStatus || {
-                    vaccinated: false,
-                    neutered: false,
-                    microchipped: false,
-                },
-                friendly: product.friendly || {
-                    children: false,
-                    dogs: false,
-                    cats: false,
-                    animals: false,
-                },
-                Color: product.Color || '',
-                listingType: product.listingType || 'sale',
-            }),
-            createdAt: product.createdAt,
-            updatedAt: product.updatedAt,
-        }));
-
-        return NextResponse.json(formattedProducts);
-    } catch (error) {
-        console.error('GET Products Error:', error);
-        return NextResponse.json(
-            {
-                success: false,
-                message: 'Error retrieving products',
-                error: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
-            },
-            { status: 500 }
-        );
-    }
+    return NextResponse.json(formatted);
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: 'Error retrieving products' }, { status: 500 });
+  }
 }

@@ -1,130 +1,54 @@
-import { connectDB } from '@/lib/db';
-import { User } from '@/models/User';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import sql from '@/lib/db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export async function POST(req: Request) {
-  await connectDB();
   const body = await req.json();
-  console.log("Received body:", body);
-
   try {
-    if (!body.email || !body.password || body.email.trim() === "" || body.password.trim() === "") {
-      return NextResponse.json(
-        { message: "Email and password are required and cannot be empty.", success: false },
-        { status: 400 }
-      );
+    if (!body.email?.trim() || !body.password?.trim()) {
+      return NextResponse.json({ message: 'Email and password are required.', success: false }, { status: 400 });
     }
-
     if (!body.phone || !/^\d{8}$/.test(body.phone)) {
-      return NextResponse.json(
-        { message: "Phone number must be exactly 8 digits.", success: false },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'Phone must be 8 digits.', success: false }, { status: 400 });
+    }
+    const existing = await sql`SELECT id FROM users WHERE email = ${body.email} LIMIT 1`;
+    if (existing.length > 0) {
+      return NextResponse.json({ message: 'Email already registered.', success: false }, { status: 400 });
     }
 
-    if (body.accType === "provider") {
-      const missingFields = [];
-      if (!body.firstName || body.firstName.trim() === "") missingFields.push("firstName");
-      if (!body.lastName || body.lastName.trim() === "") missingFields.push("lastName");
-      if (!body.phone || !/^\d{8}$/.test(body.phone)) missingFields.push("phone");
+    const hashedPassword = await bcrypt.hash(body.password, 10);
+    const coordinatesJson = body.coordinates
+      ? JSON.stringify({ type: 'Point', coordinates: body.coordinates })
+      : null;
 
+    const inserted = await sql`
+      INSERT INTO users (
+        acc_type, birth_date, email, first_name, gender, last_name, location,
+        coordinates, password, phone, avatar, boutique_image, bio, status,
+        business_name, business_type, services, certifications, description, website
+      ) VALUES (
+        ${body.accType || 'regular'}, ${body.birthDate || null}, ${body.email},
+        ${body.firstName}, ${body.gender || null}, ${body.lastName}, ${body.location || ''},
+        ${coordinatesJson}, ${hashedPassword}, ${body.phone},
+        ${body.avatar || null}, ${body.boutiqueImage || null}, ${body.bio || null},
+        'authenticated',
+        ${body.businessName || null}, ${body.businessType || null},
+        ${JSON.stringify(body.services || [])},
+        ${body.certifications || null}, ${body.description || null}, ${body.website || null}
+      ) RETURNING *`;
 
+    const newUser = inserted[0];
+    const token = jwt.sign({ userId: newUser.id, email: newUser.email, role: newUser.acc_type }, JWT_SECRET, { expiresIn: '7d' });
 
-      if (missingFields.length > 0) {
-        console.log("Missing or invalid provider fields:", missingFields);
-        return NextResponse.json(
-          {
-            message: `The following fields are required for providers: ${missingFields.join(", ")}.`,
-            success: false,
-          },
-          { status: 400 }
-        );
-      }
-    }
-
-    const saltRounds = 10;
-    // const hashedPassword = await bcrypt.hash(body.password, saltRounds);
-
-    const existingUser = await User.findOne({ email: body.email });
-    if (existingUser) {
-      return NextResponse.json(
-        { message: "Email already registered. Please use a different email.", success: false },
-        { status: 800 }
-      );
-    }
-
-    const userData = {
-      accType: body.accType || "regular",
-      birthDate: body.birthDate,
-      email: body.email,
-      firstName: body.firstName,
-      gender: body.gender,
-      lastName: body.lastName,
-      location: body.location,
-      password: body.password,
-      phone: body.phone,
-      avatar: body.avatar,
-      coordinates: body.coordinates || "",
-      status: "authenticated",
-
-      // Only include businessType if provided and not empty
-      ...(body.businessType && { businessType: body.businessType }),
-      businessName: body.businessName || "",
-      boutiqueImage: body.boutiqueImage || "",
-      services: body.services || [],
-      certifications: body.certifications || "",
-      description: body.description || "",
-      website: body.website || "",
-    };
-
-    // Add coordinates if provided
-    if (body.coordinates) {
-      userData.coordinates = {
-        type: "Point",
-        coordinates: body.coordinates,
-      };
-    }
-
-    const newUser = await User.create(userData);
-
-    const token = jwt.sign(
-      { userId: newUser._id, email: newUser.email },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    return NextResponse.json(
-      {
-        message: "User created successfully",
-        success: true,
-        token,
-        user: {
-          id: newUser._id,
-          email: newUser.email,
-          name: `${newUser.firstName} ${newUser.lastName}`,
-          status: "authenticated",
-          role:newUser.accType 
-        },
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error("Registration error:", error);
-
-    if (typeof error === "object" && error !== null && "code" in error && error.code === 11000) {
-      return NextResponse.json(
-        { message: "Email already registered. Please use a different email.", success: false },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: "Failed to create user. Please try again.", success: false },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      message: 'User created successfully', success: true, token,
+      user: { id: newUser.id, email: newUser.email, name: `${newUser.first_name} ${newUser.last_name}`, status: 'authenticated', role: newUser.acc_type },
+    }, { status: 201 });
+  } catch (error: any) {
+    console.error('Registration error:', error);
+    return NextResponse.json({ message: 'Registration failed.', success: false }, { status: 500 });
   }
 }

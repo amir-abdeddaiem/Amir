@@ -1,61 +1,30 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { connectDB } from "@/lib/db"
-import { Reservation } from "@/models/Reservation"
-import { ServiceReview } from "@/models/ServiceReview"
-import { User } from "@/models/User"
+import { NextRequest, NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
 export async function GET(request: NextRequest) {
+  const userId = request.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   try {
-    await connectDB()
+    const [reservationRows, reviewRows] = await Promise.all([
+      sql`SELECT COUNT(*) AS count FROM reservations WHERE provider_id = ${userId}`,
+      sql`SELECT AVG(rating) AS avg_rating FROM service_reviews WHERE provider_id = ${userId} AND is_visible = true`,
+    ]);
 
-    const userId = request.headers.get("x-user-id")
-    if (!userId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-    }
-
-    // Get total services
-    const totalServices = await User.countDocuments({
-      providerId: userId,
-      isActive: true,
-    })
-
-    // Get total reservations
-    const totalReservations = await Reservation.countDocuments({
-      providerId: userId,
-    })
-
-    // Get average rating
-    const reviews = await ServiceReview.find({
-      providerId: userId,
-      isVisible: true,
-    })
-
-    const averageRating =
-      reviews.length > 0 ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0
-
-    // Get monthly earnings (mock data for now)
-    const currentMonth = new Date()
-    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
-
-    const monthlyReservations = await Reservation.find({
-      providerId: userId,
-      status: "completed",
-      createdAt: { $gte: startOfMonth },
-    })
-
-    const monthlyEarnings = monthlyReservations.reduce((sum, reservation) => sum + reservation.totalPrice, 0)
+    const monthlyRows = await sql`
+      SELECT COALESCE(SUM(0), 0) AS earnings
+      FROM reservations
+      WHERE provider_id = ${userId} AND status = 'completed'
+        AND created_at >= DATE_TRUNC('month', NOW())`;
 
     return NextResponse.json({
       success: true,
       data: {
-        totalServices,
-        totalReservations,
-        averageRating,
-        monthlyEarnings,
+        totalReservations: parseInt(reservationRows[0].count),
+        averageRating: parseFloat(reviewRows[0].avg_rating || '0'),
+        monthlyEarnings: parseFloat(monthlyRows[0].earnings || '0'),
       },
-    })
+    });
   } catch (error) {
-    console.error("Error fetching provider stats:", error)
-    return NextResponse.json({ success: false, error: "Failed to fetch stats" }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to fetch stats' }, { status: 500 });
   }
 }

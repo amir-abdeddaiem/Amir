@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { SpecificationsForm } from "@/components/Produit/addingProduct/Specifica
 import { ProductPreview } from "@/components/Produit/addingProduct/ProductPreview";
 import { useUserData } from "@/contexts/UserData";
 
-export default function EditProduct() {
+function EditProductContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const productId = searchParams.get("id");
@@ -287,5 +287,13 @@ export default function EditProduct() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function EditProduct() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditProductContent />
+    </Suspense>
   );
 }

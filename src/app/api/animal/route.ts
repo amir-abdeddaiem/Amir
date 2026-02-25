@@ -1,246 +1,65 @@
-import { connectDB } from '@/lib/db';
-import { Animal } from '@/models/Animal';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-
+import sql from '@/lib/db';
 
 export async function GET() {
-  await connectDB();
-
   try {
-    const animals = await Animal.find().populate('owner');
-
-    const formattedAnimals = animals.map(animal => ({
-      id: animal._id,
-      name: animal.name,
-      type: animal.type,
-      breed: animal.breed,
-      age: animal.age,
-      gender: animal.gender,
-      weight: animal.weight,
-      description: animal.description,
-      HealthStatus: animal.HealthStatus || {
-        vaccinated: animal.vaccinated,
-        neutered: animal.neutered,
-        microchipped: animal.microchipped,
-      },
-      friendly: animal.friendly || {
-        children: animal.children,
-        dogs: animal.dogs,
-        cats: animal.cats,
-        other: animal.other,
-      },
-      image: animal.image,
-      owner: animal.owner,
-      inmatch: animal.inmatch,
-      createdAt: animal.createdAt,
-      updatedAt: animal.updatedAt,
-    }));
-
-    return NextResponse.json(formattedAnimals);
+    const animals = await sql`
+      SELECT a.*, u.first_name, u.last_name, u.email, u.phone, u.avatar
+      FROM animals a
+      LEFT JOIN users u ON u.id = a.owner_id
+      ORDER BY a.created_at DESC`;
+    return NextResponse.json(animals);
   } catch (error) {
     return NextResponse.json({ message: 'Error retrieving animals' }, { status: 500 });
   }
 }
-export async function POST(req: Request) {
-  await connectDB();
-  const Owner = req.headers.get("x-user-id");
-    if (req.headers.get('content-type') !== 'application/json') {
-      return NextResponse.json(
-        { message: 'Content-Type must be application/json' },
-        { status: 400 }
-      );
-    }
-    const body = await req.json();
 
+export async function POST(req: NextRequest) {
+  const ownerId = req.headers.get('x-user-id');
+  if (req.headers.get('content-type') !== 'application/json') {
+    return NextResponse.json({ message: 'Content-Type must be application/json' }, { status: 400 });
+  }
+  const body = await req.json();
   try {
-    console.log(body);
+    const healthStatus = JSON.stringify(body.healthStatus || { vaccinated: false, neutered: false, microchipped: false });
+    const friendly = JSON.stringify(body.friendly || { children: false, dogs: false, cats: false, animals: false });
 
-   
-
-    // Create a new animal
-    const newAnimal = await Animal.create({
-      name: body.name,
-      type: body.type,
-      breed: body.breed,
-      // birthDate: body.birthDate,
-      age: body.age,
-      gender: body.gender,
-      weight: body.weight,
-      description: body.description,
-      HealthStatus: body.HealthStatus || {
-        vaccinated: false,
-        neutered: false,
-        microchipped: false,
-      },
-      friendly: body.friendly || {
-        children: false,
-        dogs: false,
-        cats: false,
-        other: false,
-      },
-      image: body.image,
-      owner: Owner,
-      inmatch: true,
-    });
-
-    return NextResponse.json(
-      {
-        message: "Animal created successfully",
-        animal: newAnimal,
-      },
-      { status: 201 }
-    );
+    const rows = await sql`
+      INSERT INTO animals (name, type, breed, age, gender, weight, description, health_status, friendly, image, owner_id, color, inmatch)
+      VALUES (${body.name}, ${body.type}, ${body.breed}, ${body.age}, ${body.gender},
+              ${body.weight || null}, ${body.description || null}, ${healthStatus}, ${friendly},
+              ${body.image || null}, ${ownerId}, ${body.color || null}, ${body.inmatch ?? true})
+      RETURNING *`;
+    return NextResponse.json({ message: 'Animal created successfully', animal: rows[0] }, { status: 201 });
   } catch (error: any) {
-    console.error("POST Error:", error);
-
-    if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err: any) => err.message);
-      return NextResponse.json(
-        { message: "Validation failed", errors },
-        { status: 420 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: "Failed to create animal" },
-      { status: 500 }
-    );
+    console.error('POST animal error:', error);
+    return NextResponse.json({ message: 'Failed to create animal' }, { status: 500 });
   }
 }
-
 
 export async function PUT(req: NextRequest) {
-  await connectDB();
-
   try {
     const body = await req.json();
-    const { id, ...updateData } = body;
+    const { id, ...data } = body;
+    if (!id) return NextResponse.json({ message: 'Animal ID is required' }, { status: 400 });
 
-    if (!id) {
-      return NextResponse.json(
-        { message: 'Animal ID is required' },
-        { status: 400 }
-      );
+    const allowed = ['name','type','breed','age','gender','weight','description','health_status','friendly','image','lost','color','inmatch'];
+    const updates: string[] = [];
+    const vals: any[] = [];
+    let n = 1;
+    for (const key of allowed) {
+      if (data[key] !== undefined) {
+        updates.push(`${key} = $${n++}`);
+        vals.push(typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key]);
+      }
     }
-
-    const updatedAnimal = await Animal.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true
-    }).populate('owner');
-
-    if (!updatedAnimal) {
-      return NextResponse.json(
-        { message: 'Animal not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { 
-        message: 'Animal updated successfully',
-        animal: updatedAnimal 
-      },
-      { status: 200 }
-    );
+    if (!updates.length) return NextResponse.json({ message: 'No fields to update' }, { status: 400 });
+    vals.push(id);
+    const rows = await sql.query(`UPDATE animals SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${n} RETURNING *`, vals);
+    if (!rows.length) return NextResponse.json({ message: 'Animal not found' }, { status: 404 });
+    return NextResponse.json({ message: 'Animal updated successfully', animal: rows[0] });
   } catch (error: any) {
-    console.error('PUT Error:', error);
-
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err: any) => err.message);
-      return NextResponse.json(
-        { message: 'Validation failed', errors },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: 'Failed to update animal' },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Failed to update animal' }, { status: 500 });
   }
 }
-// import { NextRequest, NextResponse } from 'next/server';
-// import { connectDB } from '@/lib/db';
-// import { Animal } from '@/models/Animal';
-
-// export async function POST(req: NextRequest) {
-//   try {
-//     await connectDB();
-
-//     const user = req.headers.get('x-user-id');
-//     // Optional: Uncomment if authentication is required
-//     // if (!user) {
-//     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-//     // }
-
-//     const formData = await req.formData();
-//     const image = formData.get('image') as File;
-
-//     if (!image) {
-//       return NextResponse.json({ error: 'No image provided' }, { status: 400 });
-//     }
-
-//     // Convert image to base64 for comparison (adjust based on your storage method)
-//     const buffer = await image.arrayBuffer();
-//     const imageBase64 = `data:${image.type};base64,${Buffer.from(buffer).toString('base64')}`;
-
-//     // Simple matching: Check if any lost animal has a matching image
-//     // Note: In a real app, use an AI service (e.g., AWS Rekognition) for image comparison
-//     const matchedAnimal = await Animal.findOne({
-//       // lost: true,
-//       image: imageBase64, // This is a placeholder; real matching would use AI
-//     });
-
-//     if (matchedAnimal) {
-//       return NextResponse.json({
-//         message: 'Match found',
-//         data: {
-//           _id: matchedAnimal._id,
-//           type: matchedAnimal.type,
-//           breed: matchedAnimal.breed,
-//           // color: matchedAnimal.color,
-//           gender: matchedAnimal.gender,
-//           description: matchedAnimal.description,
-//           owner: matchedAnimal.owner ? {
-//             name: matchedAnimal.owner?.firstName,
-//             contact: matchedAnimal.owner?.phone,
-//           } : undefined,
-//         },
-//       }, { status: 200 });
-//     }
-
-//     return NextResponse.json({ message: 'No match found', data: null }, { status: 200 });
-//   } catch (error) {
-//     console.error('Error fetching animal by image:', error);
-//     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-//   }
-// }
-
-
-
-
-// export async function GET(req: NextRequest) {
-//   try {
-//     await connectDB();
-//     const animals = await Animal.find({ lost: true }).populate('owner');
-
-//     const formattedAnimals = animals.map(animal => ({
-//       id: animal._id,
-//       name: animal.name,
-//       type: animal.type,
-//       breed: animal.breed,
-//       age: animal.age,
-//       image: animal.image,
-//       owner: animal.owner ? {
-//         name: animal.owner?.firstName,
-//         contact: animal.owner?.phone,
-//       } : undefined,
-//     }));
-
-//     return NextResponse.json(formattedAnimals);
-//   } catch (error) {
-//     console.error('Error fetching animals:', error);
-//     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-//   }
-// }

@@ -1,108 +1,38 @@
-import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
-import { User } from "@/models/User";
+import { NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
 export async function GET(req: Request) {
-  const authHeader =  req.headers.get('x-user-id');
-
-
+  const userId = req.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ success: false, error: 'Authorization header is missing' }, { status: 401 });
   try {
-    if (!authHeader) {
-      return NextResponse.json({
-        success: false,
-        error: 'Authorization header is missing',
-        data: null
-      }, { status: 401 });
-    }
-
-    await connectDB();
-    const user = await User.findOne({ _id:authHeader }).select('-password');
-  console.log("Authorization header:", authHeader);
-
-    if (!user) {
-      return NextResponse.json({
-        success: false,
-        error: 'User not found',
-        data: null
-      }, { status: 404 });
-    }
-
-    const userData = {
-      id: user._id.toString(),
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      birthDate: user.birthDate,
-      gender: user.gender,
-      location: user.location,
-      phone: user.phone,
-      avatar: user.avatar,
-      bio: user.bio,
-      pets: user.pets,
-      posts: user.posts,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    };
-
-    return NextResponse.json({
-      success: true,
-      error: null,
-      data: userData
-    });
+    const rows = await sql`SELECT id, first_name, last_name, email, birth_date, gender, location, phone, avatar, bio, acc_type, business_name, business_type, description, website, coordinates, created_at, updated_at FROM users WHERE id = ${userId} LIMIT 1`;
+    if (!rows.length) return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+    return NextResponse.json({ success: true, error: null, data: rows[0] });
   } catch (error) {
-    console.error("Error fetching profile:", error);
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-      data: null
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
-
 export async function PUT(req: Request) {
-  const authHeader = req.headers.get('x-user-id');
-
+  const userId = req.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ success: false, error: 'Authorization header is missing' }, { status: 401 });
   try {
-    if (!authHeader) {
-      return NextResponse.json({
-        success: false,
-        error: 'Authorization header is missing',
-        data: null
-      }, { status: 401 });
-    }
-
-    await connectDB();
-
-    // Parse the request body
     const body = await req.json();
-
-    // Update the user data
-    const user = await User.findByIdAndUpdate(
-      authHeader,
-      { $set: body },
-      { new: true, runValidators: true }
-    );
-
-    if (!user) {
-      return NextResponse.json({
-        success: false,
-        error: 'User not found',
-        data: null
-      }, { status: 404 });
+    const allowed = ['first_name','last_name','gender','location','phone','avatar','bio','boutique_image','business_name','description','website'];
+    const updates: string[] = [];
+    const vals: any[] = [];
+    let n = 1;
+    for (const key of allowed) {
+      const bodyKey = key.replace(/_([a-z])/g, (_,c) => c.toUpperCase());
+      const val = body[bodyKey] ?? body[key];
+      if (val !== undefined) { updates.push(`${key} = $${n++}`); vals.push(val); }
     }
-
-    return NextResponse.json({
-      success: true,
-      error: null,
-      data: user
-    });
+    if (!updates.length) return NextResponse.json({ success: false, error: 'No fields to update' }, { status: 400 });
+    vals.push(userId);
+    const rows = await sql.query(`UPDATE users SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${n} RETURNING *`, vals);
+    if (!rows.length) return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+    return NextResponse.json({ success: true, error: null, data: rows[0] });
   } catch (error) {
-    console.error("Error updating profile:", error);
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-      data: null
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

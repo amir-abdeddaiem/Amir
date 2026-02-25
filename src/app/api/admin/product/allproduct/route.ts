@@ -1,61 +1,40 @@
-import { connectDB } from '@/lib/mongodb';
-import { Product } from '@/models/Product';
+import sql from '@/lib/db';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    await connectDB();
+    const products = await sql`
+      SELECT p.*, u.first_name, u.last_name, u.email
+      FROM products p LEFT JOIN users u ON u.id = p.user_id
+      ORDER BY p.created_at DESC`;
 
-    const products = await Product.find()
-      .populate('user', 'firstName lastName email')
-   
-      .lean(); // Use lean() for better performance
-
-    const formattedProducts = products.map(product => ({
-      _id: product._id,
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      images: product.images || [],
-      category: product.category,
-      localisation: product.localisation,
-      featured: product.featured || false,
-      petType: product.petType,
-      quantity: product.quantity || 1,
-      specifications: product.specifications || [],
-      breed: product.breed,
-      age: product.age,
-      gender: product.gender,
-      weight: product.weight,
-      HealthStatus: product.HealthStatus || {
-        vaccinated: false,
-        neutered: false,
-        microchipped: false,
-      },
-      friendly: product.friendly || {
-        children: false,
-        dogs: false,
-        cats: false,
-        animals: false,
-      },
-      Color: product.Color,
-      listingType: product.listingType,
-      user: product.user || null,
-      reviews: product.reviews || [], // Fixed: Include reviews in response
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt,
+    const formattedProducts = products.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      price: p.price,
+      images: p.images || [],
+      category: p.category,
+      localisation: p.localisation || '',
+      featured: p.featured || false,
+      petType: p.pet_type,
+      quantity: p.quantity || 1,
+      specifications: p.specifications || [],
+      breed: p.breed,
+      age: p.age,
+      gender: p.gender,
+      weight: p.weight,
+      HealthStatus: p.health_status || { vaccinated: false, neutered: false, microchipped: false },
+      friendly: p.friendly || { children: false, dogs: false, cats: false, animals: false },
+      Color: p.color,
+      listingType: p.listing_type,
+      user: p.user_id ? { id: p.user_id, firstName: p.first_name, lastName: p.last_name, email: p.email } : null,
+      createdAt: p.created_at,
+      updatedAt: p.updated_at,
     }));
 
     return NextResponse.json(formattedProducts);
   } catch (error) {
-    console.error('GET Products Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Error retrieving products',
-        error: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: 'Error retrieving products' }, { status: 500 });
   }
 }

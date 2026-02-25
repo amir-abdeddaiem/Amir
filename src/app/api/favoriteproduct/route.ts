@@ -1,97 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
-import { Favorite } from '@/models/Favorite'; // Adjust path to your model
-import { connectDB } from '@/lib/mongodb'; // Adjust path to your database connection
+import sql from '@/lib/db';
 
-// POST: Add a favorite product
 export async function POST(req: NextRequest) {
   try {
-    await connectDB();
-    
     const { userId, productId } = await req.json();
-    
-    if (!userId || !productId) {
-      return NextResponse.json({ error: 'Missing userId or productId' }, { status: 400 });
-    }
+    if (!userId || !productId) return NextResponse.json({ error: 'Missing userId or productId' }, { status: 400 });
 
-    // Validate ObjectIds
-    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(productId)) {
-      return NextResponse.json({ error: 'Invalid userId or productId' }, { status: 400 });
-    }
+    const existing = await sql`SELECT id FROM favorites WHERE user_id = ${userId} AND product_id = ${productId} LIMIT 1`;
+    if (existing.length) return NextResponse.json(existing[0], { status: 200 });
 
-    // Check if favorite already exists
-    const existingFavorite = await Favorite.findOne({ user: userId, product: productId });
-    
-    if (existingFavorite) {
-      return NextResponse.json(existingFavorite, { status: 200 });
-    }
-
-    // Create new favorite
-    const favorite = new Favorite({
-      user: userId,
-      product: productId,
-    });
-
-    await favorite.save();
-    return NextResponse.json(favorite, { status: 201 });
+    const rows = await sql`INSERT INTO favorites (user_id, product_id) VALUES (${userId}, ${productId}) RETURNING *`;
+    return NextResponse.json(rows[0], { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/favoriteproduct:', error);
+    console.error('POST favorites error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// GET: Retrieve favorites for a user
 export async function GET(req: NextRequest) {
   try {
-    await connectDB();
-    
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
+    if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
-    }
+    const favorites = await sql`
+      SELECT f.*, p.name, p.description, p.price, p.images, p.category, p.pet_type, p.listing_type
+      FROM favorites f JOIN products p ON p.id = f.product_id
+      WHERE f.user_id = ${userId}
+      ORDER BY f.created_at DESC`;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return NextResponse.json({ error: 'Invalid userId' }, { status: 400 });
-    }
-
-    const favorites = await Favorite.find({ user: userId })
-      .populate('product')
-      .select('-__v')
-      .lean();
-
-    return NextResponse.json(favorites, { status: 200 });
+    return NextResponse.json(favorites);
   } catch (error) {
-    console.error('Error in GET /api/favoriteproduct:', error);
+    console.error('GET favorites error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// DELETE: Remove a favorite product
 export async function DELETE(req: NextRequest) {
   try {
-    await connectDB();
-    
     const { userId, productId } = await req.json();
+    if (!userId || !productId) return NextResponse.json({ error: 'Missing userId or productId' }, { status: 400 });
 
-    if (!userId || !productId) {
-      return NextResponse.json({ error: 'Missing userId or productId' }, { status: 400 });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(productId)) {
-      return NextResponse.json({ error: 'Invalid userId or productId' }, { status: 400 });
-    }
-
-    const result = await Favorite.findOneAndDelete({ user: userId, product: productId });
-
-    if (!result) {
-      return NextResponse.json({ error: 'Favorite not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ message: 'Favorite removed successfully' }, { status: 200 });
+    const rows = await sql`DELETE FROM favorites WHERE user_id = ${userId} AND product_id = ${productId} RETURNING id`;
+    if (!rows.length) return NextResponse.json({ error: 'Favorite not found' }, { status: 404 });
+    return NextResponse.json({ message: 'Favorite removed successfully' });
   } catch (error) {
-    console.error('Error in DELETE /api/favoriteproduct:', error);
+    console.error('DELETE favorites error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

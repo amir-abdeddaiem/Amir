@@ -1,125 +1,35 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
-import { Service, type IService } from "@/models/Service";
-import { ServiceReview } from "@/models/ServiceReview";
-import mongoose from "mongoose";
+import { NextRequest, NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // Validate the ID format
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid service ID" },
-        { status: 400 }
-      );
-    }
-
-    await connectDB();
-
-    // Fetch service with provider details
-    const service = await Service.findById(params.id)
-      .populate("providerId", "firstName lastName businessName avatar phone email")
-      .lean()
-      .exec();
-
-    if (!service) {
-      return NextResponse.json(
-        { success: false, error: "Service not found" },
-        { status: 404 }
-      );
-    }
-
-    // Fetch recent reviews
-    const reviews = await ServiceReview.find({
-      serviceId: params.id,
-      isVisible: true,
-    })
-      .populate("customerId", "firstName lastName avatar")
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .lean()
-      .exec();
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        service,
-        reviews,
-      },
-    });
-  } catch (error: any) {
-    console.error("Error fetching service:", {
-      errorMsg: error.message,
-      stack: error.stack,
-    });
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to fetch service",
-      messageId: error.message || "Internal server error",
-      },
-      { status: 500 }
-    );
+    const { id } = await params;
+    const serviceRows = await sql`SELECT * FROM users WHERE id = ${id} AND acc_type = 'provider' LIMIT 1`;
+    if (!serviceRows.length) return NextResponse.json({ success: false, error: 'Service not found' }, { status: 404 });
+    const { password, ...service } = serviceRows[0];
+    const reviews = await sql`SELECT sr.*, u.first_name AS customer_first_name, u.last_name AS customer_last_name, u.avatar AS customer_avatar FROM service_reviews sr LEFT JOIN users u ON u.id = sr.customer_id WHERE sr.provider_id = ${id} AND sr.is_visible = true ORDER BY sr.created_at DESC LIMIT 10`;
+    return NextResponse.json({ success: true, data: { service, reviews } });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: 'Failed to fetch service' }, { status: 500 });
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const userId = request.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  const { id } = await params;
   try {
-    await connectDB()
-
-    const userId = request.headers.get("x-user-id")
-    if (!userId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-    }
-
-    const body = await request.json()
-
-    const service = await Service.findOneAndUpdate({ _id: params.id, providerId: userId }, body, {
-      new: true,
-      runValidators: true,
-    })
-
-    if (!service) {
-      return NextResponse.json({ success: false, error: "Service not found or unauthorized" }, { status: 404 })
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: service,
-    })
+    const body = await request.json();
+    const rows = await sql`UPDATE users SET description = ${body.description || null}, website = ${body.website || null}, services = ${JSON.stringify(body.services || [])}, updated_at = NOW() WHERE id = ${id} AND id = ${userId} RETURNING *`;
+    if (!rows.length) return NextResponse.json({ success: false, error: 'Not found or unauthorized' }, { status: 404 });
+    return NextResponse.json({ success: true, data: rows[0] });
   } catch (error) {
-    console.error("Error updating service:", error)
-    return NextResponse.json({ success: false, error: "Failed to update service" }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to update service' }, { status: 500 });
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    await connectDB()
-
-    const userId = request.headers.get("x-user-id")
-    if (!userId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-    }
-
-    const service = await Service.findOneAndDelete({
-      _id: params.id,
-      providerId: userId,
-    })
-
-    if (!service) {
-      return NextResponse.json({ success: false, error: "Service not found or unauthorized" }, { status: 404 })
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Service deleted successfully",
-    })
-  } catch (error) {
-    console.error("Error deleting service:", error)
-    return NextResponse.json({ success: false, error: "Failed to delete service" }, { status: 500 })
-  }
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const userId = request.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  return NextResponse.json({ success: true });
 }

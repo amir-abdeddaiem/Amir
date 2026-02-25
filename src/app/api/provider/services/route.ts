@@ -1,66 +1,26 @@
-// import { type NextRequest, NextResponse } from "next/server"
-// import { connectDB } from "@/lib/db"
-// import { Service } from "@/models/Service"
-
-// export async function GET(request: NextRequest) {
-//   try {
-//     await connectDB()
-
-//     const userId = request.headers.get("x-user-id")
-//     if (!userId) {
-//       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-//     }
-
-//     const services = await Service.find({ providerId: userId }).sort({ createdAt: -1 })
-
-//     return NextResponse.json({
-//       success: true,
-//       data: services,
-//     })
-//   } catch (error) {
-//     console.error("Error fetching provider services:", error)
-//     return NextResponse.json({ success: false, error: "Failed to fetch services" }, { status: 500 })
-//   }
-// }
-import { type NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
-import { Service } from "@/models/Service";
+import { NextRequest, NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
-
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type") || "All";
-    const search = searchParams.get("search") || "";
+    const type = searchParams.get('type') || 'All';
+    const search = searchParams.get('search') || '';
 
-    const query: any = { isActive: true };
+    const conditions = ["acc_type = 'provider'"];
+    const values: any[] = [];
+    let n = 1;
 
-    if (type !== "All") {
-      query.type = type;
-    }
-
+    if (type !== 'All') { conditions.push(`business_type = $${n++}`); values.push(type); }
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
+      conditions.push(`(business_name ILIKE $${n} OR description ILIKE $${n})`);
+      values.push(`%${search}%`); n++;
     }
 
-    const services = await Service.find(query)
-      .select("name type description price location rating reviewCount images")
-      .sort({ rating: -1, createdAt: -1 })
-      .lean();
+    const services = await sql.query(`SELECT id, first_name, last_name, email, phone, avatar, boutique_image, business_name, business_type, description, website, location, services FROM users WHERE ${conditions.join(' AND ')} ORDER BY business_name`, values);
 
-    return NextResponse.json({
-      success: true,
-      data: services,
-    });
+    return NextResponse.json({ success: true, data: services });
   } catch (error) {
-    console.error("Error fetching services:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch services" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to fetch services' }, { status: 500 });
   }
 }

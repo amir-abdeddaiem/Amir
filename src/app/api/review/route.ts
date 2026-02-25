@@ -1,223 +1,60 @@
-import { connectDB } from "@/lib/db";
-import { Review } from "@/models/Review";
-import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
+import { NextRequest, NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
-    await connectDB();
     const formData = await req.formData();
-    const stars = parseInt(formData.get("stars") as string);
-    const message = formData.get("message") as string;
-    const product = formData.get("product") as string;
-    const userId = req.headers.get("x-user-id"); // Get userId header
-    const photo = formData.get("photo") as string;
+    const stars = parseInt(formData.get('stars') as string);
+    const message = formData.get('message') as string;
+    const productId = formData.get('product') as string;
+    const userId = req.headers.get('x-user-id');
+    const photo = formData.get('photo') as string;
 
-    // Validate inputs
-    if (!stars || stars < 1 || stars > 5) {
-      return NextResponse.json(
-        { success: false, message: "Invalid rating: must be between 1 and 5" },
-        { status: 400 }
-      );
-    }
-    if (!message || message.trim() === "") {
-      return NextResponse.json(
-        { success: false, message: "Review message is required" },
-        { status: 400 }
-      );
-    }
-    if (!product || !mongoose.Types.ObjectId.isValid(product)) {
-      return NextResponse.json(
-        { success: false, message: "Invalid product ID" },
-        { status: 400 }
-      );
-    }
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, message: "User ID is required" },
-        { status: 401 }
-      );
-    }
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return NextResponse.json(
-        { success: false, message: "Invalid user ID format" },
-        { status: 400 }
-      );
-    }
+    if (!stars || stars < 1 || stars > 5) return NextResponse.json({ success: false, message: 'Invalid rating' }, { status: 400 });
+    if (!message?.trim()) return NextResponse.json({ success: false, message: 'Review message is required' }, { status: 400 });
+    if (!productId) return NextResponse.json({ success: false, message: 'Product ID is required' }, { status: 400 });
+    if (!userId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
 
-    const review = await Review.create({
-      stars,
-      message,
-      product,
-      user: userId,
-      photo,
-    });
-
-    return NextResponse.json({ success: true, review }, { status: 201 });
+    const rows = await sql`
+      INSERT INTO reviews (stars, message, product_id, user_id, photo)
+      VALUES (${stars}, ${message}, ${productId}, ${userId}, ${photo || null})
+      RETURNING *`;
+    return NextResponse.json({ success: true, review: rows[0] }, { status: 201 });
   } catch (error) {
-    console.error("Review creation failed:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: typeof error === "object" && error !== null && "message" in error ? (error as { message: string }).message : "Failed to create review",
-        error: process.env.NODE_ENV === "development" ? error : undefined,
-      },
-      { status: 500 }
-    );
+    console.error('Review creation failed:', error);
+    return NextResponse.json({ success: false, message: 'Failed to create review' }, { status: 500 });
   }
 }
 
 export async function GET(req: NextRequest) {
   try {
-    await connectDB();
-    const productId = req.nextUrl.searchParams.get("productId");
-    const userId = req.nextUrl.searchParams.get("userId");
+    const productId = req.nextUrl.searchParams.get('productId');
+    const userId = req.nextUrl.searchParams.get('userId');
+    if (!productId) return NextResponse.json({ success: false, message: 'Product ID is required' }, { status: 400 });
 
-    if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
-      return NextResponse.json(
-        { success: false, message: "Invalid product ID" },
-        { status: 400 }
-      );
+    if (userId) {
+      const rows = await sql`SELECT r.*, u.first_name, u.last_name, u.email FROM reviews r LEFT JOIN users u ON u.id = r.user_id WHERE r.product_id = ${productId} AND r.user_id = ${userId} LIMIT 1`;
+      return NextResponse.json({ success: true, review: rows[0] || null });
     }
 
-    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
-      const review = await Review.findOne({ product: productId, user: userId }).populate(
-        "user",
-        "name email"
-      );
-      return NextResponse.json({ success: true, review }, { status: 200 });
-    }
-
-    const reviews = await Review.find({ product: productId })
-      .populate("user", "firstName lastName email")
-      .sort({ createdAt: -1 });
-
-    return NextResponse.json({ success: true, reviews }, { status: 200 });
+    const rows = await sql`SELECT r.*, u.first_name, u.last_name, u.email FROM reviews r LEFT JOIN users u ON u.id = r.user_id WHERE r.product_id = ${productId} ORDER BY r.created_at DESC`;
+    return NextResponse.json({ success: true, reviews: rows });
   } catch (error) {
-    console.error("Failed to fetch reviews:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal server error",
-        error: process.env.NODE_ENV === "development" ? error : undefined,
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(req: NextRequest) {
-  try {
-    await connectDB();
-    const reviewId = req.nextUrl.pathname.split("/").pop();
-    if (!reviewId || !mongoose.Types.ObjectId.isValid(reviewId)) {
-      return NextResponse.json(
-        { success: false, message: "Invalid review ID" },
-        { status: 400 }
-      );
-    }
-
-    const formData = await req.formData();
-    const stars = parseInt(formData.get("stars") as string);
-    const message = formData.get("message") as string;
-    const product = formData.get("product") as string;
-    const userId = req.headers.get("x-user-id"); // Get userId from header
-    const photo = formData.get("photo") as string;
-
-    // Validate inputs
-    if (!stars || stars < 1 || stars > 5) {
-      return NextResponse.json(
-        { success: false, message: "Invalid rating: must be between 1 and 5" },
-        { status: 400 }
-      );
-    }
-    if (!message || message.trim() === "") {
-      return NextResponse.json(
-        { success: false, message: "Review message is required" },
-        { status: 400 }
-      );
-    }
-    if (!product || !mongoose.Types.ObjectId.isValid(product)) {
-      return NextResponse.json(
-        { success: false, message: "Invalid product ID" },
-        { status: 400 }
-      );
-    }
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, message: "User ID is required" },
-        { status: 401 }
-      );
-    }
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return NextResponse.json(
-        { success: false, message: "Invalid user ID format" },
-        { status: 400 }
-      );
-    }
-
-    const updatedReview = await Review.findByIdAndUpdate(
-      reviewId,
-      {
-        stars,
-        message,
-        product,
-        user: userId,
-        photo,
-      },
-      { new: true }
-    );
-
-    if (!updatedReview) {
-      return NextResponse.json(
-        { success: false, message: "Review not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ success: true, review: updatedReview });
-  } catch (error) {
-    console.error("Review update failed:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: typeof error === "object" && error !== null && "message" in error ? (error as { message: string }).message : "Failed to update review",
-        error: process.env.NODE_ENV === "development" ? error : undefined,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: 'Failed to fetch reviews' }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
-    await connectDB();
-    const reviewId = req.nextUrl.pathname.split("/").pop();
-    if (!reviewId || !mongoose.Types.ObjectId.isValid(reviewId)) {
-      return NextResponse.json(
-        { success: false, message: "Invalid review ID" },
-        { status: 400 }
-      );
-    }
+    const { searchParams } = new URL(req.url);
+    const reviewId = searchParams.get('id');
+    const userId = req.headers.get('x-user-id');
+    if (!reviewId) return NextResponse.json({ success: false, message: 'Review ID is required' }, { status: 400 });
 
-    const deletedReview = await Review.findByIdAndDelete(reviewId);
-    if (!deletedReview) {
-      return NextResponse.json(
-        { success: false, message: "Review not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ success: true, message: "Review deleted successfully" });
+    const rows = await sql`DELETE FROM reviews WHERE id = ${reviewId} AND user_id = ${userId} RETURNING id`;
+    if (!rows.length) return NextResponse.json({ success: false, message: 'Review not found' }, { status: 404 });
+    return NextResponse.json({ success: true, message: 'Review deleted' });
   } catch (error) {
-    console.error("Review deletion failed:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: typeof error === "object" && error !== null && "message" in error ? (error as { message: string }).message : "Failed to delete review",
-        error: process.env.NODE_ENV === "development" ? error : undefined,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: 'Failed to delete review' }, { status: 500 });
   }
 }

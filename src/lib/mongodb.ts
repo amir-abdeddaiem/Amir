@@ -1,17 +1,3 @@
-import mongoose from 'mongoose'
-
-let isConnected = false
-
-export const connectDB = async () => {
-  if (isConnected) {
-    console.log('Already connected to MongoDB')
-    return
-  }
-  try {
-    await mongoose.connect(process.env.DB_URL as string)
-    isConnected = true
-    console.log('MongoDB Connected...')
-  } catch (err: any) {
-    console.error(err.message)
-  }
-}
+// mongodb.ts is no longer used - project migrated to Neon PostgreSQL
+// Use src/lib/db.ts instead
+export { sql as default, sql } from "@/lib/db";

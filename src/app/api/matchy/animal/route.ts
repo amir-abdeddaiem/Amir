@@ -1,174 +1,31 @@
-import { connectDB } from '@/lib/db';
-import { Animal } from '@/models/Animal';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-
-// Type definitions
-interface IAnimal {
-  name: string;
-  type: string;
-  breed: string;
-  birthDate: Date;
-  age: string;
-  gender: 'male' | 'female' | 'other';
-  weight?: string;
-  description: string;
-  HealthStatus: {
-    vaccinated: boolean;
-    neutered: boolean;
-    microchipped: boolean;
-  };
-
-  friendly: {
-    children: boolean;
-    dogs: boolean;
-    cats: boolean;
-    other: boolean;
-  };
-  image: string;
-  owner: string;
-  inmatch: boolean;
-}
+import sql from '@/lib/db';
 
 export async function GET(req: NextRequest) {
-  await connectDB();
-
+  const userId = req.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
   try {
-    const userId =req.headers.get('x-user-id');
-
-    if (!userId) {
-      return NextResponse.json(
-        { message: 'User ID is required in query params' },
-        { status: 400 }
-      );
-    }
-
-    const pets = await Animal.find({
-
-      inmatch: true,
-      owner: { $ne: userId },
-    });
-
-
-    // Optionally format the data
-    const formattedPets = pets.map((pet) => ({
-      id: pet._id,
-      name: pet.name,
-      age: pet.age,
-      breed: pet.breed,
-      image: pet.image,
-      bio: pet.description,
-      temperament: Object.entries(pet.friendly)
-        .filter(([_, val]) => val)
-        .map(([key]) => key),
+    const pets = await sql`SELECT * FROM animals WHERE inmatch = true AND owner_id != ${userId}`;
+    const formatted = pets.map((p: any) => ({
+      id: p.id, name: p.name, age: p.age, breed: p.breed, image: p.image, bio: p.description,
+      temperament: Object.entries(p.friendly || {}).filter(([_, v]) => v).map(([k]) => k),
     }));
-
-    return NextResponse.json({ pets: formattedPets }, { status: 200 });
+    return NextResponse.json({ pets: formatted });
   } catch (error) {
-    console.error('GET Error:', error);
-    return NextResponse.json(
-      { message: 'Failed to fetch pets' },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Failed to fetch pets' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
-  await connectDB();
-
+  const body = await req.json();
+  const { _id, inmatch } = body;
+  if (!_id) return NextResponse.json({ message: 'Animal ID is required' }, { status: 400 });
   try {
-    const body = await req.json();
-    const { _id, inmatch } = body;
-
-    if (!_id) {
-      return NextResponse.json(
-        { message: 'Animal ID (_id) is required to update inmatch' },
-        { status: 400 }
-      );
-    }
-
-    if (inmatch === false) {
-      const updatedAnimal = await Animal.findByIdAndUpdate(
-        _id,
-        { inmatch: true },
-        { new: true }
-      );
-
-      if (!updatedAnimal) {
-        return NextResponse.json(
-          { message: 'Animal not found for update' },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json(
-        {
-          message: 'Animal updated to inmatch: true',
-          animal: updatedAnimal,
-        },
-        { status: 200 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: 'inmatch is already true or not provided — no update done.' },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error('POST Error:', error);
-    return NextResponse.json(
-      { message: 'Failed to update animal', error: error.message },
-      { status: 500 }
-    );
+    const rows = await sql`UPDATE animals SET inmatch = ${inmatch ?? true}, updated_at = NOW() WHERE id = ${_id} RETURNING *`;
+    if (!rows.length) return NextResponse.json({ message: 'Animal not found' }, { status: 404 });
+    return NextResponse.json({ animal: rows[0] });
+  } catch (error) {
+    return NextResponse.json({ message: 'Failed to update animal' }, { status: 500 });
   }
 }
-export async function DELETE(req: NextRequest) {
-  await connectDB();
-
-  try {
-    const body = await req.json();
-    const { _id, inmatch } = body;
-
-    if (!_id) {
-      return NextResponse.json(
-        { message: 'Animal ID (_id) is required to update inmatch' },
-        { status: 400 }
-      );
-    }
-
-    if (inmatch === true) {
-      const updatedAnimal = await Animal.findByIdAndUpdate(
-        _id,
-        { inmatch: false },
-        { new: true }
-      );
-
-      if (!updatedAnimal) {
-        return NextResponse.json(
-          { message: 'Animal not found for update' },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json(
-        {
-          message: 'Animal updated to inmatch: false',
-          animal: updatedAnimal,
-        },
-        { status: 200 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: 'inmatch is already false or not provided — no update done.' },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error('POST Error:', error);
-    return NextResponse.json(
-      { message: 'Failed to update animal', error: error.message },
-      { status: 500 }
-    );
-  }
-}
-

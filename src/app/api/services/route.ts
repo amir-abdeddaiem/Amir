@@ -1,41 +1,28 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { connectDB } from "@/lib/db"
-import { User } from "@/models/User"
+import { NextRequest, NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
-    await connectDB()
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type');
+    const search = searchParams.get('search');
 
-    const { searchParams } = new URL(request.url)
-    const type = searchParams.get("type")
-    const search = searchParams.get("search")
+    const conditions: string[] = ["acc_type = 'provider'"];
+    const values: any[] = [];
+    let n = 1;
 
-    const query: any = { }
-
-    // Filter by type
-    if (type && type !== "All") {
-      query.businessType = type
-    }
-
- 
-    // Search in name and description
+    if (type && type !== 'All') { conditions.push(`business_type = $${n++}`); values.push(type); }
     if (search) {
-      query.$or = [{ name: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }]
+      conditions.push(`(first_name ILIKE $${n} OR last_name ILIKE $${n} OR description ILIKE $${n})`);
+      values.push(`%${search}%`); n++;
     }
-    query.accType= "provider"
 
-    const services = await User.find(query).select("-password -status -updatedAt")
+    const where = conditions.join(' AND ');
+    const services = await sql.query(`SELECT id, first_name, last_name, email, phone, avatar, boutique_image, bio, acc_type, business_name, business_type, services, description, website, location FROM users WHERE ${where} ORDER BY first_name`, values);
 
-    const total = await User.countDocuments(query)
-
-    return NextResponse.json({
-      success: true,
-      data: services,
-
-    })
+    return NextResponse.json({ success: true, data: services });
   } catch (error) {
-    console.error("Error fetching services:", error)
-    return NextResponse.json({ success: false, error: "Failed to fetch services" }, { status: 500 })
+    console.error('Error fetching services:', error);
+    return NextResponse.json({ success: false, error: 'Failed to fetch services' }, { status: 500 });
   }
 }
-

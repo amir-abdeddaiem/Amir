@@ -2,9 +2,9 @@ import SetNewPassword from "@/components/auth/recover/PasswordRecover";
 import { FC } from "react";
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 const Page: FC<PageProps> = async ({ params }) => {

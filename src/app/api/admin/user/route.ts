@@ -1,87 +1,26 @@
-import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import { User } from "@/models/User";
+import { NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
-export async function GET(request: { url: string | URL; }) {
+export async function GET(request: Request) {
   try {
-    await connectDB();
-
     const { searchParams } = new URL(request.url);
-    const days = parseInt(searchParams.get("days") || "30");
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    const days = parseInt(searchParams.get('days') || '30');
 
-    // Aggregate user data by month
-    const userEngagementData = await User.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: startDate },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" },
-          },
-          totalUsers: { $sum: 1 },
-          activeUsers: {
-            $sum: {
-              $cond: [{ $gte: ["$updatedAt", startDate] }, 1, 0],
-            },
-          },
-        },
-      },
-      {
-        $sort: { "_id.year": 1, "_id.month": 1 },
-      },
-      {
-        $project: {
-          month: {
-            $concat: [
-              {
-                $arrayElemAt: [
-                  [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Oct",
-                    "Nov",
-                    "Dec",
-                  ],
-                  { $subtract: ["$_id.month", 1] },
-                ],
-              },
-              " ",
-              { $toString: "$_id.year" },
-            ],
-          },
-          users: "$totalUsers",
-          active: "$activeUsers",
-        },
-      },
-    ]);
+    const engagementData = await sql`
+      SELECT
+        TO_CHAR(DATE_TRUNC('month', created_at), 'Mon YYYY') AS month,
+        COUNT(*) AS users,
+        COUNT(*) FILTER (WHERE updated_at >= NOW() - ${days} * INTERVAL '1 day') AS active
+      FROM users
+      WHERE created_at >= NOW() - ${days} * INTERVAL '1 day'
+      GROUP BY DATE_TRUNC('month', created_at)
+      ORDER BY DATE_TRUNC('month', created_at)`;
 
-    // Calculate total active users in the time range
-    const activeUsersCount = await User.countDocuments({
-      updatedAt: { $gte: startDate },
-    });
+    const activeRows = await sql`SELECT COUNT(*) AS count FROM users WHERE updated_at >= NOW() - ${days} * INTERVAL '1 day'`;
 
-    return NextResponse.json({
-      engagementData: userEngagementData,
-      activeUsers: activeUsersCount,
-    });
+    return NextResponse.json({ engagementData, activeUsers: parseInt(activeRows[0].count) });
   } catch (error) {
-    console.error("Error retrieving user engagement data:", error);
-    return NextResponse.json(
-      { message: "Error retrieving user engagement data" },
-      { status: 500 }
-    );
+    console.error('Admin user stats error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,84 +1,53 @@
-// app/api/animal/[id]/route.ts
-import { connectDB } from '@/lib/db';
-import { Animal } from '@/models/Animal';
 import { NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  await connectDB();
-
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const animal = await Animal.findById(params.id).populate('owner');
-
-    if (!animal) {
-      return NextResponse.json({ message: 'Animal not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({
-      id: animal._id,
-      name: animal.name,
-      type: animal.type,
-      breed: animal.breed,
-      age: animal.age,
-      gender: animal.gender,
-      weight: animal.weight,
-      description: animal.description,
-      HealthStatus: animal.HealthStatus || {
-        vaccinated:  animal.vaccinated,
-        neutered: animal.neutered,
-        microchipped: animal.microchipped,
-      },
-      
-      friendly: animal.friendly || {
-        children: animal.children,
-        dogs: animal.dogs,
-        cats: animal.cats,
-        other: animal.other,
-      },
-      image: animal.image,
-      owner: animal.owner,
-      inmatch: animal.inmatch,
-      createdAt: animal.createdAt,
-      updatedAt: animal.updatedAt,
-    });
+    const { id } = await params;
+    const rows = await sql`
+      SELECT a.*, u.first_name, u.last_name, u.email, u.phone, u.avatar
+      FROM animals a LEFT JOIN users u ON u.id = a.owner_id
+      WHERE a.id = ${id} LIMIT 1`;
+    if (!rows.length) return NextResponse.json({ message: 'Animal not found' }, { status: 404 });
+    return NextResponse.json(rows[0]);
   } catch (error) {
     return NextResponse.json({ message: 'Error retrieving animal' }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  await connectDB();
-
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const deleted = await Animal.findByIdAndDelete(params.id);
-    if (!deleted) {
-      return NextResponse.json({ message: 'Animal not found' }, { status: 404 });
-    }
-
+    const { id } = await params;
+    const rows = await sql`DELETE FROM animals WHERE id = ${id} RETURNING id`;
+    if (!rows.length) return NextResponse.json({ message: 'Animal not found' }, { status: 404 });
     return NextResponse.json({ message: 'Animal deleted successfully' });
   } catch (error) {
     return NextResponse.json({ message: 'Error deleting animal' }, { status: 500 });
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  await connectDB();
-
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const animalId = params.id;
+    const { id } = await params;
     const data = await req.json();
-
-    const updatedAnimal = await Animal.findByIdAndUpdate(animalId, data, {
-      new: true,
+    const allowed = ['name','type','breed','age','gender','weight','description','image','color','lost','inmatch'];
+    const updates: string[] = [];
+    const values: any[] = [];
+    allowed.forEach((key) => {
+      if (data[key] !== undefined) {
+        updates.push(`${key} = $${values.length + 1}`);
+        values.push(data[key]);
+      }
     });
-
-    if (!updatedAnimal) {
-      return new Response("Animal not found", { status: 404 });
-    }
-
-    return new Response(JSON.stringify(updatedAnimal), {
-      status: 200,
-    });
+    if (!updates.length) return NextResponse.json({ message: 'No fields to update' }, { status: 400 });
+    values.push(id);
+    const rows = await sql.query(
+      `UPDATE animals SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${values.length} RETURNING *`,
+      values
+    );
+    if (!rows.length) return new Response('Animal not found', { status: 404 });
+    return new Response(JSON.stringify(rows[0]), { status: 200 });
   } catch (error) {
-    return new Response("Server Error", { status: 500 });
+    return new Response('Server Error', { status: 500 });
   }
 }

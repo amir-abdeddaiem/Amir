@@ -4,7 +4,9 @@
 import React, { useEffect } from "react";
 import { useUserData } from "@/contexts/UserData";
 import { useRouter } from "next/navigation";
- function page() {
+import ServiceProviderProfile from "@/components/Profile/pp";
+
+function page() {
   const { userData, refreshUserData } = useUserData()
   const Router = useRouter()
 

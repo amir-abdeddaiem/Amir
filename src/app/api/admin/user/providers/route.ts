@@ -1,72 +1,11 @@
-import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import { User } from "@/models/User";
-import { Types } from "mongoose";
-
-// Define the IUser interface
-export interface IUser {
-  _id: Types.ObjectId;
-  accType: 'regular' | 'provider' | 'admin';
-  email: string;
-  firstName: string;
-  lastName: string;
-  gender: 'male' | 'female' | 'other';
-  birthDate: Date;
-  location: string;
-  coordinates?: {
-    type: string;
-    coordinates: [number, number];
-  };
-  phone: string;
-  avatar?: string;
-  bio?: string;
-  businessName?: string;
-  boutiqueImage?: string;
-  businessType?: string;
-  services?: string[];
-  certifications?: string;
-  description?: string;
-  website?: string;
-  status: 'authenticated' | 'unauthenticated';
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
 export async function GET() {
   try {
-    await connectDB();
-
-    // Only fetch users with accType 'provider'
-    const users = await User.find({ accType: 'provider' }).lean();
-
-    const formattedProvider: IUser[] = users.map(user => ({
-      _id: user.id,
-      accType: user.accType,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      gender: user.gender,
-      birthDate: user.birthDate,
-      location: user.location,
-      coordinates: user.coordinates,
-      phone: user.phone,
-      avatar: user.avatar,
-      bio: user.bio,
-      businessName: user.businessName,
-      boutiqueImage: user.boutiqueImage,
-      businessType: user.businessType,
-      services: user.services,
-      certifications: user.certifications,
-      description: user.description,
-      website: user.website,
-      status: user.status,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    }));
-
-    return NextResponse.json(formattedProvider);
+    const providers = await sql`SELECT id, acc_type, email, first_name, last_name, gender, birth_date, location, phone, avatar, bio, business_name, boutique_image, business_type, services, certifications, description, website, status, created_at, updated_at FROM users WHERE acc_type = 'provider' ORDER BY created_at DESC`;
+    return NextResponse.json(providers);
   } catch (error) {
-    console.error('Error retrieving providers:', error);
     return NextResponse.json({ message: 'Error retrieving providers' }, { status: 500 });
   }
 }

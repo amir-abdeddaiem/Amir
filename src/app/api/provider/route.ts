@@ -1,130 +1,49 @@
-import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
-import { User } from "@/models/User";
+import { NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
 export async function GET(req: Request) {
-  const authHeader = req.headers.get('x-user-id');
-
+  const userId = req.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ success: false, error: 'Unauthorized', data: null }, { status: 401 });
   try {
-    if (!authHeader) {
-      return NextResponse.json({
-        success: false,
-        error: 'Authorization header is missing',
-        data: null
-      }, { status: 401 });
-    }
-
-    await connectDB();
-   const user = await User.findOne({ _id:authHeader }).select('-password');
-  console.log("Authorization header:", authHeader);
-
-    if (!user) {
-      return NextResponse.json({
-        success: false,
-        error: 'Provider not found',
-        data: null
-      }, { status: 404 });
-    }
-
-    const providerData = {
-      id: user._id.toString(),
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      phone: user.phone,
-      avatar: user.avatar,
-      boutiqueImage: user.boutiqueImage || "/default-boutique.png",
-      businessName: user.businessName || "Not provided",
-      description: user.description || "No description provided",
-      website: user.website || "Not provided",
-      location: user.location || "Not provided",
-      services: user.services || "Not provided",
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    };
-
-    return NextResponse.json({
-      success: true,
-      error: null,
-      data: providerData
-    });
+    const rows = await sql`SELECT id, first_name, last_name, email, phone, avatar, boutique_image, business_name, description, website, location, services, created_at, updated_at FROM users WHERE id = ${userId} LIMIT 1`;
+    if (!rows.length) return NextResponse.json({ success: false, error: 'Provider not found', data: null }, { status: 404 });
+    const u = rows[0];
+    return NextResponse.json({ success: true, error: null, data: {
+      id: u.id, firstName: u.first_name, lastName: u.last_name, email: u.email,
+      phone: u.phone, avatar: u.avatar, boutiqueImage: u.boutique_image || '/default-boutique.png',
+      businessName: u.business_name || 'Not provided', description: u.description || 'No description',
+      website: u.website || 'Not provided', location: u.location || 'Not provided',
+      services: u.services || [], createdAt: u.created_at, updatedAt: u.updated_at
+    }});
   } catch (error) {
-    console.error("Error fetching provider profile:", error);
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-      data: null
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Internal server error', data: null }, { status: 500 });
   }
 }
 
 export async function PUT(req: Request) {
-  const authHeader = req.headers.get('x-user-id');
-  
+  const userId = req.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ success: false, error: 'Unauthorized', data: null }, { status: 401 });
+  const body = await req.json();
   try {
-    if (!authHeader) {
-      return NextResponse.json({
-        success: false,
-        error: 'Authorization header is missing',
-        data: null
-      }, { status: 401 });
-    }
-
-    const body = await req.json();
-    
-    await connectDB();
-    
-    const user = await User.findOne({ _id: authHeader });
-    if (!user) {
-      return NextResponse.json({
-        success: false,
-        error: 'Provider not found',
-        data: null
-      }, { status: 404 });
-    }
-
-    // Update user fields
-    user.firstName = body.firstName || user.firstName;
-    user.lastName = body.lastName || user.lastName;
-    user.email = body.email || user.email;
-    user.phone = body.phone || user.phone;
-    user.businessName = body.businessName || user.businessName;
-    user.description = body.description || user.description;
-    user.website = body.website || user.website;
-    user.location = body.location || user.location;
-    user.services = body.services || user.services;
-    user.boutiqueImage = body.boutiqueImage || user.boutiqueImage;
-    user.avatar = body.avatar || user.avatar;
-
-    await user.save();
-
-    const updatedProviderData = {
-      id: user._id.toString(),
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      phone: user.phone,
-      avatar: user.avatar,
-      boutiqueImage: user.boutiqueImage,
-      businessName: user.businessName,
-      description: user.description,
-      website: user.website||"",
-      location: user.location,
-      services: user.services,
-      updatedAt: user.updatedAt
-    };
-
-    return NextResponse.json({
-      success: true,
-      error: null,
-      data: updatedProviderData
-    });
+    const rows = await sql`
+      UPDATE users SET
+        first_name = COALESCE(${body.firstName}, first_name),
+        last_name  = COALESCE(${body.lastName}, last_name),
+        email      = COALESCE(${body.email}, email),
+        phone      = COALESCE(${body.phone}, phone),
+        business_name = COALESCE(${body.businessName}, business_name),
+        description   = COALESCE(${body.description}, description),
+        website       = COALESCE(${body.website}, website),
+        location      = COALESCE(${body.location}, location),
+        services      = COALESCE(${JSON.stringify(body.services)}, services),
+        boutique_image = COALESCE(${body.boutiqueImage}, boutique_image),
+        avatar         = COALESCE(${body.avatar}, avatar),
+        updated_at = NOW()
+      WHERE id = ${userId}
+      RETURNING *`;
+    if (!rows.length) return NextResponse.json({ success: false, error: 'Provider not found', data: null }, { status: 404 });
+    return NextResponse.json({ success: true, error: null, data: rows[0] });
   } catch (error) {
-    console.error("Error updating provider profile:", error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to update profile',
-      data: null
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Failed to update profile', data: null }, { status: 500 });
   }
 }

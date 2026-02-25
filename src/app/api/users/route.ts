@@ -1,52 +1,15 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/nextAuth";
-import { connectDB } from "@/lib/db";
-import { User } from "@/models/User";
+import { NextResponse } from 'next/server';
+import sql from '@/lib/db';
 
 export async function GET(request: Request) {
   try {
-    const id = request.headers.get("x-user-id")
-    await connectDB();
-    const user = await User.findOne({ id: id });
+    const userId = request.headers.get('x-user-id');
+    if (!userId) return NextResponse.json({ success: false, error: 'User not found', data: null }, { status: 404 });
 
-    if (!user) {
-      return NextResponse.json({
-        success: false,
-        error: 'User not found',
-        data: null
-      }, { status: 404 });
-    }
-
-    // Exclude sensitive fields
-    const userData = {
-      id: user._id.toString(),
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      birthDate: user.birthDate,
-      gender: user.gender,
-      location: user.location,
-      phone: user.phone,
-      avatar: user.avatar,
-      bio: user.bio,
-      pets: user.pets,
-      posts: user.posts,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    };
-
-    return NextResponse.json({
-      success: true,
-      error: null,
-      data: userData
-    });
+    const rows = await sql`SELECT id, first_name, last_name, email, birth_date, gender, location, phone, avatar, bio, created_at, updated_at FROM users WHERE id = ${userId} LIMIT 1`;
+    if (!rows.length) return NextResponse.json({ success: false, error: 'User not found', data: null }, { status: 404 });
+    return NextResponse.json({ success: true, error: null, data: rows[0] });
   } catch (error) {
-    console.error("Error fetching user profile:", error);
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-      data: null
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Internal server error', data: null }, { status: 500 });
   }
 }

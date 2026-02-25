@@ -1,7 +1,5 @@
-import { Types } from 'mongoose';
-
 export interface IUser {
-  _id: Types.ObjectId;
+  id: string; // UUID
   accType: 'regular' | 'provider'|'admin';
   email: string;
   firstName: string;

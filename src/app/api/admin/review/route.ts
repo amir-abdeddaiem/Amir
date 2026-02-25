@@ -1,74 +1,27 @@
-import { connectDB } from '@/lib/db';
-import { Review } from '@/models/Review';
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
+import sql from '@/lib/db';
 
 export async function GET(req: NextRequest) {
   try {
-    await connectDB();
-
-    const animalId = req.nextUrl.searchParams.get('animalId');
-
-    const filter = animalId && mongoose.Types.ObjectId.isValid(animalId)
-      ? { product: animalId }
-      : {};
-
-    const reviews = await Review.find(filter)
-      .populate('user', 'firstName lastName email')
-      .populate('product', 'name type')
-      .select('stars message photo product user createdAt')
-      .sort({ createdAt: -1 })
-      .lean();
-
-    return NextResponse.json({ success: true, reviews });
+    const productId = req.nextUrl.searchParams.get('productId');
+    const query = productId
+      ? await sql`SELECT r.*, u.first_name, u.last_name, u.email, p.name AS product_name FROM reviews r LEFT JOIN users u ON u.id = r.user_id LEFT JOIN products p ON p.id = r.product_id WHERE r.product_id = ${productId} ORDER BY r.created_at DESC`
+      : await sql`SELECT r.*, u.first_name, u.last_name, u.email, p.name AS product_name FROM reviews r LEFT JOIN users u ON u.id = r.user_id LEFT JOIN products p ON p.id = r.product_id ORDER BY r.created_at DESC`;
+    return NextResponse.json({ success: true, reviews: query });
   } catch (error) {
-    console.error('GET Reviews Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to fetch reviews',
-        error: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: 'Failed to fetch reviews' }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
-    await connectDB();
-
     const { reviewIds } = await req.json();
-
-    if (!Array.isArray(reviewIds) || reviewIds.length === 0 || !reviewIds.every(id => mongoose.Types.ObjectId.isValid(id))) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid or empty review IDs array'},
-        { status: 400 }
-      );
+    if (!Array.isArray(reviewIds) || !reviewIds.length) {
+      return NextResponse.json({ success: false, message: 'Invalid review IDs' }, { status: 400 });
     }
-
-    const deletedReviews = await Review.deleteMany({ _id: { $in: reviewIds } });
-
-    if (deletedReviews.deletedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: 'No reviews found to delete' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: `${deletedReviews.deletedCount} review(s) deleted successfully`,
-    });
+    const result = await sql`DELETE FROM reviews WHERE id = ANY(${reviewIds})`;
+    return NextResponse.json({ success: true, message: 'Review(s) deleted successfully' });
   } catch (error) {
-    console.error('DELETE Reviews Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to delete reviews',
-        error: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: 'Failed to delete reviews' }, { status: 500 });
   }
 }
